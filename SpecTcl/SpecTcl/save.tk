@@ -1,0 +1,949 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1997 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# manage saving and loading project files
+# this is temporary! 
+
+# save_project_as --
+#
+#	Prompts the user to save the project under a different name.
+#
+# Result:
+#	1: the project has been successfully saved.
+#	0: the user cancelled the action
+
+proc save_project_as {} {
+    global file_select_types P
+
+    set filename [tk_getSaveFile -filetypes $file_select_types \
+	    -defaultextension .$P(file_suffix)]
+
+    if [string match "" $filename] {
+	return 0
+    }
+
+    # (Patch): some versions of Tk don't handle the -defaultext switch
+
+    if {[file extension $filename] == ""} {
+	set filename $filename.$P(file_suffix)
+    }
+
+    if [save_project $filename] {
+	set P(file_untitled) 0
+	return 1
+    } else {
+	return 0
+    }
+}
+
+# save_project --
+#
+#	Writes the project to a file
+#
+# Arguments:
+#	file		Name of the file.
+#
+# Result:
+#	1: if file successfully saved.
+#	0: if the action has been aborted.
+#
+# Side effects:
+#	The Current(dirty) flag is cleared.
+
+proc save_project {file} {
+    dputs "Saving $file"
+    global Widgets _Message Id P Current Version
+    global Widget_data f Colors
+
+    if {[edit_statusFile $file] != 0} {
+	tk_messageBox -type ok -icon warning -message \
+	 "Please exit the external editor before attempting to save this file."
+	return 0
+    }
+
+    if {$file == ""} {
+	return 0
+    }
+
+    save_backup $file
+
+    if {[catch {open "$file" "w"} fd]} {
+	tk_messageBox -type ok -icon error -title "Save Error" -message \
+	    "Error opening \"$file\" for writing"
+	set _Message "Can't open file $file"
+	return 0
+    }
+    set P(project_dir) [file dirname $file]
+    cd $P(project_dir)
+    set Current(project) [file root [file tail $file]]
+
+    busy_on
+    set result [get_file_data]
+
+    puts $fd $result
+    close $fd
+    port_ownThisFile $file
+
+    update idletasks
+
+    set _Message "save completed"
+    set Current(dirty) ""
+    busy_off
+    return 1
+}
+
+# save_backup --
+#
+#	Saves a backup copy of the given file.
+#
+# Arguments:
+#	fileName:	full pathname of the file to backup.
+#
+# Result:
+#	None.
+
+proc save_backup {fileName} {
+    if ![file exists $fileName] {
+	return
+    }
+
+    set errMsg [concat "Error writing to backup file \"$fileName.bak\".\n" \
+	    "\"$fileName\" will be saved without a backup."]
+
+    if {[file exists $fileName.bak] && ![file writable $fileName.bak]} {
+	tk_messageBox -type ok -icon error -title "Backup Error" -message \
+	    $errMsg
+	return
+    }
+    if [catch {
+	if [file exists $fileName.bak] {
+	    file delete $fileName.bak
+	}
+	if [file exists $fileName] {
+	    file copy $fileName $fileName.bak
+	}
+    } error] {
+	tk_messageBox -type ok -icon error -title "Backup Error" -message \
+	    $errMsg
+    }
+
+    return
+}
+
+# get_generic_options --
+#
+#	Gather the generic options and put them into the array associated
+#	with the root window. This info will saved into the .ui file so
+#	that the generic options can be restored the next time when the
+#	project is opened.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	The string to appear in f(generic_options)
+
+proc get_generic_options {} {
+    global widgets Widget_data
+
+    set opts "\n\t"
+    foreach w [lsort $widgets] {
+	upvar #0 sample_$w data
+
+	append opts "\t"
+	lappend opts $w
+	set lst "\n\t\t"
+	foreach i [lsort [array names data]] {
+	    append lst "\t"
+	    set value $data($i)
+	    if {[info exists Widget_data(infilter:$i)]} {
+		$Widget_data(infilter:$i) value
+	    }	    
+	    lappend lst $i $value
+	    append lst "\n\t\t"
+	}
+	lappend opts $lst
+	append opts "\n\t"
+    }
+    return $opts
+}
+
+# get_file_data --
+#
+#	Returns the content of the project as it would appear inside
+#	a project file. This procedure is normally from three places
+#	- by save_project: to format the content of a project file
+#	- by to_clipboard: puts info of the selected widgets in the clipboard
+#	- by specerror: puts the project content in bug report
+#
+# Arguments:
+#	start_widget_name: The name of the starting widget (not its pathname)
+#	E.g. "foo" instead of ".f.bar.foo"
+#
+# Result:
+
+proc get_file_data {{start_widget ""}} {
+    global Widgets _Message Id P Current Version
+    global Widget_data Colors
+
+    outline_inhibit 1
+    set result ""
+
+    append result \
+	"$Id, version $Version, created:  [clock format [clock seconds]]\n"
+    set_title $Current(project)
+
+    # compute geometry options (fix padding name clash)
+    blt_get .can geom
+
+    set_frame_level .can.f
+    set Widgets(f) 1
+    set widget_list [array names Widgets]
+    if {$start_widget != ""} {
+	set widget_list $start_widget
+	set widget_list [concat $widget_list [get_children $start_widget]]
+    }
+    foreach item $widget_list {
+	set _Message "saving $item"
+	update
+	append result "Widget $item\n"
+
+	upvar #0 $item data
+	if {$item == "f"} {
+	    widget_extract .can.f
+	    set data(Colors) $Colors
+	    set data(generic_options) [get_generic_options]
+	} else {
+	    widget_extract .can.f.$item
+	}
+
+	set class $data(type)
+	foreach i [array names data] {
+
+	    # figure out what "type" of option we have
+	    # since {,i}pad[xy] are used both for geometry
+	    # and configuration, handle them specially
+
+	    # skip configuration values that are defaulted!
+	    # This doesn't catch equivalent forms of the
+	    # same value
+
+	    set skip 0
+	    foreach type "$class geometry table" {
+		if {![catch {set default $Widget_data(default:$type,$i)}]} {
+		    set attrib $i
+		    if {$item == "f"} {
+			set thisitem ""
+		    } else {
+			set thisitem ".$item"
+		    }
+		    if {[regexp {highlight(.*)} $i dummy what]} {
+			set what [format %s%s \
+			    [string toupper [string range $what 0 0]] \
+			    [string range $what 1 end]]
+			set attrib "highlight$what"
+		    }
+		    
+		    set defaultdb \
+			[option get .can.f$thisitem $attrib widgetDefault]
+
+		    if {$defaultdb != ""} {
+			set default $defaultdb
+		    }
+		    if {([string compare [list $default] [list $data($i)]] ==0)
+			|| ([string compare $default [list $data($i)]] == 0)} {
+			incr skip
+			break
+		    }
+		}
+	    }
+	    if {$skip} {
+		continue
+	    }
+	    set map $i
+	    if {[info exists Widget_data(default:$class,$i)]} {
+		set type configure
+	    } elseif {[info exists geom(-$i)]} {
+		set type geometry
+	    } elseif {[string match *wad* $i]} {
+		set type geometry
+		regsub wad $i pad map
+	    } elseif {[string match *align* $i]} {
+		set type geometry
+		regsub align $i anchor map
+	    } elseif {$i == "master" && $item == $start_widget} {
+		set data($i) {}
+	    } else {
+		set type other
+	    }
+
+	    # run the input conversion filters
+	    set value $data($i)
+	    if {[info exists Widget_data(infilter:$i)]} {
+		$Widget_data(infilter:$i) value
+	    }
+	    append result \t[list $type $map $value]\n
+	}
+    }
+    outline_inhibit 0
+    return $result
+}
+
+# compile_project --
+#
+#	Compiles the project (.ui) into an application (.tcl, .java, .. etc)
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	None.
+
+proc compile_project {} {
+    global Current P
+
+    set _Message "Generating $P(include_suffix) code"
+    update idletasks
+    compile_$P(file_suffix) \
+	[file join $P(project_dir) $Current(project).$P(file_suffix)] \
+	[file join $P(project_dir) $Current(project).$P(target_suffix)]
+
+    return
+}
+
+# run_app --
+#
+# 	Execute the application generated by the compile_project command.
+#
+
+proc run_app {name} {
+    global _Message Widgets Current P
+    # compute frame stacking and tabbing order
+    set_frame_level .can.f
+    
+    set _Message "Starting test application"
+    update idletasks
+    
+    set init {
+	load {} Tk
+	tk appname {test_%1$s}
+	wm title . {SpecTcl - %1$s}
+	bind . <Destroy> exit
+	# wm protocol . WM_DELETE_WINDOW {after idle exit}
+	wm protocol . WM_DELETE_WINDOW exit
+	source {%2$s}
+	%3$s
+    }
+    
+    catch {test_interp eval exit}
+    set test [interp create test_interp]
+    interp alias $test exit {} exit_interp $test
+    if {[file readable $name.$P(include_suffix)]} {
+	set start "source \"$name.$P(include_suffix)\""
+	set _Message "Starting \"$name.$P(include_suffix)\""
+	update idletasks
+    } else {
+	set start  "[list ${name}_ui] ."
+    }
+    set user_code [format $init $name \
+	[file join $P(project_dir) $name.$P(target_suffix)] $start]
+    set result [catch {$test eval $user_code} msg]
+    if {$result} {
+	bgerror "Bug in user defined code:\n$msg"
+    }
+}
+
+# There are serious re-entrancy bugs in slave interps with Tk in them, so We'll
+# try to skate around them for now.
+
+proc exit_interp {name args} {
+    $name  eval {bind . <Destroy> {}}
+    $name  eval {destroy .}
+    interp delete $name
+    disable_kill_test
+}
+
+
+# set the levels on existing widgets so that they can be sorted with the new 
+# widgets loaded from a file.  Ugh.
+
+proc identify_levels {{start .can.f} {level 0}} {
+    dputs $start $level
+    upvar \#0 [winfo name $start] data
+    set data(level) $level
+    incr level
+    foreach qq [grid slaves $start] {
+	if {[regexp {frame\#[0-9]$} $qq]} {
+	    set array [winfo name $qq]
+	    global $array
+	    set [set array](level) $level
+	    identify_levels $qq $level
+	}
+    }
+}
+
+# a debugging tool, this prints the hierarchy of widget to master.
+
+proc print_hierarchy {{widget .can.f} {prefix "" }} {
+    upvar \#0 [winfo name $widget] data
+    if {[info exists data(master)]} {
+	puts "$prefix$widget - $data(master)"
+    } else {
+	puts "$prefix$widget - *"
+    }
+    foreach qq [grid slaves $widget] {
+	if {![string match *@* $qq] && ![string match *_outline $qq]} {
+	    print_hierarchy $qq "$prefix  "
+	}
+    }
+}
+
+proc load_build_project {{master .can.f} {clean 1}} {
+    dputs $master $clean
+    global Widgets _Message Id Frames P Widget_data Current Next_widget
+    global Colors
+
+    set do {}
+    # sets the levels for widgets that don't have them set so that 
+    # we can do the sort below.  This happens when loading a project 
+    # into a sub-frame.
+    identify_levels
+
+    # create and manage the widgets
+    # Sort first, so frames get made first
+
+    foreach name [lsort -command sort_widgets2 [array names Widgets]] {
+	upvar #0 $name data
+
+	if {$name == "f"} {
+	    if {$clean > 0} {
+		make_decorations $master
+		# get any preferences out of the project file
+		catch {array set P $data(preferences)}
+	    }
+	    if {[info exists data(Colors)]} {
+		set Colors $data(Colors)
+	    }
+	    continue
+	}
+
+	update_widget_counters $name
+
+	# filter the font
+	if {[info exists data(font)] && ![regexp {\-\*\-} $data(font)]} {
+	    set value $data(font)
+	    $Widget_data(outfilter:font) dummy font value
+	    set data(font) $value
+	}
+
+	# the rows and columns
+	foreach dim {row column} {
+	    if {![info exists data($dim)]} {
+		set data($dim) 2
+	    } else {
+		set data($dim) [expr $data($dim) * 2]
+	    }
+	}
+
+	# the rows and columns spans
+	foreach dim {rowspan columnspan} {
+	    if {![info exists data($dim)]} {
+		set data($dim) 1
+	    } else {
+		set data($dim) [expr $data($dim) * 2 -1]
+	    }
+	}
+
+	if {[info exists data(master)] && $data(master) == ".f"} {
+	    set data(master) ""
+	}
+
+	# make the widget, set the bindings
+	if {$master == ".clipboard"} {
+	    set where ".clipboard"
+	} else {
+	    set where ".can.f"
+	}
+	if {![winfo exists $where.$name]} {
+	    lappend do [widget_configure $name $where 0];
+	    outline_create $name
+	    widget_extract $where.$name	;# add default options to array
+	}
+	if {[info exists data(resize_row)]} {
+	    bindtags $where.$name "busy frame widget [bindtags $where.$name]"
+	    make_decorations $where.$name
+	} else {
+	    bindtags $where.$name "busy widget [bindtags $where.$name]"
+	}
+
+	set done($name) 1
+    }
+    arrow_activate .can .can.f
+    foreach i $do {
+	if {[catch $i]} {
+	    append oops "[lindex [split [lindex $i 1] .] end] "
+	}
+    }
+    if {[info exists oops]} {
+	set msg "The following widgets could not be managed:\n$oops"
+	tk_dialog .error "Open Error"  $msg "error" 0 OK
+    }
+}
+
+proc load_prep_widget {lines master clean} {
+    dputs $lines $master $clean
+    global Widgets _Message Id Frames P Widget_data Current \
+	Next_widget Aliases Oldref Widget_names
+    set leftovers {}
+    set oldname {}
+    set newname {}
+    set name {}
+    set bol 0
+    set eol $bol
+    set limit [string length $lines]
+    while {$eol <= $limit} {
+	set line {}
+	set eol $bol
+	while {$bol >= 0 && $eol <= $limit} {
+	    if {[set fol [string first "\n" [string range $lines [incr eol] end]]] == -1} {
+		set eol [expr $limit+1]
+		break
+	    }
+	    set eol [expr $fol+$eol]
+	    if {[info complete [string range $lines $bol $eol]]} {
+		set line [string range $lines $bol $eol]
+		set bol [incr eol]
+		break
+	    }
+	} 
+	if {![info complete "$leftovers$line"]} {
+	    if {$leftovers == {}} {
+		set leftovers $line
+	    } else {
+		set leftovers "$leftovers\n$line"
+	    }
+	    continue
+	} else {
+	    if {$leftovers == {}} {
+		set leftovers $line
+	    } else {
+		set line "$leftovers\n$line"
+	    }
+	    set leftovers {}
+	}
+	if {[string first Widget $line] == 0} {
+	    if {$name != {} && $clean < 1 && [set [set name](master)] == {}} {
+		if {[info exists [set name](rowspan)]} {
+		    set [set name](rowspan) 1
+		}
+		if {[info exists [set name](columnspan)]} {
+		    set [set name](columnspan) 1
+		}
+	    }
+	    set name [lindex $line 1]
+	    if {$clean < 1} {
+		global $name
+		if {[array exists $name] && $name != "f"} {
+		    # renumber the widget, and remember for later xlation.
+		    regexp {([^\#]*)\#*(.*)} $name dum newname number
+		    set newname $newname\#[incr Next_widget($newname)]
+		    set Aliases($newname) $name
+		    set Oldref($name) $newname
+		    set oldname $name
+		    set name $newname
+		}
+	    }
+	    if {$clean < 1 && $name == "f"} {
+		# the geometry needs to be set for the containing frame, 
+		# not the master canvas.
+		set name [winfo name $master]
+		global $name
+	    } else {
+		global $name
+		set Widgets($name) 1
+	    }
+	    continue
+	}
+	if {$clean < 1} {
+	    set tag [lindex $line 1]
+	    if {$tag == "level"} {
+		set lev 1
+		regexp {level ([0-9]*)} $line dum lev
+		if {$lev != {}} {
+		    regsub "level $lev" $line "level [expr $lev+1]" line
+		}
+	    } elseif {$tag == "item_name"} {
+		if {![regsub "item_name $oldname" $line "item_name $name" line]} {
+		    regsub "item_name [lindex $line 2]" $line "item_name $name" line
+		}
+	    } elseif {$tag == "master"} {
+		if {$name == [winfo name $master]} {
+		    regexp -- {-in ([^ ]*)} [grid info $master] dummy parent
+		    regsub "master \{\}" $line "master .[winfo name $parent]" line
+		}
+	    }
+	} else {
+	    set tag [lindex $line 1]
+	    set value [lindex $line 2]
+	    if {$tag == "item_name"} {
+		if {[info exists Widgets_names($value)]} {
+		    regsub "item_name $value" $line "item_name $name" line
+		} else {
+		    set Widgets_names($value) $name
+		}
+	    }
+	}
+	# special hack for alignment and padding
+	if {[regexp {geometry[ 	]+anchor} $line]} {
+	    regexp {geometry anchor ([^ ]*)} $line dummy anchorkludge
+	    regsub {geometry anchor [^ ]*} $line {} line
+	    set line "geometry sticky $anchorkludge"
+	    array set $name [lrange $line 1 end]
+	} elseif {[regexp {other[ 	]+fill} $line]} {
+	    regexp {other fill ([^ ]*)} $line dummy fillkludge
+	    regsub {other fill [^ ]* } $line {} line
+	    set line "geometry sticky ${fillkludge}"
+	    #			array set $name [list align [lindex $line end]]
+	    array set $name [lrange $line 1 end]
+	} elseif {[regexp {geometry[ ]+(i?)pad([xy])} $line dummy i x]} {
+	    array set $name [list ${i}wad$x [lindex $line end]]
+	} else {
+	    if {$clean < 1 && $name == [winfo name $master]} {
+		# make sure that the new enclosing widget knows its name
+		# if we are loading into a subframe.
+		regsub "pathname f\$" $line  "pathname $name" line
+		regsub "itemname f\$" $line "itemname $name" line
+	    }
+	    array set $name [lrange $line 1 end]
+	}
+
+	foreach def [array names Widget_data default:table*] {
+	    set i [lindex [split $def ,] 1]
+	    if ![info exists [set name]($i)] {
+		if [info exists Widget_data(default:table,$i)] {
+		    set [set name]($i) $Widget_data(default:table,$i)
+		}
+	    }
+    }
+    }
+    if {$clean < 1 && [set [set name](master)] == {}} {
+        if {[info exists [set name](rowspan)]} {
+            set [set name](rowspan) 1
+        }
+        if {[info exists [set name](columnspan)]} {
+            set [set name](columnspan) 1
+        }
+    }
+}
+
+# This is where we can pass a string to be loaded.
+proc load_project_string {lines {master .can.f} {clean 1}} {
+    dputs $lines $master $clean
+    global Widgets _Message Id Frames P Widget_data Current \
+	Next_widget Aliases Oldref Widgets_names
+
+    catch {unset Widgets_names}
+
+    set first_widget {}
+
+    if {[info exists Aliases]} {
+	unset Aliases
+    }
+    if {[info exists Oldref]} {
+	unset Oldref
+    }
+    # the load_prep_widget function checks for name clashes and loads
+    # whatever data it finds into global arrays.
+    set fullline {}
+    while {1} {
+	set startstring [string first "^Widget"  $lines]
+	set endstring [string first "^Widget" [string range $lines \
+		[expr $startstring+1] end]]
+	if {$endstring < 0} {
+	    break
+	} else {
+	    incr endstring $startstring
+	}
+	set fullline [string range $lines $startstring $endstring]
+	set lines [string range $lines [incr endstring] end]
+	load_prep_widget $fullline $master $clean
+    }
+    if {$endstring < 0} {
+	load_prep_widget $lines $master $clean
+    }
+    if {$clean < 1} {
+	# translate the widgets that had name clashes.
+	foreach qq [array names Widgets] {
+	    if {$qq == "f"} {
+		continue
+	    }
+	    upvar \#0 $qq data
+	    if {[info exists data(pathname)]} {
+		if {[info exists Aliases($qq)]} {
+		    if {$data(pathname) == $Aliases($qq)} {
+			set data(pathname) $qq
+		    }
+		}
+		# if the widget doesn't exist yet, then we're loading it...
+		if {![winfo exists .can.f.$data(pathname)]} {
+		    set mmaster [string range $data(master) 1 end]
+		    # Now make sure the master is correct
+		    if {$data(master)== "" && $qq != "[winfo name $master]"} {
+			set data(master) .[winfo name $master]
+		    } elseif {[info exists Oldref($mmaster)] \
+			      &&  $qq != "[winfo name $master]" \
+			      &&  $qq != $Oldref($mmaster)} {
+			if {$data(pathname) != $Oldref($mmaster) &&
+				([info exists Aliases($qq)]
+				&& $Aliases($qq) != $first_widget)} {
+			    set data(master) .$Oldref($mmaster)
+			} else {
+			    set data(master) .$mmaster
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+    # Do the work of loading the project
+    load_build_project $master $clean
+
+    # Handle the "generic options" stored for this project.
+    #
+    global widgets f
+    if [info exists f(generic_options)] {
+	foreach {widget opts} $f(generic_options) {
+	    global sample_$widget
+	    foreach {field value} $opts {
+		set sample_${widget}($field) $value
+	    }
+	}
+    }
+
+    foreach widget $widgets {
+	upvar #0 sample_$widget typeData
+	foreach item [array names typeData] {
+	    catch {
+		validate_field sample_$widget $item $typeData($item)
+	    }
+	}
+    }
+    set Current(text) ""
+}
+
+# load a project.  Must be in EMPTY grid
+# Well, maybe not!, just avoid name clashes!
+# This should be combined with the widget creation for 
+# both mouse-based widget creation and undo
+# This is a temporary hack!!
+
+#
+# Result:
+#	1: the file has been successfully loaded
+#	0: the file doesn't exist or is not a UI file
+
+proc load_project {file {master .can.f} {clean 1} {load_in_frame 0}} {
+    dputs $file $master $clean
+    global Widgets _Message Id Frames P Widget_data Current Next_widget
+    
+    set _Message "loading project $file"
+    update idletasks
+    if {![winfo exists $master]} {
+	set _Message "master $master does not exist!"
+	return 0
+    }
+
+    if [catch {
+	set fd [open "$file" r]
+    }] {
+	tk_messageBox -type ok -icon error -message \
+	    "Cannot open $file for reading"
+	return 0
+    }
+
+    set line ""
+    gets $fd line
+    if {[string first $Id $line] != 0} {
+	tk_messageBox -type ok -icon error -message "$file is not a UI file"
+	close $fd
+	return 0
+    }
+    
+    if {$clean > 0} {
+	# clear the slate, or abort	
+	if {$Current(dirty) != "" || [array names Widgets] != ""} {
+	    if {![clear_all_broken]}  {
+		close $fd
+		return 0
+	    }
+	}
+    }
+
+    # read in the sucker!!
+
+    busy_on
+    if {$load_in_frame} {
+	set old_project $Current(project)
+    }
+    set Current(project) [file root $file]
+    if {[file readable $Current(project).rc] && \
+	    [catch {uplevel \#0 [list source $Current(project).rc]} msg]} {
+        set message "Error reading file [pwd]/$Current(project).rc: $msg"
+	tk_messageBox -message $message -type ok \
+		-icon error
+    }
+
+    if {$load_in_frame} {
+	set Current(project) $old_project
+    }
+
+    set_title $Current(project)
+    set Current(dirty) ""
+    set lines [read $fd]
+    close $fd
+
+    # Okay, at this point we've gotten it into a string...now load from
+    # that string...
+    load_project_string $lines $master $clean
+
+    busy_off
+    return 1
+}
+
+# sort a list of widgets so the "masters" always get made first
+# this will be called from qsort
+#  - Frames go in front of widgets
+#  - Master frames go in front of their children
+
+proc sort_widgets2 {w1 w2} {
+    upvar #0 $w1 a $w2 b
+    if {$a(type) != "frame" && $b(type) != "frame"} {
+	return 0
+    }
+    if {$a(type) != "frame"} {
+	return 1
+    }
+    if {$b(type) != "frame"} {
+	return -1
+    }
+
+    # both frames look for child master relationship
+
+    return [expr $a(level) - $b(level)]
+}
+
+# make the grid lines, arrows, etc
+
+proc make_decorations {master} {
+    global P Frames
+    upvar #0 [winfo name $master] data
+    grid_create $master [expr 1 + 2 * [llength $data(resize_row)]] \
+	    [expr 1 + 2 * [llength $data(resize_column)]] \
+	    $P(grid_size) $P(can_bg)
+    set Frames($master) 1
+
+    arrow_create .can_row row $master all
+    arrow_create .can_column column $master all
+    arrow_shapeall .can $master row
+    arrow_shapeall .can $master column
+    arrow_activate .can $master
+}
+
+# make sure the Next_widget counters are set properly
+#  name:		the "itemname"
+
+proc update_widget_counters {name} {
+    global Next_widget
+    dputs $name
+    if {![regexp  {([^#]*)#([0-9]*)} $name dummy name count]} {
+	return
+    }
+    dputs $name -> $name $count
+    if {[info exists Next_widget($name)] && $Next_widget($name) < $count} {
+	dputs $name $count -> $Next_widget($name)
+	set Next_widget($name) $count
+    }
+}
+
+# save_if_dirty --
+#
+#	If the UI has been modified, ask the user whether the UI should be
+#	saved.
+#
+# Arguments:
+#	askUser: false iff file should be saved automatically if it's dirty.
+#
+# Result:
+#	0 - UI has been modified and user selected "CANCEL"
+#	1 - all other cases.
+#		- UI has not been modified.
+#		- UI has been modified and user selected "NO" (discard changes)
+#		- UI has been modified, user selected "YES" and file has
+#		  been saved.
+
+proc save_if_dirty {{askUser 1} {message ""} {type yesnocancel}} {
+    global Current P
+
+    check_project_file_exist
+
+    if {$Current(dirty) == ""} {
+	return 1
+    }
+
+    if {$askUser == 0} {
+	set answer yes
+    } else {
+	if ![string comp $message ""] {
+	    set message \
+	        "\"$Current(project)\" has been modified. Save all changes?"
+	}
+	set answer [tk_messageBox -message $message -type $type \
+		-icon warning]
+    }
+
+    switch -- $answer {
+	yes {
+	    if $P(file_untitled) {
+		return [save_project_as]
+	    } else {
+		return [save_project [file join $P(project_dir) \
+			$Current(project).$P(file_suffix)]]
+	    }
+	}
+	no {
+	    return 1
+	}
+	cancel {
+	    return 0
+	}
+    }
+}
+
+proc check_project_file_exist {} {
+    global Current P
+
+    set projectFile [file join $P(project_dir) \
+	$Current(project).$P(file_suffix)]
+    if {!$P(file_untitled)} {
+
+	#
+	# Some bastard has removed the .ui file after SpecTcl saved it. The
+	# follow code is the only way to test whether the file is indeed
+	# removed -- [file exists] may return stale info on an NFS. We must
+	# do a read on the file to make sure.
+	#
+	if {![file exists $projectFile]} {
+	    set Current(dirty) "1"
+	} elseif [catch {
+	    set fd [open $projectFile RDONLY]
+	    read $fd 10
+	}] {
+	    set Current(dirty) "1"
+	}
+	catch {close $fd}
+    }
+}
