@@ -152,6 +152,11 @@ proc ::menueditor::init {root} {
    }
    destroy $::menueditor::mbase
    
+   # Set the flag indicating that something has been edited
+   # (a bit dirty to do it here, since one doesn't actually change
+   #  anything by just openning this window)
+   set ::Current(dirty) 1
+   
    # Hide the tearoff checkbutton
    grid forget $::menueditor::base.cbTearoff
 }
