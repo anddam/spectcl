@@ -183,22 +183,7 @@ $base.remove config -command "
    }
 "
 $base.add config -command "
-   switch \${mbType.value} {
-      checkbutton -
-      radiobutton -
-      command {
-         $mbase add \${mbType.value} -label \[$base.eLabel get\] -command {$mbase post 0 0}
-      }
-      cascade {
-         $mbase add cascade -label \[$base.eLabel get\] -menu $mbase.\[$base.eMenu get\]
-         menu $mbase.\[$base.eMenu get\]
-      }
-      separator {
-         $mbase add separator
-      }
-   }
-   $mbase activate end
-   catch {\[focus\] selection range 0 end\]}
+   ::menueditor::additem
 "
 
 # Still needs work
@@ -256,6 +241,8 @@ proc $l {args} "
 
 catch {$l selection set 0}
 catch {$mbase activate 0}
+
+
 
 
 
