@@ -525,4 +525,5 @@ April 2001 taken over by Morten Skaarup Jensen
 
 Works for Tcl/Tk 8.4a2 widgets (i.e. spinbox)
 Other widget sets like BLT, Tix etc can be used
+WYSIWYG menu editor and code generation
 

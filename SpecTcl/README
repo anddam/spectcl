@@ -2,7 +2,7 @@ Welcome to release 1.2 of SpecTcl/SpecJava
 
 This is a source release of Spectcl 1.2.  This will run as provided
 under Windows 95, MacOS, various UNIX flavors, with Tcl 7.6 and Tk
-4.2 or greater (Tcl/Tk 8.0+ is required for widget extensions like BLT).
+4.2 or greater (Tcl/Tk 8.0+ is required for widget extensions like BLT and for the WYSIWYG menu editor).
 
 Under UNIX, if this distribution is unpacked into $SPECHOME, then the
 DIR variable in the scripts "specJava" and "specTcl" in the bin
