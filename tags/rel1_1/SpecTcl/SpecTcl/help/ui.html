@@ -1,0 +1,270 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+   <TITLE>SpecTcl User Interface Description</TITLE>
+   <META NAME="GENERATOR" CONTENT="Mozilla/3.01Gold (X11; I; SunOS 5.4 sun4m) [Netscape]">
+</HEAD>
+<BODY>
+
+<CENTER><P><!-- SpecTcl, by S. A. Uhler --
+ -- Copyright (c) 1994-1995 Sun Microsystems, Inc. --
+ -- See the file "license.txt" for information on usage and redistribution
+ -- of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ --></P></CENTER>
+
+<H1 ALIGN=CENTER>SpecTcl User Interface</H1>
+
+<H2 ALIGN=CENTER>Main window</H2>
+
+<CENTER><P><IMG SRC="l1.gif" HEIGHT=501 WIDTH=762><BR>
+</P></CENTER>
+
+<P>This view of the SpecTcl user interface shows the location of the major
+functional regions. </P>
+
+<DL>
+<DT>MenuBar </DT>
+
+<DD>Most of the capabilities of SpecTcl may be invoked from one of the
+menus on the MenuBar. Many of those options have single-key <I>short cuts
+</I>, the key, or key combination that is listed to the right of the menu
+option. </DD>
+
+<DT>Tool-Bar </DT>
+
+<DD>Many of the common widget configuration options may be accessed via
+the <A HREF="glossary.html#toolbar">tool-bar</A> as well as from the widget's
+option sheet. When ever a widget is selected, the icon for each tool-bar
+item will change to reflect the current state of its option for that widget.
+The <A HREF="glossary.html#toolbar">tool-bar</A> items permit rapid configuration
+of (from left to right&gt;: </DD>
+
+<UL compact>
+<LI>The sides of the widget that stick to the enclosing cell </LI>
+
+<LI>How the text within a widget is justified (left, right, or center)
+</LI>
+
+<LI>The text style (plain, bold, italic, or both). The text style, unlike
+the other <A HREF="glossary.html#toolbar">tool-bar</A> items, is not a
+menu. repeatedly clicking on the <B>A</B> cycles through the various styles.
+</LI>
+
+<LI>The point size for the text in the widget </LI>
+
+<LI>The <TT>foreground</TT> color of the widget. This also sets the <TT>activeforeground</TT>
+If the default color choices are not adequate, selecting <I>more...</I>
+will pop up a dialog box to add an arbitrary color to the palette. </LI>
+
+<LI>The background color of the widget. </LI>
+
+<LI>The shape of the border relief (flat, raised, sunken, ridge, or groove)
+</LI>
+
+<LI>The border thickness </LI>
+
+<LI>The orientation, either <TT>horizontal</TT> or <TT>vertical</TT>. </LI>
+</UL>
+
+<DT>Widget Palette </DT>
+
+<DD>The widget palette contains an entry for each widget that SpecTcl discovered
+during startup. Widgets are created by dragging them with the mouse from
+the palette onto the <A HREF="glossary.html#canvas">canvas</A>, or by clicking
+on a palette item to select it, and then clicking on empty grid cells to
+create one of these widgets. Normally widgets are created with their Tk
+defaults. Double-clicking on a palette item brings up a generic widget
+option sheet, which can be used to alter the default properties that widgets
+are created with. </DD>
+
+<DT>Row Handles </DT>
+
+<DD>The row handles are used to configure the minimum size and resize behavior
+of a table row, as well as provide visual feedback while dragging a widget.
+Each grid (or sub-grid) within the <A HREF="glossary.html#canvas">canvas</A>
+has its own row handles. Only the handles for the current grid are displayed.
+The following operations are valid on row handles: </DD>
+
+<UL compact>
+<LI>Clicking on a row handle selects it, causing it to turn <color value=red>red</color>.
+Once a row handle is selected, its row may be deleted with the <TT>delete</TT>
+key. A row is never deleted if it is occupied by a widget that would have
+to be deleted in order to make the row go away. </LI>
+
+<LI>Once a row handle is selected, clicking on it toggles the resize behavior
+of its row. The shape of the ends indicates its current resize behavior.
+</LI>
+
+<LI>Grabbing a handle with the mouse and dragging it causes its minimum
+size to be changed. This will cause any widget in that row whose sticky
+property is either <TT>n</TT> or <TT>s</TT> to grow or shrink accordingly.
+Currently, the smallest size a row may shrink to is two pixels, or the
+height of the largest widget in that row. </LI>
+
+<P>Resizing rows that contain widgets that span multiple rows may appear
+to have strange behavior, due to the way the resize constraints are maintained.
+The Current height of the row (in pixels) is displayed in the <A HREF="#message">message
+area</A> during the drag. </P>
+</UL>
+
+<DT>Column Handles </DT>
+
+<DD>The column handles are used to configure the minimum size and resize
+behavior of a table column, as well as provide visual feedback while dragging
+a widget. Each grid (or sub-grid) within the <A HREF="glossary.html#canvas">canvas</A>
+has its own column handles. Only the handles for the current grid are displayed.
+The following operations are valid on column handles: </DD>
+
+<UL compact>
+<LI>Clicking on a column handle selects it, causing it to turn <color value=red>red</color>.
+Once a column handle is selected, its column may be deleted with the <TT>delete</TT>
+key. A column is never deleted if it is occupied by a widget that would
+have to be deleted in order to make the column go away. </LI>
+
+<LI>Once a column handle is selected, clicking on it toggles the resize
+behavior of its column. The shape of the ends indicates its current resize
+behavior. </LI>
+
+<LI>Grabbing a handle with the mouse and dragging it causes its minimum
+size to be changed. This will cause any widget in that column whose sticky
+property is either <TT>e</TT> or <TT>w</TT> to grow or shrink accordingly.
+Currently, the smallest size a column may shrink to is two pixels, or the
+width of the largest widget in that column. </LI>
+
+<P>Resizing columns that contain widgets that span multiple column may
+appear to have strange behavior, due to the way the resize constraints
+are maintained. The Current height of the column (in pixels) is displayed
+in the <A HREF="#message">message area</A> during the drag. </P>
+</UL>
+
+<DT>Message area </DT>
+
+<DD>The <A NAME="message"></A>message area is used for a variety of things
+in SpecTcl. </DD>
+
+<UL compact>
+<LI>If <B>help</B> is turned on (the default), anytime the mouse cursor
+stays on a user interface element for more than a couple of seconds, a
+one line description of that element is displayed in the message area.
+</LI>
+
+<LI>Warnings, progress messages and diagnostics are displayed in the message
+area where appropriate. </LI>
+
+<LI>When dragging either a widget or a resize handle, the message area
+is used to indicate the progress of the dragging operation </LI>
+
+<LI>When SpecTcl is busy, the message area turns <color value=red>red</color>.
+Wait until the message changes to black before initiating any user interface
+actions </LI>
+</UL>
+
+<DT>grid </DT>
+
+<DD>The grid demarcates the rows and column in which widgets are placed
+to create the user interface. The grid lines divide the user interface
+into <B>rows</B> and <B>columns</B>. The rectangular region created by
+the intersection of a row and a column is called a <B>cell</B>. Each widget
+may occupy (exclusively) a rectangular group of cells, which is called
+a <B>cavity</B>. Grid lines never cross a cavity, and are <I>erased</I>
+where a cavity spans a row or column boundary. </DD>
+
+<P>The size of the grid may be increased or decreased as desired. New rows
+or columns may be added by clicking on an existing grid line. Empty rows
+or column may be deleted either by selecting the appropriate row or column
+handle and keying <TT>delete</TT>, or by clicking on an empty cell (which
+automatically selects the cell's row and column handles), then keying <TT>delete</TT>.
+</P>
+
+<DT>Canvas </DT>
+
+<DD>The <A HREF="glossary.html#canvas">canvas</A> is the semi-infinite
+area in which the user interface or <B>panel</B> is built, and contains
+the grid and the widgets of the user interface. </DD>
+
+<DT>scroll bars </DT>
+
+<DD>A user interface may be constructed which is larger than the currently
+viewable area of the <A HREF="glossary.html#canvas">canvas</A>. The scrollbars
+may be used to scroll the desired region of the <A HREF="glossary.html#canvas">canvas</A>
+into view. </DD>
+
+<P>When dragging a widget, the <A HREF="glossary.html#canvas">canvas</A>
+view (and scrollbars) are automatically repositioned when the widget is
+dragged to the edge of the <A HREF="glossary.html#canvas">canvas</A>'s
+viewable region. </P>
+
+<DT>project name </DT>
+
+<DD>The name of the current <B>project</B> or user interface panel is displayed
+in the SpecTcl title bar, along with the version of SpecTcl being used.
+The representation of the title bar is controlled by the window manager,
+so the position and style of the title may differ from what is shown in
+the picture. </DD>
+</DL>
+
+<H2 ALIGN=CENTER>Selected widget</H2>
+
+<CENTER><P><IMG SRC="5a.gif" BORDER=3 HEIGHT=437 WIDTH=663><BR>
+</P></CENTER>
+
+<P>A widget's properties can only be changed while the widget is <B>selected</B>
+Only one widget may be selected at a time, either by <B>clicking</B> on
+it with the mouse, or by using the arrow keys. </P>
+
+<P>The selected widget is always highlighted by a <color value=red>red
+border </color>, called the selection highlight. (Note that when a row
+or column handle is selected, it is also displayed in <color value=red>red</color>).
+</P>
+
+<P>In addition to being highlighted, the sides and corners of the selected
+widget's cavity are decorated with <B>resize handles</B> that may be used
+to change the number of cells that the cavity occupies. When the mouse
+cursor is over a resize handle, the cursor shape changes to indicate the
+direction (or directions) that the cavity may grow. The cavity may only
+be expanded until it reaches the end of the grid, or abuts another cavity.
+</P>
+
+<P>When a widget is moved or copied (or pasted from the clipboard), its
+cavity is changed to occupy a single cell, to make it more apparent where
+it will go when it is dropped. There are three ways to change the selected
+widgets properties: </P>
+
+<DL compact>
+<DT>The option sheet </DT>
+
+<DD>The option sheet is a scrollable list of key/value pairs that contains
+every configuration property for a widget. It is accessed by keying <I>control-w</I>,
+selection <I>widget options</I> from the menu, or by double-clicking on
+the widget. </DD>
+
+<DT>The tool-bar </DT>
+
+<DD>The tool-bar allows configuring common widget properties quickly, without
+resorting to the option sheet. </DD>
+
+<DT>By direct manipulation </DT>
+
+<DD>The row, column, row-span, and column-span may be adjusted directly,
+by dragging the widget or its cavities resize handles. </DD>
+</DL>
+
+<CENTER><P>
+<HR></P></CENTER>
+
+<H2 ALIGN=CENTER>Option Sheet</H2>
+
+<CENTER><P><IMG SRC="option.gif" HEIGHT=336 WIDTH=388><BR>
+The widget's option sheet may be used to configure all of its properties.
+Each property must be validated before the change is affected. Before validation,
+the text for the option is shown in <color value=red>red</color>. When
+the <B>dismiss</B> button is pressed, all non-validated values resort to
+their last good value. </P></CENTER>
+
+<P>some of the widget's options are rarely used by applications, and are
+deemed to be <I>additional</I>. By deselecting the <TT>additional</TT>
+check-box at the bottom of the window, the <I>additional</I> options are
+removed from the option sheet. </P>
+
+</BODY>
+</HTML>

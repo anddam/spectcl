@@ -1,0 +1,182 @@
+WidGet file, version 1.1, created:  Tue Jul 29 18:24:25 PDT 1997
+Widget scrollbar#1
+	geometry row 3
+	configure orient v
+	other error {}
+	other type scrollbar
+	other master {}
+	other pathname scrollbar#1
+	other tags {}
+	configure width 10
+	other level {}
+	other help {}
+	configure borderwidth 2
+	geometry column 4
+	other comments {}
+	geometry sticky nes
+	other item_name scrollbar#1
+	other tabbing {}
+	configure command {%B.listbox#1 yview}
+Widget button#1
+	geometry row 3
+	other type button
+	other error {}
+	configure anchor w
+	other master {}
+	configure default disabled
+	configure text {Fill listbox}
+	other pathname button#1
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 5
+	configure borderwidth 4
+	other comments {}
+	geometry column 2
+	other item_name button#1
+	other tabbing {}
+	configure command ListboxInit
+	geometry sticky w
+Widget label#1
+	geometry row 2
+	configure height 5
+	other error {}
+	other type label
+	configure anchor w
+	other master {}
+	configure text {Text display}
+	configure justify left
+	other pathname label#1
+	other tags {}
+	configure width 20
+	other level {}
+	other help {}
+	configure wraplength 150
+	configure padx 11
+	other comments {}
+	geometry column 2
+	configure borderwidth 4
+	configure relief sunken
+	other tabbing {}
+	other item_name textLabel
+	geometry sticky nesw
+Widget label#2
+	geometry columnspan 2
+	geometry row 2
+	configure height 5
+	other error {}
+	other type label
+	other master {}
+	configure text {Image display}
+	configure justify left
+	other pathname label#2
+	configure font {interface user,12}
+	other tags {}
+	configure width 6
+	other level {}
+	other help {}
+	configure padx 5
+	configure borderwidth 4
+	geometry column 4
+	other comments {}
+	geometry sticky nesw
+	other item_name imageLabel
+	other tabbing {}
+	configure relief sunken
+Widget listbox#1
+	geometry row 3
+	configure height 0
+	other error {}
+	other type listbox
+	other master {}
+	other pathname listbox#1
+	other tags {}
+	configure font {interface user,12}
+	other level {}
+	configure width 16
+	other help {}
+	configure borderwidth 4
+	other comments {}
+	geometry column 5
+	configure relief groove
+	configure yscrollcommand {%B.scrollbar#1 set}
+	other tabbing {}
+	other item_name listbox#1
+	geometry sticky nsw
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 3 3 0}
+	other type frame
+	other code {# The exListbox.ui example demonstrates the working
+# of a listbox. After, displaying four items in the
+# listbox, the script displays text and an image when
+# any of the listbox items is clicked.
+
+bind .listbox#1 <ButtonRelease-1> {ShowSel}
+ 
+proc ListboxInit {} {
+   # FillListbox places a list of names in the listbox
+   global txt
+ 
+   set txt(label) "A label widget typically identifies something for the user, such as an entry widget, with a word or two of text."
+   set txt(button) "A button lets the user cause an action: the Tcl command in the button's command property."
+   set txt(checkbutton) "A checkbutton lets the user toggle a feature on or off."
+   set txt(listbox) "A listbox lets the user select one of a series of displayed lines of text."
+ 
+   .listbox#1 delete 0 end
+ 
+   foreach fname { label button checkbutton listbox } {
+     .listbox#1 insert end $fname
+   }
+}
+ 
+proc ShowSel { } {
+   # ShowSel displays text and an image file that correspond to a user's listbox choice
+ 
+   global txt
+ 
+   # Find the user's choice and display the related text
+   set i [.listbox#1 curselection]
+   set choiceName [.listbox#1 get $i]
+   .textLabel config -text $txt($choiceName)
+ 
+   # Now display the related image file
+   set fname exListbox.${choiceName}.gif
+   set iw [image create photo -file $fname]
+   .imageLabel config -image $iw 
+}
+
+
+
+
+
+}
+	other min_row {10 59 58 11}
+	other master {}
+	other pathname f
+	other resize_column {0 0 0 0 0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {9 104 18 11 46 10}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+

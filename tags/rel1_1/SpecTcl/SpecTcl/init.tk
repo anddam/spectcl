@@ -1,0 +1,71 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# global state initialization
+# This is preliminary as global and static variables that are currently
+# initialized in various source files migrate to here
+
+set Advanced 0				;# show advanced options on property sheets
+set Arrow_move 0			;# currently sweeping row/col arrows
+set Cancel 0				;# after id for current auto-repeat event
+set Clip ""					;# clipboard contents
+set Colors "black white bisque grey red green blue magenta yellow [. cget -bg]"
+set Current(Test_app) ""	;# name of temorary app for build and test
+set Current(column) ""		;# the currently selected column tag
+set Current(dirty) ""		;# true if we need to save
+set Current(form) ""		;# the widget with an active option sheet
+set Current(repeat) ""		;# toolbar repeat command for ^.
+set Current(row) ""			;# the currently selected row tag
+set Current(sample) ""		;# current generic widget
+set Current(gridline) ""        ;# currently selected gridline
+set Current(text) ""		;# the text or label of the current widget
+set Current(widget) ""		;# name of "current widget(s)?"
+set Current(selected_widget_type) "" ;# palette button that's selected.
+set Current(last_selected_widget_type) "" ;# palette button that's selected.
+set Down 0					;# true if button is down
+set Fontstyle ""			;# toolbar font style
+set Grid 3					;# default grid line thickness
+set Id "WidGet file"		;# "Magic cookie" for ui files
+set Lost 1					;# true if we lost a button push
+set No_hit 0				;# hit -vs- sweep for row/col indicators
+set Outline_inhibit 0		;# don't do outlines if true
+set Status ""				;# keep track of the row/col we're sitting on
+set Undo_count 0			;# index of undo entries
+set Version $P(Version)				;# current version number
+set X0 0					;# cached mouse position on B-down
+set Y0 0					;# cached mouse position on B-down
+set _Message {}				;# global message line
+
+# global cursor map for SpecTcl
+
+set Choose_cursor(handle)	hand2		;# row or column handle
+set Choose_cursor(menu)		top_left_arrow	;# menu background
+set Choose_cursor(item)		hand2			;# menu items
+
+# grid position cursors
+array set Choose_cursor {
+    Cr sb_v_double_arrow        Cc sb_h_double_arrow         Crc cross
+    s  sb_down_arrow            n  sb_up_arrow
+    e  sb_right_arrow           w  sb_left_arrow
+    nw top_left_corner          ne top_right_corner
+    sw bottom_left_corner       se bottom_right_corner
+    inside  dot
+    occupied X_cursor
+	C circle
+    reset {}
+}
+
+# resize handle cursors
+array set Choose_cursor { 
+    handle_0 top_left_corner    handle_1 top_side    handle_2 top_right_corner 
+    handle_3 left_side          handle_4 cross       handle_5 right_side
+    handle_6 bottom_left_corner handle_7 bottom_side handle_8 bottom_right_corner
+}
+
+# row and column lines
+array set Choose_cursor {
+	row sb_v_double_arrow column sb_h_double_arrow
+}

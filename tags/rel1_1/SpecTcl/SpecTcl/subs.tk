@@ -1,0 +1,1072 @@
+# subs.tcl --
+#
+#	This file contains misc. routines that probably belong
+#	somewhere else.
+#
+# Copyright (c) 1997 Sun Microsystems, Inc. All rights reserved.
+#
+# SCCS: @(#) subs.tk 1.56 97/09/17 15:39:54
+
+
+# update the scroll region of a frame's containing canvas
+# This should be called every time the frame changes size
+# there should be a separate one of these for forms
+ 
+if {$P(center)} {
+    proc scrollregion_update {frame} {
+	set canvas [winfo parent $frame]
+	set fw  [winfo reqwidth $frame ]
+	set fh [winfo reqheight $frame]
+	set cw [winfo width $canvas]
+	set ch [winfo height $canvas]
+	
+	set x1 [expr ($fw - $cw)/2]
+	set x2 [expr $x1 + $cw]
+	set y1 [expr ($fh - $ch)/2]
+	set y2 [expr $y1 + $ch]
+	foreach i "$canvas ${canvas}_row ${canvas}_column" {
+	    catch {$i configure -scrollregion "$x1 $y1 $x2 $y2"}
+	}
+    }
+} else {
+    proc scrollregion_update {frame} {
+	set canvas [winfo parent $frame]
+	set width  [winfo reqwidth $frame ]
+	set height [winfo reqheight $frame]
+	foreach i "$canvas ${canvas}_row ${canvas}_column" {
+	    catch {$i configure -scrollregion "0 0 $width $height"}
+	}
+    }
+}
+
+# update table geometry
+# This should be call anytime the geometry of the table changes
+# Its slow, so try not to do this too often
+# parent: The "master" of the widgets
+
+# Schedule an update to happen later
+
+proc update_table {master {why "?"}} {
+    global Update_Scheduled
+    if {![info exists Update_Scheduled]} {
+	dputs $master
+	after idle "do_update_table"
+    }
+    dputs $master ($why)
+    set Update_Scheduled($master) 1
+}
+
+# do all scheduled updates
+
+proc do_update_table {} {
+    global Update_Scheduled Current
+    set list [array names Update_Scheduled]
+    dputs <$list>
+    if {[winfo exists $Current(frame)]} {
+	arrow_update .can $Current(frame)
+	outline_update $Current(frame)
+    }
+    scrollregion_update .can.f
+    catch {unset Update_Scheduled}
+}
+
+# run a command later, but not if already scheduled
+
+proc when_idle {cmd {when idle}} {
+    after cancel $cmd
+    after $when $cmd
+}
+
+# clone a widget for interactive placement (just geometry)
+ 
+proc clone_widget {old new} {
+    set class [winfo class $old]
+    lappend cmd [string tolower \
+	    [string index $class 0]][string range $class 1 end] $new
+    foreach option [$old configure] {
+	if {[llength $option] != 5}  continue
+	if {[string compare [lindex $option 3] [lindex $option 4]] ==0} continue
+	lappend cmd [lindex $option 0] [lindex $option 4]
+    }
+    catch "destroy $new"
+    dputs  $old -> $new
+    if {[info comm [lindex $cmd 0]] == ""} {
+	set first [lindex $cmd 0]
+	set small [string tolower $first]
+	if {[info comm $small] != ""} {
+	    eval [concat $small [lrange $cmd 1 end]]
+	} else {
+	    set _Message "No such widget '$first'"
+	}
+    } else {
+	eval $cmd
+    }
+}
+
+# make an option entry form, make it tough to destroy
+# this will be expanded later.  Make sure its OK for the user to destroy
+# The window
+
+proc build_option_form {form {event 0}} {
+    global P
+    set P(build_option_form_pending) 0
+    if {$event} {
+	global Current
+	window_unhighlight $Current(sample) palette
+	set Current(sample) {}
+    }
+    if {[winfo exists $form]} {
+	bind $form <Destroy> {}
+	destroy $form
+    }
+    toplevel $form
+    label $form.msg -width 40
+    frame $form.form -highlightthickness 0
+    grid $form.form -row 0 -column 0 -sticky {nsew}
+    grid $form.msg -row 1 -column 0 -sticky ew
+    grid rowconfigure $form 0 -weight 1
+    grid rowconfigure $form 1 -weight 0
+    grid columnconfigure $form 0 -weight 1
+    wm withdraw $form
+    bind $form <Destroy> "
+	if \{\$P(build_option_form_pending) == 0\} \{
+            set P(build_option_form_pending) 1
+	    after idle \"build_option_form $form 1\"
+	\}
+    "
+}
+
+# don't put the following items into forms
+# this doesn't really belong here
+
+proc ignore_items {} {
+	global Widget_data
+	array set Widget_data {
+		ignore:type	{}
+		ignore:pathname	{}
+		ignore:error	{}
+		ignore:focus	{}
+		ignore:level	{}
+		ignore:master	{}
+		ignore:resize_row	{}
+		ignore:resize_column	{}
+		ignore:min_row	{}
+		ignore:min_column	{}
+		ignore:reqwidth	{}
+		ignore:reqheight	{}
+	}
+}
+
+# update the current form (if any) given a new widget value
+# This belongs in the forms package.
+
+proc sync_form {field value} {
+    global Widget_data _Message Current formslabels formsentries
+    
+    dputs $field $value
+    if {[set win $Current(widget)] == ""} {
+	return 0
+    }
+    set Current(dirty) 1
+    upvar #0 [winfo name $win] data
+
+    if {[info exists data($field)]} {
+	catch {set data($field) $value}
+	dputs "Setting [winfo name $win] $field <- $value"
+    }
+    
+    # update the entry form (if it exists)
+    
+    foreach q [array names formslabels] {
+	if {[string match $formslabels($q) $field] != 0} {
+	    dputs "updating $formslabels($q) ($field := $value)"
+	    if {[info exists Widget_data(infilter:$field)]} {
+		$Widget_data(infilter:$field) value
+	    }
+	    set formsentries($q) $value
+	    return 1
+	}
+    }
+    return 0
+}
+
+# keyboard short cuts for text entry - just testing
+# Automatically select a different widget
+# - If no widget is selected, select 1st widget in current frame
+# - If a widget is selected, select next widget in current frame
+
+proc short_cut {what} {
+    global Current Widgets
+    set widget $Current(widget)
+    
+    set widgets {}
+    foreach qq [grid slaves $Current(frame)] {
+	if {[string match *\#* $qq] &&
+		![string match *@* $qq] &&
+		![string match *_outline $qq]} {
+	    lappend widgets $qq
+	}
+    }
+    dputs $widgets
+    if {[llength $widgets] < 1 } return 
+    if {[llength $widgets] < 2 && $Current(widget) != ""} return 
+    switch -glob $what {
+	*Right {set opt increasing}
+	*Left {set opt decreasing}
+    }
+    set sorted [lsort -$opt -command "sort_widgets" $widgets]
+    dputs $sorted
+    
+    # loop through list to next widget which isn't me
+    
+    set me 0
+    foreach i "$sorted [lindex $sorted 0]" {
+	if {$widget != $i} {
+	    if {$me} break continue		;# I couldn't resist
+	} else {incr me}
+    }
+    unselect_widget
+    select_widget $i
+    sync_all
+    update idletasks
+}
+
+# sort some widgets either by increasing rows or columns
+# we should cache this information
+
+proc sort_widgets {win1 win2} {
+    regexp {.*\-column ([^ ]*) \-row ([^ ]*)} [grid info $win1] a c1 r1
+    regexp {.*\-column ([^ ]*) \-row ([^ ]*)} [grid info $win2] a c2 r2
+    return [expr {($r1*1000 + $c1) - ($r2*1000 + $c2)}]
+}
+
+# remove all outline traces - reset application
+
+proc reset_outlines {{name {}}} {
+    global Widgets Current
+    if {$name == "" && [array exists Widgets]} {
+	set list [array names Widgets]
+    } else {
+	set list $name
+    }
+    foreach i $list {
+	trace vdelete ${i}(geometry:rowspan) w  outline_trace
+	trace vdelete ${i}(geometry:columnspan) w  outline_trace
+    }
+}
+
+######## Stuff added to support row/column indicators
+
+# scroll multiple canvii with a single scroll bar
+#   list:		The list of canvii to scroll
+#   how:		"x" or "y"
+#   args:		The rest
+
+proc can_view {list how args} {
+    foreach canvas $list {
+	eval "$canvas ${how}view $args"
+    }
+}
+
+# extract info about a row or column of the table geometry manager
+# There's no easy way
+#  master:  The table "master"
+#  type:    "row" or "column"
+#  index:   the column or row number
+#  array:   Where to place the results
+
+proc extract_geom {master type index array} {
+	upvar $array data
+# XXX This feature doesn't exist yet!
+# We should be able to say 'grid rowconfigure $master $index'
+# and have it return all settings for the row.  Unfortunately
+# we have to query each one directly.
+    set config [grid ${type}configure $master $index]
+    set data(pad)   0
+    set data(resize) [grid ${type}configure $master $index -weight]
+    set data(min)    [grid ${type}configure $master $index -minsize]
+    set data(max)    Inf
+	return ""
+}
+
+# put it back
+
+proc insert_geom {master type index array} {
+    global P
+    upvar $array data
+
+    if {$data(min) < $P(grid_size)} {
+	set min $P(grid_size)
+    } else {
+	set min $data(min)
+    }
+
+    grid ${type}configure $master $index -padx $data(pad) \
+	    -weight $data(resize) -minsize "$min"
+}
+
+# Delete whatever is currently selected
+
+proc delete_selected {{arrows 1}} {
+    global Current _Message
+    undo_mark
+    if {[set die $Current(widget)] != ""} {
+	delete_selected_widget $die
+    } elseif {$arrows} {		;# try to delete selected row or column
+	delete_selected_arrow
+    }
+    update_table .can.f delete_widget
+}
+
+# delete the currently selected widget
+
+proc delete_selected_widget {die {force 0}} {
+    dputs $die
+    global Current _Message Widgets Frames P
+
+    # The check to prevent reentrancy causes problems because this
+    # code is recursive.  So, if called from outside, we set 'force' to
+    # zero.  If called from within, we set force to 1 so that all the
+    # child widgets get deleted when a frame is deleted.  Ugh.
+
+    if {(![info exists P(delete_pending)] || $P(delete_pending) == 0) || $force} {
+	set P(delete_pending) 1
+	unselect_widget
+	set name [winfo name $die]
+	reset_outlines $name
+	catch "destroy ${die}_outline"
+	
+	# destroy all widgets packed inside
+	
+	if {[info exists Frames($die)]} {
+	    undo_log delete_frame [winfo name $die] [grid_size $die]
+	    grid_destroy $die		;# only needed if we don't destroy the widget
+	    foreach i [grid slaves $die] {
+		if {![regexp {outline} $i]} {
+		    delete_selected_widget $i 1
+		}
+	    }
+	    unset Frames($die)
+	} else {
+	    undo_log delete_widget $name
+	}
+	destroy $die
+	unset Widgets($name)
+	# reset grid spacing if row/col becomes empty
+	grid_spacing $Current(frame) 	;# lazy!
+	set Current(widget) {}
+	set P(delete_pending) 0
+    }
+}
+
+# delete the currently selected row and/or column
+# don't delete the last row or column though
+
+proc delete_selected_arrow {} {
+    global Current _Message
+    if {$Current(gridline) == ""} {
+	foreach i {row column} {
+	    if {[llength [.can_$i find withtag tag:$Current(frame)]] == 1} continue
+	    if {[set tag $Current($i)] != ""} {
+		regexp {tag:([^_]*)_(.*)} $tag dummy master index
+		dputs "creating arrow $master $i $index"
+		if {![table_delete $master $i $index]} {
+		    set _Message "can't delete non-empty $i"
+		} elseif {[grid_remove $master $i]} {
+		    grid_update $master
+		    set tag [arrow_delete .can $i $master]
+		    if {$Current($i) == $tag || "current" == $tag} {
+			dputs "Unselecting dead $i arrow $tag"
+			set Current($i) ""
+		    }
+		}
+	    }
+	}
+    } else {
+	regexp {(.*)\.([^\.]*)@([0-9]*)} $Current(gridline) dummy master what index
+	set numdivs 0
+	foreach qq [grid slaves [winfo parent $Current(gridline)]] {
+	    if {[regexp "${what}@" $qq]} {
+		incr numdivs
+	    }
+	}
+	unselect_grid
+	# Make sure the user isn't deleting right or bottom-most index line, or
+	# the last one left.
+	if {$numdivs > 2 && $numdivs*2 > ($index+1)} {
+	    if {![table_delete $master $what [expr $index+1]]} {
+		set _Message "can't delete non-empty $what"
+	    } elseif {[grid_remove $master $what]} {
+		grid_update $master
+		set tag [arrow_delete .can $what $master]
+	    }
+	}
+	select_grid $master.$what@$index
+    }
+}
+
+# insert something in the currently selected whatever
+
+proc insert_selected {} {
+    global Current _Message
+    undo_mark
+    if {[set die $Current(widget)] != ""} {
+	insert_selected_widget $die
+    } else {				;# try to delete selected row or column
+	insert_selected_arrow
+    }
+}
+
+# insert something into a widget
+
+proc insert_selected_widget {die} {
+    
+}
+
+# insert a row/column, depending on what's highlighted
+
+proc insert_selected_arrow {} {
+    global Current _Message P
+    set columnsizes {}
+    set rowsizes {}
+    set evals {}
+
+    if {$Current(gridline) == ""} {
+	foreach i {row column} {
+	    if {[set tag $Current($i)] != ""} {
+		regexp {tag:([^_]*)_(.*)} $tag dummy master index
+		set ${i}sizes [linsert [subst "$[concat ${i}sizes]"] \
+			$index 30 3]
+
+		set win $Current(frame).$i@[expr $index-1]
+		if [winfo exists $win] {
+		    grid_insert $win
+		    lappend evals [list arrow_highlight $i $Current(frame) \
+			    $index $P(grid_highlight)]
+		}
+	    }
+	}
+    } elseif {$Current(gridline) != ""} {
+	grid_insert $Current(gridline)
+    }
+    foreach qq $evals {
+	eval $qq
+    }
+}
+
+
+# display progress of widget initialization
+
+proc widget_progress {name} {
+	global _Message
+	set _Message "locating all widgets: $name"
+	update idletasks
+}
+
+# temporary test mode (broken)
+
+proc test_mode {} {
+	global P _Message Test_mode Grid Was_grid
+	if {$Test_mode} {
+		set _Message "entering test mode"
+		unselect_widget
+		button_undo widget $P(button)
+		button_undo sub_widget $P(button)
+		set Was_grid 0
+		if {$Grid != 0} {
+			.buttons.grid invoke
+			set Was_grid 1
+		}
+		grid_spacing .can.f 0
+	} else {
+		set _Message "entering edit mode"
+		grid_spacing .can.f $P(grid_spacing)
+		button_setup . widget widget $P(button) $P(gravity)
+		if {$Was_grid} {
+			.buttons.grid invoke
+		}
+		# for sub-frames
+		button_setup . sub_widget widget $P(button) $P(gravity) \
+			{[winfo parent %W] %X %Y}
+	}
+}
+
+# place holder
+
+proc frame_configure {win} {
+	dputs "Calling frame configure"
+}
+
+
+# choose black, except when it won't show, then white
+
+proc contrast_color {color} {
+	set rgb  [winfo rgb . $color]
+	set y [expr {
+		[lindex $rgb 0]*0.6 + [lindex $rgb 1]*0.3 + [lindex $rgb 2]*0.1
+		}]
+	return [expr {$y > 1000 ? "black" : "white"}]
+}
+# choose black, except when it won't show, then white
+
+proc Contrast_color {color} {
+	set result #
+	foreach  i [winfo rgb . $color] {
+		if {$i > 32768 } {append result 0} {append result F}
+	}
+	return $result
+}
+
+proc current_frame {frame} {
+    global Frames Current P
+    dputs $frame ? $Current(frame)
+    if {$frame == $Current(frame)} return
+    arrow_unhighlight row
+    arrow_unhighlight column
+    arrow_activate .can $frame		;# temporary?    
+    
+    set Current(frame) $frame
+    
+    # fix up the grid colors
+    
+    foreach i [array names Frames] {
+	set current [$i cget -bg]
+	if {$i == $frame} {
+	    grid_color $i [Contrast_color $current]
+	} else {
+	    grid_color $i $current
+	}
+    }
+}
+
+# We'll keep track of this our selves
+
+proc find_master {win} {
+    if {[winfo exists $win]} {
+	upvar #0 [winfo name $win] data
+	if {[info exists data(master)]} {
+	    return $data(master)
+	}
+    }
+    return {}
+}
+
+# set the master window for this widget
+# We'll keep it in the widgets configuration array
+#  widget:  The widget name
+#  master:	The frame its packed in
+
+proc set_master {widget master} {
+	upvar #0 [winfo name $widget] data
+	dputs "set_master: $widget $master"
+	regsub {^\.can\.f} $master {} data(master)
+}
+
+# compute the nesting depth of frames, so their stacking order is
+# generated correctly.  Store result in the "level" entry of the widget
+# structure
+
+proc set_frame_level {master {level 0}} {
+    incr level
+    set exclude "@"
+    set gridslaves {}
+    regexp {frame\#[0-9]+} $master exclude
+    dputs "setting level $level for $master (exclude $exclude)"
+    foreach i [grid slaves $master] {
+	if {[regexp {frame\#} $i]} {
+	    if {![regexp "$exclude" $i]} {
+		lappend gridslaves $i
+	    }
+	}
+    }
+
+    foreach frame $gridslaves {
+	upvar #0 [winfo name $frame] data
+	set data(level) $level
+	set_frame_level $frame $level
+	dputs "level: $frame = $level"
+    }
+
+    # this will go away when I find the bug
+
+    if {$level == 1} {
+	global Widgets
+	foreach frame [array names Widgets frame*] {
+	    upvar #0 $frame data
+	    if {$data(level) == ""} {
+		lappend bad $frame
+		unset Widgets($frame)
+		destroy .can.f.$frame
+		unset data
+	    }
+	}
+	if {[info exists bad]} {
+	    tk_dialog .oops oops \
+		"Sorry, I lost the following frames: $bad"  \
+		error 0 OK
+	}
+    }
+}
+
+# compute a widgets nominal position, which is the top left corner
+# of its enclosing cell
+
+proc get_tabbing_coords {win} {
+    upvar #0 [winfo name $win] data
+    array set winjunk [grid info $win]
+    foreach {sizecolumn sizerow sizewidth sizeheight} \
+	[grid bbox $winjunk(-in) $winjunk(-column) $winjunk(-row)] {}
+    set x [expr [winfo x .can.f$data(master)] + $sizecolumn]
+    set y [expr [winfo y .can.f$data(master)] + $sizerow]
+
+    return "$y $x"
+}
+
+# figure out which sub-grid we're sitting on
+#   x,y:   Where we're at (%X, %Y)
+#   skip: never decend into this level
+#   start: where in the grid to start (used internally to manage recursion)
+
+proc find_grid {x y {skip ""} {start ".can.f"}} {
+    global Frames
+dputs $x $y $skip $start
+    
+    # don't desend onto self
+    
+    if {$start == $skip} {
+	dputs "Skipping SELF $start"
+	return $start
+    }
+
+    set myx [expr $x - [winfo rootx $start]]
+    set myy [expr $y - [winfo rooty $start]]
+    
+    foreach {column row} [grid location $start $myx $myy] {}
+    if {$column >= 0 && $row >= 0} {
+	set owner [grid slaves $start -column $column -row $row]
+    } else {
+	return $start
+    }
+    dputs $owner $column $row
+    foreach qq $owner {
+	dputs $qq
+	if {[info exists Frames($qq)]} {
+	    set start [find_grid $x $y $skip $qq]
+	}
+    }
+    return $start
+}
+
+# describe a widget briefly
+
+proc widget_describe {win} {
+	upvar #0 [winfo name $win] data
+
+	set text "?"
+	set class $data(type)
+	if {[info exists data(text)]} {
+		set text $data(text)
+	} elseif {[info exists data(label)]} {
+		set text $data(label) 
+	} else {
+		set text $data(item_name)
+		set try [split $text #]
+		if {[llength $try] > 1} {
+			set text [lindex $try end]
+		}
+	}
+	regsub -all "\n" $text / text
+	set text [string range $text 0 [string length $class]]
+	if {$text == $class} {
+		return $class
+	} else {
+		return "$class\n$text"
+	}
+}
+
+# see if a configuration change to a widget requires a table update
+# name:	The name of the window that got a configure event
+# This still forces updates even when none are needed
+
+proc check_update {name} {
+	upvar #0 [winfo name $name] data
+	set need_update 0
+	set width [winfo width $name]
+	set height [winfo height $name]
+	if {[catch {set change [expr $width != $data(pixel_width) || \
+			$height != $data(pixel_height)]}] || $change} {
+		set data(pixel_width) $width
+		set data(pixel_height) $height
+		update_table .can.f$data(master) "configure $data(master) $name"
+	}
+}
+
+# A simpler version
+
+proc check_update {name} {
+	upvar #0 [winfo name $name] data
+	update_table .can.f$data(master) "configure$name"
+}
+
+# (ToDo) rename to grid_get/grid_set
+# extract/insert blt_table options into an array
+# convert row and column to behave!
+
+proc blt_get {win array} {
+    upvar $array data
+    array set data [grid info $win]
+}
+
+proc blt_set {table win array} {
+    upvar $array data
+    return "grid $win -in $table [array get data -*]"
+}
+
+# insert a binding tag into a window
+
+proc insert_tag {win tag} {
+	set tags [bindtags $win]
+	if {[lsearch -exact $tags $tag] != -1} {
+		return 0		;# tag is already there
+	}
+	bindtags $win "$tag $tags"
+	return 1
+}
+
+# delete a tag from a tag binding.
+
+proc delete_tag {win tag} {
+	set tags [bindtags $win]
+	if {[set index [lsearch -exact $tags $tag]] == -1} {
+		return 0		;# tag is not there
+	} else {
+		bindtags $win [lreplace $tags $index $index]
+	}
+	return 1
+}
+
+# procedure to find a temporary file name.
+
+proc subs_uniquefile {{name {#tmp}} {suffix {}}} {
+    set idx 0
+    while {[file exists $name$idx$suffix]} {
+	incr idx
+    }
+    return $name$idx$suffix
+}
+
+
+# clear_all --
+#	Clear out everyhing
+#
+# Returns 1 always
+#
+proc clear_all {} {
+    global Widgets Current Frames Next_widget argv P f
+
+    set Current(dirty) ""
+
+    foreach i [array names Widgets] {
+	global $i
+	catch "unset $i"
+    }
+    set argv ""
+    catch {unset Frames}
+    catch {unset Undo_log}
+    undo_reset
+    eval "destroy [winfo children .can.f] .widget"
+    arrow_zapall .can
+    foreach i [array names Next_widget] {
+	set Next_widget($i) 0
+    }
+    foreach i [array names Current] {
+	set Current($i) ""
+    }
+    catch {unset Widgets}
+    catch {unset f}
+    catch {.edit.text delete 0.0 end}
+
+    foreach i [info globals geom:*] {
+	global $i; unset $i
+    }
+
+    grid_destroy .can.f
+
+    # reinitilize main
+    # This is overkill, but play it safe for now
+
+    set parent .can.f
+
+    # stacking order marker - below all buttons
+    frame $parent.marker
+
+    set Current(frame) $parent
+    set Current(project) $P(project)
+    set_title $Current(project)
+    set Frames($parent) 1
+    current_frame $parent 
+
+    widget_extract .can.f
+    set_master .can.f .can.f
+    set f(type) frame
+    grid_create .can.f $P(maxrows) $P(maxcols) $P(grid_size) $P(grid_color)
+    arrow_zapall .can
+    arrow_create .can_row row .can.f all
+    arrow_create .can_column column .can.f all
+    arrow_activate .can $parent $P(grid_color)
+    update idletasks
+    arrow_update .can .can.f
+    .can config -scrollregion [.can bbox all]
+}
+
+# short cut for accessing fields in property sheet (temporary)
+# look for fields of the form: .widget.form.can.f.<widget>,key*,entry  
+# If a field is in the map, go to it, else go to the 1st with letter
+
+array set Access_map {
+	t textvariable
+	c command
+	v variable
+	i item_name
+	w width
+}
+
+# wrong! need to check config array instead!
+# short cut for popping up option sheets.  Call the tk menu traversal
+# code explicitly if the key is not relevent
+
+proc access_field {key} {
+	global Current _Message Access_map
+	if {[set win $Current(widget)] == ""} {
+		return 0
+	}
+
+	catch {set key $Access_map($key)}
+	upvar #0 [winfo name $win] data
+	set field [lindex [lsort [array names data $key*]] 0]
+	dputs "accessing <$key> ($field)"
+	if {$field == ""} {
+		return 0
+	}
+	eval widget_up $win 0 0 .widget.form.can.f.[winfo name $win],$field,entry
+	raise .widget
+	return 1
+}
+
+# really_quit --
+#
+#	Cleans up and exits the application.
+#
+# Arguments:
+#	None.
+#
+# Results:
+#	Never returns.
+
+proc really_quit {} {
+    global P
+
+    # %Port!% Remove temporary files
+
+    if {![catch {glob /tmp/*[pid].$P(target_suffix)} result]} {
+	catch "exec \"rm -f $result\""
+    }
+
+    catch {
+	test_interp eval exit
+    }
+
+    exit
+}
+
+
+# set the window and icon title
+
+proc set_title {name} {
+    global P
+    dputs $name
+    set name [file tail $name]
+    wm iconname . $name
+    wm title . "$P(title) - $name"
+}
+
+# these procedures are intended to be used from the SpecTclrc file
+
+# add menu item to the SpecTcl menu
+#  menu: The name of the menu item to add this one after
+#  text: The text to show on the menu
+#  command: The procedure to invoke
+#  key:  short cut (unused)
+#  color:  Color for item
+
+proc add_menuitem {menu text command {key ""} {color #77f}} {
+    dputs $menu $text $command $key $color
+    global menubar_map
+    set m [menubar_getmenuname .menu $menu]
+    
+    if {$m != ""} {
+	set bg [$m entrycget end -background]
+	$m insert [expr 1 + [$m index $menu]] command \
+	    -label $text\
+	    -command $command \
+	    -foreground $color \
+	    -background $bg
+	set menubar_map($text) $m
+    }
+}
+		   
+proc del_menuitem {menu} {
+    set m [menubar_getmenuname .menu $menu]
+    if {$m != {}} {
+	$m delete [$m index $menu]
+    }
+}
+
+# choose a cursor.  Use symbolic cursor names
+
+proc cursor {name} {
+	global Choose_cursor
+	return $Choose_cursor($name)
+}
+
+# manage busy state
+
+proc busy_on {} {
+	global Busy P
+	if {![info exists Busy]} {
+		foreach win [winfo children .menu] {
+			bindtags $win "busy [bindtags $win]"
+		}
+	}
+	set Busy 1
+	bind busy <Key> {bell;break}
+	bind busy <$P(button)> {bell;break}
+	.message configure -fg red
+	update idletasks
+}
+
+proc busy_off {} {
+	global Busy P
+	if {![info exists Busy]} return
+	set Busy 0
+	bind busy <Key> {}
+	bind busy <$P(button)> {}
+	.message configure -fg black
+	update idletasks
+}
+
+
+# this is the "scroll set" command that unmaps the scrollbar when
+# its size would be 1
+proc scroll_set {win min max} {
+    global P
+    if {$min == 0 && $max == 1} {
+	gridforget $win
+    } else {
+	grid $win
+	$win set $min $max
+    }    
+}
+
+proc get_children {widget} {
+    if {$widget != "" && [winfo exists .can.f.$widget]} {
+	set result {}
+	foreach qq [grid slaves .can.f.$widget] {
+	    if {![string match "*@*" $qq] && ![string match "*outline" $qq]} {
+		lappend result [winfo name $qq]
+		set result [concat $result [get_children [winfo name $qq]]]
+	    }
+	}
+	return $result
+    } else {
+	return ""
+    }
+}
+
+# status_message --
+#
+#	Shows a message on the status bar. The message will disappear in
+#	15 seconds.
+#
+# Arguments:
+#	msg:	The message to display
+#
+# Result:
+#	None.
+#
+# Side effects:
+#	(1) update idletasks is called.
+#	(2) an after handler is created to clear the message in 10 seconds.
+
+proc status_message {msg} {
+    global spec _Message
+
+    if [info exists spec(msgHandle)] {
+	catch {
+	    after cancel $spec(msgHandle)
+	}
+	set _Message $msg
+	update idletasks
+    }
+    set spec(msgHandle) [after 10000 status_clear]
+}
+
+# status_clear --
+#
+#	Clear old status messages.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	None.
+
+proc status_clear {} {
+    global spec _Message
+
+    catch {
+	if [info exists unsetspec(msgHandle)] {
+	    after cancel $unsetspec(msgHandle)
+	}
+    }
+    catch {
+	unsetspec(msgHandle)
+    }
+    set _Message ""
+}
+
+# grayable_label --
+#
+#	Create a "label" widget that can be grayed-out to represent a
+#	disabled state. Since the Tk label widget doesn't support -disable
+#	in labels, we simulate that using a button widget:
+#
+# Arguments:
+#	pathname: pathname of the widget to create.
+#	args:	  option-value pairs to configure the widget.
+#
+# Result:
+#	$pathname
+
+proc grayable_label {pathname args} {
+    eval button $pathname -highlightthickness 0 -padx 1 -pady 1 -relief flat \
+	-bd 0 $args
+    bindtags $pathname [list $pathname Label [winfo toplevel $pathname] all]
+    return $pathname
+}
+
+# in tk4.2, "grid forget" became "grid remove"
+
+frame .forget_test
+if {[catch {grid remove .forget_test}]} {
+    proc gridforget args {
+	uplevel grid forget $args
+    }    
+} else {
+    proc gridforget args {
+	uplevel grid remove $args
+    }    
+}
+destroy .forget_test
+
+

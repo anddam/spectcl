@@ -1,0 +1,294 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1997 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# help messages for GUI builder
+# This is a place holder
+
+# test simple field help
+# enable or disable help on a field by field basis
+
+proc test_help {{on 1}} {
+    if {$on} {
+	bind all <Leave> {help_hideballoon}
+	bind all <Enter> {field_help %W %X %Y}
+    } else {
+	bind all <Leave> {}
+	bind all <Enter> {}
+    }
+}
+
+# display a help message for a widget
+# Widget could be destroyed in the mean time
+
+proc field_help {win X Y} {
+    global Field_help Widgets
+    if {![winfo exists $win]} {return}
+    if {$win == ""}  {
+	help_hideballoon
+    } elseif {[info exists Field_help($win)]} {
+	# eval at global level so we can reference globals in
+	# help messages
+	uplevel #0 "help_ballooninsert \[subst [list $Field_help($win)]\]"
+    } elseif {[info exists Widgets([winfo name $win])]} {
+	upvar #0 [winfo name $win] data
+	if {[info exists data(type)]} {
+	    set msg "$data(type) $data(item_name)"
+	} else {
+	    set msg "unknown $data(item_name)"
+	}
+	if {$data(help) != ""} {
+	    append msg " ($data(help))"
+	}
+	help_ballooninsert $msg
+    } elseif {[regexp {((row)|(column))@[0-9]+} $win dummy what]} {
+	help_ballooninsert "Click to select this gridline, then insert or delete"
+    } elseif {[regexp {_outline:(..?)} $win dummy what]} {
+	help_ballooninsert "Click and drag to change column or row span"
+    } elseif {[catch {
+	# puts "Sorry, no help for $win"
+    }]} {
+	help_ballooninsert "The item you requested help for is gone!"
+    }
+}
+
+# These are the help messages - subst'd at the global scope
+
+array set Field_help {
+    .can_xscroll    "Move main canvas left or right"
+    .can_yscroll    "Move main canvas up or down"
+    .can_row	    "Click to toggle resize behavior, drag to resize row"
+    .can_column	    "Click to toggle resize behavior, drag to resize column"
+    .palette	    "Click&drag for new widget, double-click for default properties dialog"
+    .menu	    "This is the menu bar."
+    .menu.menubutton#4	"Click to changes the SpecTcl preferences"
+    .menu.menubutton#5	"Click to view HTML help"
+    .menu.menub	    "Misc. options menu"
+    .entry	    "The text displayed on the current item"
+    .label	    "This is just a label, it doesn't do anything - really!"
+    .sticky	    "Which side(s) stick to cell (frames must be resizable)"
+    .sticky.f	    "Which side(s) stick to cell (frames must be resizable)"
+    .sticky.b	    "Which side(s) stick to cell (frames must be resizable)"
+    .just	    "Justify text (left, center, or right)"
+    .bgcolor	    "Selects the background color"
+    .fgcolor	    "Selects the foreground color"
+    .relief	    "Border style: flat, raised, sunken, ridged, or grooved"
+    .relief.inside  "Border style: flat, raised, sunken, ridged, or grooved"
+    .style	    "Select the text style from this menu"
+    .justify	    "Text justification: left, center, or right"
+    .font_size	    "Selects the point size for the font"
+    .borderwidth    "Selects how thick the border is"
+    .fg_color	    "Choose the foreground color"
+    .menu_bg_color  "Choose the background color"
+    .orient	    "Selects vertical or horizontal orientation"
+    .		    "-"
+    .frame\#7	    "This is a hidden passageway to the next level"
+    .toolbar	    "The toolbar"
+    .message	    "Message area"
+    .can	    "Extend the canvas by dragging a widget here"
+    .can.f	    "Click to select this row and column"
+    .helpbox        "Help messages will be shown here."
+}
+
+# The palette entries
+
+array set Field_help {
+    .palette.f.button "Drag onto canvas to create a button"
+    .palette.f.canvas "Drag onto canvas to create a canvas"
+    .palette.f.checkbutton "Drag onto canvas to create a checkbox"
+    .palette.f.entry "Drag onto canvas to create an entry"
+    .palette.f.frame "Drag onto canvas to create a container frame"
+    .palette.f.label "Drag onto canvas to create a label"
+    .palette.f.listbox "Drag onto canvas to create a listbox"
+    .palette.f.menubutton "Drag onto canvas to create a menu button"
+    .palette.f.radiobutton "Drag onto canvas to create a radio button"
+    .palette.f.scrollbar "Drag onto canvas to create a scrollbar"
+    .palette.f.text "Drag onto canvas to create a text"
+    .palette.f.message "Drag onto canvas to create a message"
+    .palette.f.scale "Drag onto canvas to create a scale"
+}
+
+# the preferences (incomplete)
+
+array set Field_help {
+    .prefs.f.c		"Click on a tab to select it"
+    .prefs.f.general.button#1	"This doesn't do anything yet"
+    .prefs.f.general.checkbutton#13	"Saves stuff in the startup file"
+    .prefs.f.appear.canvas#2 "Reserved for future use"
+}
+
+# These are the help texts for the commands on the toolbar.  This
+# is really a silly way to specify help, because it's in a different
+# file from where the toolbar widget itself is created.  *sigh*
+array set Field_help {
+    .insert      "Click to insert a row or a column"
+    .delete      "Delete the currently selected item"
+    .run         "Click to test the interface"
+    .stop        "Click to stop the tested interface"
+}
+
+# This handles the nitty-gritty of setting up a widget's balloon help,
+# taking the delay into account.
+proc help_ballooninsert {t} {
+    dputs $t
+    global P
+    
+    if {$P(help)} {
+        set P(balloontext) $t
+        if {$P(balloonpending) != {}} {
+            after cancel $P(balloonpending)
+        }
+        set P(balloonpending) [after $P(balloondelay) \
+		[list help_showballoon $t]]
+    }
+}
+ 
+# Actually show the text of the balloon message, and set the status line
+# up to be cleared.
+proc help_showballoon {t} {
+    dputs $t
+    global P
+    
+    if {$P(balloonerasepending) != {}} {
+        after cancel $P(balloonerasepending)
+    }
+    set P(balloonpending) {}
+    .helpbox config -state normal
+    .helpbox delete 0 end
+    .helpbox insert end $t
+    .helpbox config -state disabled
+    if {$P(balloonhelpforget)} {
+        after $P(balloonlength) help_hideballoon
+    }
+}
+ 
+# Finally clear the status line.
+proc help_hideballoon {} {
+    dputs ""
+    .helpbox config -state normal
+    .helpbox delete 0 end
+    .helpbox insert end {}
+    .helpbox config -state disabled
+}
+ 
+# Configure a widget to also have some balloon help.
+# currently this help is editted via the 'edit code' option of
+# SpecTcl.
+proc help_balloontext {w txt} {
+    dputs $w $txt
+    global P
+    
+    bind $w <Enter> "+help_ballooninsert [list $txt]"
+    if {$P(balloonhelpforget)>0} {
+        bind $w <Leave> "+help_hideballoon"
+    } else {
+        bind $w <Leave> "+help_ballooninsert {}"
+    }
+}
+
+#global tk_version
+#if {$tk_version >= 8.0} {
+#    bind balloonmenu <<MenuSelect>> {+help_menuSelect %W}
+#}
+bind balloonmenu <Enter> {+help_menuMove %W %y %s}
+bind balloonmenu <Motion> {+help_menuMove %W %y %s}
+bind balloonmenu <Key-Return> {+set P(help_current) -1}
+bind balloonmenu <Leave> {+set P(help_current) -1}
+bind balloonmenu <Key-space> {+set P(help_current) -1}
+bind balloonmenu <ButtonRelease> {+set P(help_current) -1}
+
+proc help_menuSelect {w} {
+    catch {
+	set name [$w entrycget active -label]
+	help_ballooninsert $menus_bhelp($name)
+    }
+}
+
+proc help_menuMove {w y s} {
+    dputs $w $y $s
+    set oldy -1
+    set idx [$w index last]
+    set newy [$w yposition $idx]
+    while {$oldy != $newy} {
+        if {$y >= $newy} {
+            help_handleEntry $w $idx
+            return
+        }
+        set oldy $newy
+        set idx [expr $idx-1]
+        if {$idx > -1} {
+            set newy [$w yposition $idx]
+        }
+    }
+}
+ 
+# Put the appropriate string in the help text area.
+proc help_handleEntry {w i} {
+    dputs $w $i
+   global P menus_bhelp
+   
+   if {$i > -1 && $P(help_current) != $i} {
+       set P(help_current) $i
+       set type [$w type $i]
+       if {$type != "tearoff" && $type != "separator"} {
+           set name [list [$w entrycget $i -label]]
+           if {$name != {} && [info exists menus_bhelp($name)]} {
+               help_ballooninsert $menus_bhelp($name)
+           }    
+       } else {
+           help_ballooninsert {}
+       }
+   }
+}
+
+array set menus_bhelp {
+   "New"          "Clear the canvas and start a new project"
+   "Open..."      "Load a project into the canvas"
+   "Save"         "Save the current project"
+   "{Save As...}" "Save the current project under a new name"
+   "Quit"         "Exit SpecTcl"
+   "{Edit Code}"  "Edit code that is inserted into SpecTcl's output"
+   "{Edit Text Property}"  "Edit the text property of the widget"
+   "{Widget Properties...}" "Open the Properties dialog for the current widget"
+   "{Default Properties}" " "
+   "Delete"       "Delete the current item (gridline, widget, column or cell)"
+   "Insert"       "Insert a row and/or column (when one is selected)"
+   "Cut"          "Cut the current widget to clipboard"
+   "Copy"         "Copy the current widget to the clipboard"
+   "Paste"        "Paste the contents of the clipboard into the canvas"
+   "Build"        "Compile this project"
+   "{Build and Test}" "Compile and run this project"
+   "{Stop Test}"  "Stop the currently executing test"
+   "{Load Project into Frame...}" "Load a project into a frame"
+   "{Attach Scrollbars}" "Hook the scrollbars to appropriate widgets"
+   "{Reapply the Toolbar}" "Repeat last property change on current widget"
+   "Navigate"          "Move between widgets"
+   "{Next Widget}"     "Go to the next widget in the tabbing order"
+   "{Previous Widget}" "Go to the previous widget in the tabbing order"
+   "{Select Parent}"    "Go to the parent frame of the current widget"
+   "{Select 1st Child}" "Go to the first child of the current frame."
+   "Options..."        "Edit the preferences for SpecTcl"
+   "{Save Options}"    "Save current options"
+   "About"             "About SpecTcl"
+   "{Getting Started}" "A quick-reference sheet to SpecTcl"
+   "{Help Contents}"   "A full help guide and tutorial to SpecTcl" 
+}
+
+proc help_dialog {w msg buttext} {
+    catch {destroy ${w}}
+    toplevel ${w}
+    frame ${w}.f
+    button ${w}.f.b -command "destroy ${w}" -text $buttext
+    pack ${w}.f.b
+    pack ${w}.f -side bottom -fill x
+    frame ${w}.t
+    scrollbar ${w}.t.s -command "${w}.t.t yview"
+    text ${w}.t.t -yscrollcommand "${w}.t.s set"
+    pack ${w}.t.s -side right -fill y
+    pack ${w}.t.t -fill both -expand 1
+    pack ${w}.t -fill both -expand 1
+    ${w}.t.t insert end $msg
+}
+

@@ -1,0 +1,617 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# This file contains the data filtering and validation filters for the
+# forms package
+#   The filters take a window and variable name as an argument, and replace its
+#     value with the translated one, then return Success or failure.
+#
+#   The input filter is invoked just as the data is written onto the form
+#		if the input conversion fails, the result should be set to {}
+#
+#   The output filter translates the data on the form to the format used
+#	  by the application.  Upon failure, an error message is placed into
+#     the argument, instead of the conversion.  The output filter is called
+#	  any time the user "leaves" an entry field
+#		output filters take 3 arguments:
+#		 The name of the widget
+#		 The option being filtered
+#		 The name of the variable the old/new value is to be stored in
+
+# map Font names to hide X naming grungyness
+# This is temporary until TK supports a better strategy
+# These are configured as forms data filters.
+
+# X wants "-*-Helvetica-Bold-R-Normal-*-*-120-*-*-*-*-*-*"
+# We'll use: format: <family>,<size>,[<Bold>,<Italic>]
+
+# convert X font representation to UI representation
+# convert the data in place, return 1/0 for conversion success
+
+proc InFilter_font {variable args} {
+    # Hacked to parse abbreviated font specifications.
+    upvar $variable data
+    global tcl_version
+    set family {}
+    set size   12     ;# default size
+    set weight medium ;# default weight
+    set style  r      ;# default style
+
+    if {$tcl_version >= 8.0} {
+	# Tk 8.0 has builf-in font command to handle this stuff.
+	#
+	if ![catch {set xxsize [lindex $data 1]}] {
+	    if [regexp {(^[-][0-9]+$)|(^[0-9]+$)} $xxsize] {
+		array set qq [font actual $data]
+		set family [lindex $data 0]
+		if {[string comp $qq(-weight) bold] == 0} {
+		    set weight bold
+		}
+		if {[string comp $qq(-weight) italic] == 0} {
+		    set style I
+		}
+		set size [expr abs($xxsize)]
+		set done 1
+	    }
+	}
+    }
+
+    if ![info exists done] {
+	if {[string index $data 0] == "-"} {
+	    set fields [split $data -]
+	    switch [llength $fields] {
+		1 {
+		    set family [lindex $fields 0]
+		}
+		2 { set family [lindex $fields 0]
+		    set size   [lindex $fields 1]
+		}
+		3 {
+		    set family [lindex $fields 0]
+		    set weight [lindex $fields 1]
+		    set size   [lindex $fields 2]
+		}
+		15 {
+		    set family [lindex $fields 2]
+		    set weight [lindex $fields 3]
+		    set style  [lindex $fields 4]
+		    catch {set size [expr [lindex $fields 8] / 10]}
+		}
+		default {
+		    uplevel "set $variable {}"
+		    puts stderr "$data"
+		    return 0
+		}
+	    }
+	} else {
+	    #this is tough...for font 7x14, the base is '7x14'.  for 
+	    #a12biluc, the base is 'a12biluc'.  for courier14, it's 'courier'.
+	    if {[regexp {^[0-9]} $data]} {
+		regexp {([0-9]*)$} $data dummy size
+	    } elseif {[regexp {([0-9]*)$} $data dummy size]} {
+		regsub {[0-9]*} $data {} data
+	    }
+	    # we don't have standard X font syntax...try something else...
+	    foreach q {bold black demi} {
+		if {[regexp "$q" $data]} {
+		    regsub "$q" $data {} data
+		    set weight bold
+		    break
+		}
+	    }
+	    foreach q {italic oblique} {
+		if {[regexp "$q" $data]} {
+		    regsub "$q" $data {} data
+		    set style i
+		    break
+		}
+	    }
+	    foreach q {roman normal medium book} {
+		if {[regexp "$q" $data]} {
+		    regsub "$q" $data {} data
+		    set style r
+		    break
+		}
+	    }
+	    foreach q {narrow light} {
+		# can't handle these...but we've got to pull them out
+		# if they're here.
+		if {[regexp "$q" $data]} {
+		    regsub "$q" $data {} data
+		    break
+		}
+	    }
+	    while {[regexp {\-$} $data]} {
+		regsub {\-$} $data {} data
+	    }
+	    set family $data
+	}
+    }
+    set result $family,$size
+    if {[string tolower $weight] == "bold"} {append result ,Bold}
+    if {$style == "I"} {append result ,Italic}
+    uplevel "set $variable \"$result\""
+    return 1
+}
+
+# convert font from UI representation to X representation
+
+proc OutFilter_font {win option variable args} {
+    upvar $variable data
+    set ok 1
+    set fields [split $data ,]
+    set family [string trim [lindex $fields 0]]
+    set sizeString [string trim [lindex $fields 1]]
+    regsub -all {^[0]*} $sizeString "" sizeString
+    set size ${sizeString}0
+    set weight Medium
+    set style R
+    foreach i {2 3} {
+	switch -glob [set arg [string trim [lindex $fields $i]]] {
+	    {[iI]talic}	{set style I}
+	    {[bB]old}	{set weight Bold}
+	    {}			{;}
+	    default {
+		set error \
+		    "Invalid font style \"$arg\", try \"Bold\" or \"Italic\""
+		uplevel "[list set $variable $error]"
+		return 0
+	    }
+	}
+    }
+    if {$size == {}} {set size 100}
+    if {$family == {}} {set family Times}
+    set result "-*-${family}-${weight}-${style}-Normal-*-*-${size}-*-*-*-*-*-*"
+    catch  "label ._font_test_"
+    
+    # bad font.  Figure out why for message
+    
+    if {[catch "._font_test_ configure -font [list $result]"]} {
+	set wrong 1
+	if {$weight == "Bold"} {
+	    set tryweight {bold black demi}
+	} else {
+	    set tryweight {{}}
+	}
+	if {$style == "R"} {
+	    set trystyle {{} normal medium book roman} 
+	} elseif {$style == "I"} {
+	    set trystyle {oblique italic}
+	} else {
+	    set trystyle {{}}
+	}
+	set result {}
+	foreach fweight $tryweight {
+	    foreach fstyle $trystyle {
+		set test "${family}${fweight}${fstyle}"
+		if {[catch "._font_test_ config -font $test"]} {
+		    set test "${family}-${fweight}${fstyle}"
+		    if {[catch "._font_test_ config -font $test"]} {
+			set test "${family}-${fweight}-${fstyle}"
+			if {[catch "._font_test_ config -font $test"]} {
+			} else {
+			    set result $test
+			    break
+			}
+		    } else {
+			set result $test
+			break
+		    }
+		} else {
+		    set result $test
+		    break
+		}
+	    }
+	    if {$result != ""} {
+		break
+	    }
+	}
+	if {$result == ""} {
+	    set test "-*-${family}-${weight}-${style}-Normal-*-*-*-*-*-*-*-*-*"
+	    if {![catch "._font_test_ configure -font [list $test]"]} {
+		set result "Invalid font size \"$sizeString\" for $family,$style"
+	    } else {
+		set test "-*-${family}-*-*-Normal-*-*-*-*-*-*-*-*-*"
+		if {[catch "._font_test_ configure -font [list $test]"]} {
+		    set result "Invalid font family \"$family\""
+		} else {
+		    set result "Unsupported font style combination"
+		}
+	    }
+	    set ok 0
+	}
+    }
+    uplevel "[list set $variable $result]"
+    return $ok
+}
+
+# geometry manager row/colum mangling (not much error checking for now)!
+# These should be combined 
+# internally, widgets are in: 2,4,6...
+# - The "odd" indexes are where the grid lines go
+# - Index "0" is reserved
+# externally they go in:   1,2,3...
+
+proc InFilter_rowcol {variable args} {
+	upvar $variable data
+	set data [expr $data / 2]
+	return 1
+}
+
+proc OutFilter_rowcol {win option variable args} {
+	upvar $variable data
+	if {![regexp {^[0-9]+$} $data] || $data > 20} {
+		set data  \{\"$data\" is not a number\}
+		return 0
+	}
+	set data [expr $data * 2]
+ 	if {![form_pos $win $option $data]} {
+		set data "Invalid $option position"
+		return 0
+ 	}
+	return 1
+}
+
+proc InFilter_span {variable args} {
+	upvar $variable data
+	uplevel "set $variable [expr 1 + ($data / 2)]"
+	return 1
+}
+
+# caution! outlines are managed by variable traces (yuk), so
+# we need to be careful
+
+proc OutFilter_span {win option variable args} {
+	global Current
+	upvar $variable data
+
+	dputs "outfiltering $win $option $variable"
+	if {![info exists data]} {
+		set data 1
+		return 1
+	}
+
+	# check for valid range
+
+	if {![regexp {^[0-9]+$} $data]} {
+		set data "\"$data\" is not a number"
+		return 0
+ 	}
+	set new [expr ($data * 2) - 1]
+ 	if {![form_pos $win $option $new]} {
+		set data "Invalid $option"
+		return 0
+ 	}
+
+	set data $new
+	return 1
+}
+
+# make sure the widget we're talking about can be in this row/column
+# Infer the name of the widget, which should be an argument to the filter proc
+#   option:  The name of the option, e.g. row, column
+#   value:	 The value to set "option" to
+
+proc form_pos {win option value} {
+    global Current
+    dputs "in form_pos $win $option $value"
+    upvar #0 $win data
+    foreach i {row column rowspan columnspan} {
+	set $i $data($i)
+    }
+    dputs "$option = $value"
+    set $option $value
+    if {![position_ok .can.f.$win $row $column \
+            [expr $row + $rowspan -1] \
+	    [expr $column + $columnspan - 1] msg ]} {
+	return 0
+    } else {
+	return 1
+    }
+}
+	
+
+# let the user choose a widget name.
+# Don't let the user's use "#" or "@" in names, to make my life easier
+# hope the widget we're taking about is $Current(widget)
+
+proc OutFilter_item_name {win option variable args} {
+    global Widgets
+    upvar $variable data
+    if {$win == $data} {
+	return 1
+    }
+    global Next_widget
+    if {![regexp {^[a-zA-Z0-9_]*$} $data]} {
+	set data "Use only alphanumerics in widget names"
+	return 0
+    }
+    if {![regexp {^[a-z0-9_][a-zA-Z0-9_]*$} $data]} {
+	set data "Widget name cannot start with an upper-case letter"
+	return 0
+    }
+    if {[have_name $data $win]} {
+	set data "The name \"$data\" is already in use"
+	return 0
+    }
+    set old [wm title .widget]
+    if [regexp {([^ ]*) ([^ ]*) ([^ ]*)} $old match first second third] {
+	# This condition is false if we are editing the generic options of
+	# a class of widget. E.g. wm title is "Generic button".
+	wm title .widget "$first $data $third"
+    }
+    return 1
+}
+
+# Trap the classname so that it's not really applied to the widget
+# until compile time.
+
+proc OutFilter_class {win option variable args} {
+    #Take any old name...
+    return 1
+}
+
+# see if the application has a widget by this name
+
+proc have_name {name curwidget} {
+    global Widgets
+    foreach i [array names Widgets] {
+	upvar #0 $i other
+	if {$other(item_name) == $name && $i != $curwidget} {
+	    return 1
+	}
+    }
+    return 0
+}
+
+# reflect the value in Current(text)
+
+proc OutFilter_text {win option variable args} {
+	upvar $variable data
+	global Current
+	set Current(text) [sub_bs $data]
+	return 1
+}
+
+# source a new panel for this frame
+# This is broken for sub-frames
+
+proc OutFilter_panel {win option variable args} {
+	global Current
+	upvar $variable data
+	dputs "Panel $data"
+	if {[set parent $Current(widget)] != ""} {
+		eval destroy [winfo children $parent]
+		$parent configure -width 1 -height 1
+		#read_file $data $parent
+	}
+	return 1
+}
+
+# install the filters into the configuration database
+
+proc install_filters {} {
+    global Widget_data
+    array set Widget_data {
+        infilter:font			InFilter_font
+	outfilter:font			OutFilter_font
+	infilter:row			InFilter_rowcol
+	outfilter:row			OutFilter_rowcol
+	infilter:column			InFilter_rowcol
+	outfilter:column		OutFilter_rowcol
+	infilter:rowspan		InFilter_span
+	outfilter:rowspan		OutFilter_span
+	infilter:columnspan		InFilter_span
+	outfilter:columnspan		OutFilter_span
+	outfilter:item_name		OutFilter_item_name
+	outfilter:class			OutFilter_class
+	outfilter:text			OutFilter_text
+	outfilter:label			OutFilter_text
+	outfilter:panel			OutFilter_panel
+    }
+}
+
+# these "advanced" options are global.  There should also be a provision
+# for widget specific advanced options.  The goal would be to present
+# a property sheet where all of the items are visible at once
+
+proc install_advanced {} {
+    global Widget_data
+    array set Widget_data {
+	advanced:activebackground	1
+	advanced:activeborderwidth	1
+	advanced:activeforeground	1
+	advanced:activerelief		1
+	advanced:anchor			1
+	advanced:bigincrement		1
+	advanced:closeenough		1
+	advanced:column			1
+	advanced:columnspan		1
+	advanced:comments		1
+	advanced:confine		1
+	advanced:disabledforeground	1
+	advanced:elementborderwidth	1
+	advanced:height			1
+	advanced:highlightbackground	1
+	advanced:highlightcolor		1
+	advanced:highlightthickness	1
+	advanced:indicatoron		1
+	advanced:insertbackground	1
+	advanced:insertborderwidth	1
+	advanced:insertofftime		1
+	advanced:insertontime		1
+	advanced:insertwidth		1
+	advanced:ipadx			1
+	advanced:ipady			1
+	advanced:iwadx			1
+	advanced:iwady			1
+	advanced:jump			1
+	advanced:label			1
+	advanced:length			1
+	advanced:orient			1
+	advanced:padx			1
+	advanced:pady			1
+	advanced:panel			1
+	advanced:postcommand		1
+	advanced:repeatdelay		1
+	advanced:repeatinterval		1
+	advanced:reqheight		1
+	advanced:reqwidth		1
+	advanced:resolution		1
+	advanced:row			1
+	advanced:rowspan		1
+	advanced:scrollincrement	1
+	advanced:scrollregion		1
+	advanced:selectbackground	1
+	advanced:selectborderwidth	1
+	advanced:selectcolor		1
+	advanced:selectforeground	1
+	advanced:selectimage		1
+	advanced:selector		1
+	advanced:show			1
+	advanced:showvalue		1
+	advanced:sliderlength		1
+	advanced:sliderrelief		1
+	advanced:spacing1		1
+	advanced:spacing2		1
+	advanced:spacing3		1
+	advanced:state			1
+	advanced:tabbing		1
+	advanced:tags			1
+	advanced:takefocus		1
+	advanced:tickinterval		1
+	advanced:troughcolor		1
+	advanced:visual			1
+	advanced:wadx			1
+	advanced:wady			1
+	advanced:width			1
+	advanced:wrap			1
+	advanced:wraplength		1
+	advanced:xscrollcommand		1
+	advanced:yscrollcommand		1
+    }
+
+    # These options are on the toolbar, so leave them off the option sheet
+    
+    array set Widget_data {
+	advanced:sticky 		1
+	advanced:foreground 		1
+	advanced:background 		1
+	advanced:borderwidth 		1
+	advanced:relief 		1
+	advanced:justify 		1
+	advanced:orientation 		1
+    }
+}
+
+# unfortunately, both widget configuration and geometry
+# management names for padx and pady conflict.  This is a kludge to
+# rename the padding options in an attempt to make them distinct for the user
+
+proc install_renames {} {
+    global Widget_data
+    array set Widget_data {
+	rename:padx	"padx (default)"
+	rename:pady	"pady (default)"
+	rename:wadx	"padx (external)"
+	rename:wady	"pady (external)"
+	rename:iwadx	"internal padx"
+	rename:iwady	"internal pady"
+	rename:tabbing	"tabbing order"
+	rename:anchor	"anchor (text)"
+	rename:align	"align (widget)"
+    }
+}
+
+# The widget class specific creation filters go here, at least for now
+
+array set Widget_data {
+    filter:Frame 	frame_create
+    filter:Scrollbar 	orient_create
+    filter:Scale 	orient_create
+    filter:Text 	exp_create
+    filter:Canvas 	exp_create
+    filter:Listbox 	exp_create
+}
+
+# do this when we create a frame
+# The current setup is experimenting with sub-grids
+#   win:  The name of the new sub-frame
+
+proc frame_create {win {rows 4} {cols 4}} {
+    global P Current Frames
+    if {$rows > 1} {
+	grid_create $win $rows $cols $P(grid_size) $P(can_bg)
+    }
+    set Frames($win) 1
+    arrow_create .can_row row $win all
+    arrow_create .can_column column $win all
+    arrow_activate .can $Current(frame)
+    return 1
+}
+
+# make these -sticky nsew and width and height 0
+
+proc exp_create {win} {
+    upvar #0 [winfo name $win] data
+    dputs $win (sticky nsew, with & height 0)
+    $win configure -width 0 -height -0
+    grid configure $win -sticky {nsew}
+    array set data {width 0 height 0 sticky news}
+}
+
+# we need to set the row/column resize for these:
+#  scales
+#  scrollbars
+
+proc orient_create {win} {
+    dputs $win
+    upvar #0 [winfo name $win] data
+    global Orient
+    $win configure -orient $Orient ;# temporary hack
+    if {![info exists data(master)]} {
+	return
+    }
+    set data(orient) $Orient
+    if {[string match  v* [$win cget -orient]]} {
+	set what row
+	set data(sticky) ns
+	grid configure $win -sticky {ns}
+	sync_form sticky ns
+	dputs $win sticky ns
+    } else {
+	set what column
+	set data(sticky) ew
+	grid configure $win -sticky {ew}
+	sync_form sticky ew
+	dputs $win sticky  ew
+    }
+    sync_sticky .sticky
+    set master .can.f$data(master)
+    dputs $win $what master = $master $data(row),$data(column)
+    upvar #0 [winfo name $master] boss
+    
+    set other column
+    foreach dim {row column} {
+	set index [expr $data($dim)/2 -1]
+	set current [lindex $boss(resize_$dim) $index]
+	set resize [expr {$dim == $what}]
+	dputs "$dim <$boss(resize_$other)> index=$index current=$current resize=$resize"
+	
+	# if the current value is "odd"  don't change value
+	
+	if {$current != "" && !($current&1)} {
+	    set boss(resize_$dim) [lreplace $boss(resize_$dim) $index $index\
+				       [expr {$resize ? 2:0}]]
+	    arrow_shape .can $master $dim $data($dim) $resize
+	}
+	set other row
+    }
+}
+
+# the widget specific configuration routines are identified here
+
+set Widget_data(configure:Frame) frame_configure

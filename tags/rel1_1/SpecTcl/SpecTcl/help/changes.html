@@ -1,0 +1,191 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+   <TITLE></TITLE>
+   <META NAME="GENERATOR" CONTENT="Mozilla/3.01Gold (X11; I; SunOS 5.4 sun4m) [Netscape]">
+</HEAD>
+<BODY>
+
+<H1 ALIGN=CENTER>SpecTcl Change file</H1>
+
+<H1>Major Changes from 0.3 -&gt; 1.0</H1>
+
+<UL>
+<LI>Internal support for multi-platform code was added. Now behaves like
+a real Mac application on the Mac.</LI>
+
+<LI>3D Preferences </LI>
+
+<LI>Java compilation results are returned in a text window.</LI>
+
+<LI>Icons added</LI>
+
+<LI>Command buttons have been added to the toolbar, so that it's easy to
+get to 4 common functions: insert, delete, Build&amp;test, Kill test. </LI>
+
+<LI>Clicking on a gridline now selects it. Pressing 'insert' or 'delete'
+now has the appropriate action. There's currently no way to insert or delete
+without selecting something first. </LI>
+
+<LI>The option sheets are now tabbed dialogs, with 3 buttons near the bottom
+of the dialog. The &quot;Okay&quot; button posts changes, saves changes
+in the .SpecTclrc file, and closes the form. The &quot;Apply&quot; button
+simply posts the changes. The &quot;Cancel&quot; button gets rid of the
+form with no changes. </LI>
+
+<LI>Copying of frames and subframes works now. </LI>
+
+<LI>The arrows and interface have gone through internal changes so that
+they are much faster, and more interactive. </LI>
+
+<LI>File selection dialogs and color dialogs are more intuitive. </LI>
+
+<LI>SpecTcl internally uses grid now, and as such runs with Wish 4.1 or
+greater with no modification to the core. </LI>
+
+<LI>Text styles are now a menu instead of a button. </LI>
+
+<LI>Menus now have balloon help. </LI>
+</UL>
+
+<H1>Major Changes from 0.2 -&gt; 0.3</H1>
+
+<UL>
+<LI>The <B><TT>java.project</TT></B> file is gone. The equivalent information
+is now stored in the user interface file. Arbitrary tcl code can be sourced
+to modify <B>SpecTcl</B> on a per-project basis by placing it in placed
+in a <I>project</I>.rc file in the current directory. </LI>
+
+<LI>Application extensions to SpecTcl are added via command line flags.
+Java mode is invoked via <B>-java</B> on the command line. This causes
+the file <TT>java_init.tk</TT> to be sourced. In general, the command line
+flag <B>-foo</B> will cause SpecTcl to source the file <B><TT><I>foo</I>_init.tk</TT></B>.
+</LI>
+
+<LI>With this release, the <B>SpecJava</B> interface files have the suffix
+<B>.jui</B>, not <B>.ui</B>. It is no longer possible to generate both
+TCL and JAVA apps from the identical <I>ui</I> file. This never worked
+quite right anyway. </LI>
+
+<LI>The Tk version of SpecTcl can now produce output compatible with the
+<B>grid</B> geometry manager, by specifying <B><TT>-grid</TT></B> on the
+command line. </LI>
+</UL>
+
+<H1>Detailed change summary</H1>
+
+<UL>
+<LI>removed errant parray from bind.tk. </LI>
+
+<LI>fixed typos in java.rc, renamed to java_init. </LI>
+
+<LI>removed &quot;image&quot; from option sheets. </LI>
+
+<LI>don't try to test &quot;blank&quot; anything. </LI>
+
+<LI>added save option to java test dialog box. </LI>
+
+<LI>don't generate error if hr font in html_lib isn't found. </LI>
+
+<LI>don't die if ui file contains invalid font reference. </LI>
+
+<LI>changed sort_widgets2 to eliminate '.' in front of master name problem.
+</LI>
+
+<LI>fixed &quot;dismiss&quot; on help. </LI>
+
+<LI>prevent rediculously long error messages from java. </LI>
+
+<LI>don't print &quot;Sorry no help for...&quot; messages. </LI>
+
+<LI>remove geom: arrays upon &quot;New&quot;. </LI>
+
+<LI>fixed anchor bug. </LI>
+
+<LI>changed name from 0.2 to 0.3. </LI>
+
+<LI>changed &quot;exec date&quot; to &quot;clock, and wrapped &quot;catch&quot;
+around all exec's. </LI>
+
+<LI>fixed tkwait in colors.tk to prevent window flashing. </LI>
+
+<LI>added dialog boxes for failure to open project files for writing. </LI>
+
+<LI>changed reliefs of palette to make items NOT look like buttons. </LI>
+
+<LI>changed open/close dialogs to limit height to 10 entries. </LI>
+
+<LI>changed startup to use &quot;-java&quot; on command line to turn on
+java mode. </LI>
+
+<LI>Added platform dependent stuff to preferences.tk; no code changes are
+required for windows. </LI>
+
+<LI>added dialog box to warn of bad startup files. </LI>
+
+<LI>&quot;Alt-F4&quot; always terminates java applications (well, except
+for Win'95). </LI>
+
+<LI>fixed bug in save-dialog whith empty directory. </LI>
+
+<LI>Fixed lost-button bug on WIN'95 (Lost undefined). </LI>
+
+<LI>build &amp; test for Tk uses a slave interpreter, and almost works
+(needs patch to b3). </LI>
+
+<LI>don't emit package statement for &quot;empty&quot; package. </LI>
+
+<LI>fixed pad-&gt;wad conversion when reading ui files. </LI>
+
+<LI>moved all global variable initialization to init.tk, so we could auto-load
+SpecTcl if needed. </LI>
+
+<LI>removed dead code. </LI>
+
+<LI>added &quot;busy&quot; indicator to prevent re-entrancy problems (message
+-&gt; red). </LI>
+
+<LI>save always generates target file, test doesn't. </LI>
+
+<LI>different languages use different file suffixes [INCOMPATIBILITY].
+</LI>
+
+<LI>&quot;testing&quot; under tcl doesn't use a special file anymore. </LI>
+
+<LI>fixed font problem with CDE. </LI>
+
+<LI>remove &quot;relief&quot; and &quot;borderwidth&quot; tools from java
+mode. </LI>
+
+<LI>added java specific help to palette entries. </LI>
+
+<LI>The &quot;edit&quot; code menu lets you edit <project>.include.java
+directly and keeps a &quot;spare&quot; copy in the .jui file (only if ^
+isn't writable) </LI>
+
+<LI>renamed compileg.tk to grid_init.tk so &quot;grid&quot; mode may be
+enabled with a &quot;-grid&quot; command line flag. </LI>
+
+<LI>remove non-implemented menu entries for command menu, fix menu.tk code
+to not die on missing menu items </LI>
+
+<LI>changed -option code to only include an option 1ce </LI>
+
+<LI>loading in a project tries to read in a project specific &quot;rc&quot;
+file </LI>
+
+<LI>minor patches around windows bugs </LI>
+
+<LI>fixed bug in P(export) for non-default names (I hope) </LI>
+
+<LI>Added a &quot;change directory&quot; option on the preferences menu
+</LI>
+
+<LI>UNSUPPORTED sample perl code genrator included </LI>
+</UL>
+
+<P>
+<HR><A HREF="help.html">back to main help</A> </P>
+
+</BODY>
+</HTML>

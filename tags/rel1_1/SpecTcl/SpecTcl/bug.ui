@@ -1,0 +1,271 @@
+WidGet file, version 1.0, created:  Wed Feb 19 08:38:09 PST 1997
+Widget button#1
+	geometry row 1
+	other error {}
+	other type button
+	other master .frame#1
+	configure text Dismiss
+	other pathname button#1
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	configure command {destroy [winfo toplevel %W]}
+	other tabbing {}
+	other item_name button#1
+Widget frame#2
+	other panel {}
+	geometry columnspan 2
+	geometry row 4
+	other resize_row {0 0 0}
+	other error {}
+	other type frame
+	other min_row {30 30 30}
+	other master {}
+	other pathname frame#2
+	other resize_column {0 0}
+	other tags {}
+	other level 1
+	other min_column {30 30}
+	other help {}
+	geometry column 1
+	other comments {}
+	configure borderwidth 2
+	other item_name optional
+	other tabbing {}
+	configure relief raised
+Widget label#6
+	geometry columnspan 2
+	geometry row 7
+	other type label
+	other master {}
+	configure text {Data to be sent as trouble report:}
+	other pathname label#6
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	geometry sticky w
+	other item_name label#6
+	other tabbing {}
+Widget button#2
+	geometry row 1
+	other error {}
+	other type button
+	other master .frame#1
+	configure text {Send bug report}
+	other pathname button#2
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	configure command send_bug_report
+	other tabbing {}
+	other item_name button#2
+Widget text#1
+	configure cursor {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure height 1
+	other master {}
+	other pathname text#1
+	other item_name message_text
+	other tabbing {}
+	configure yscrollcommand {%B.scrollbar#1 set}
+	geometry sticky nesw
+	geometry row 8
+	other type text
+	configure width 1
+	other comments {}
+	geometry column 1
+Widget text#2
+	geometry columnspan 2
+	configure cursor {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure height 1
+	other master {}
+	other pathname text#2
+	other item_name bug_text
+	other tabbing {}
+	geometry sticky nesw
+	geometry row 6
+	other type text
+	configure width 1
+	other comments {}
+	geometry column 1
+Widget label#8
+	geometry columnspan 2
+	geometry row 3
+	other error {}
+	other type label
+	other master {}
+	configure text {SpecTcl has detected an internal error.}
+	other pathname label#8
+	other tags {}
+	configure font Helvetica,14,Bold
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other item_name title
+	other tabbing {}
+Widget label#9
+	geometry row 2
+	other type label
+	other master {}
+	configure text {These comments will be sent to the team
+at Sun Laboratories, Inc.}
+	other pathname label#9
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	other item_name label#9
+	other tabbing {}
+Widget f
+	other panel {}
+	other resize_row {0 0 0 0 0 0 0 2}
+	other type frame
+	other min_row {30 30 30 30 30 111 8 127}
+	other master {}
+	other pathname f
+	other tags {}
+	other resize_column {3 1}
+	other level 0
+	configure background #e9e9e9
+	other help {}
+	other min_column {267 7}
+	other Colors {black white bisque grey red green blue magenta yellow #d9d9d9}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget scrollbar#1
+	geometry row 8
+	configure orient v
+	other type scrollbar
+	other master {}
+	other pathname scrollbar#1
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	other tabbing {}
+	configure command {%B.message_text yview}
+	other item_name scrollbar#1
+	geometry sticky ns
+Widget label#1
+	geometry columnspan 2
+	geometry row 5
+	other type label
+	other master {}
+	configure text {Please type a few words of explanation
+about what you were doing when
+this happened:}
+	other pathname label#1
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	other tabbing {}
+	other item_name label#1
+Widget label#2
+	geometry columnspan 2
+	geometry row 1
+	other type label
+	other master .frame#2
+	configure text {Please enter the following:}
+	other pathname label#2
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	other item_name label#2
+	other tabbing {}
+Widget entry#1
+	geometry row 2
+	other error {}
+	other type entry
+	configure textvariable P(username)
+	other master .frame#2
+	other pathname entry#1
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	other tabbing {}
+	other item_name name
+Widget label#3
+	geometry row 2
+	other type label
+	other master .frame#2
+	configure text {Your name}
+	other pathname label#3
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	geometry sticky e
+	other item_name label#3
+	other tabbing {}
+Widget entry#2
+	geometry row 3
+	other error {}
+	other type entry
+	configure textvariable P(email)
+	other master .frame#2
+	other pathname entry#2
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	other tabbing {}
+	other item_name entry#2
+Widget label#4
+	geometry row 3
+	other type label
+	other master .frame#2
+	configure text {email address}
+	other pathname label#4
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	geometry sticky e
+	other item_name label#4
+	other tabbing {}
+Widget frame#1
+	other panel {}
+	geometry columnspan 2
+	geometry row 1
+	other resize_row 0
+	other error {- Frame configuration -}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other resize_column {0 0}
+	other tags {}
+	other level 1
+	other help {}
+	other min_column {30 30}
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name frame#1
+

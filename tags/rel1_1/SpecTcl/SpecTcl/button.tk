@@ -1,0 +1,767 @@
+# button.tk --
+#
+#	This file handles the button events (selection, drag & drop)
+#	inside the palette and the grid.
+#
+# Copyright (c) 1994-1997 The Regents of the University of California.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# SCCS: @(#) button.tk 1.41 97/09/17 15:36:43
+
+
+# arguments:
+#   win:		The window the button was clicked on (%W)
+#   x,y:		The absolute mouse coordinates (%X %Y)
+
+########################################################
+
+# select a palette "button"
+
+proc select_palette {win} {
+    global Current P
+    set Current(last_selected_widget_type) $Current(selected_widget_type)
+    unselect_all
+    if {$win != ""} {
+	if {[string first [winfo name $win]_r.gif \
+		 [image names]]>-1} {
+	    $win configure -image [winfo name $win]_r.gif
+	}
+    }
+    $win configure -relief sunken -highlightbackground $P(grid_highlight)
+    set Current(selected_widget_type) $win
+    sync_all
+}
+
+proc unselect_palette {} {
+    global Current
+    if {$Current(selected_widget_type) != ""} {
+	$Current(selected_widget_type) config -relief flat\
+	    -highlightbackground [.palette cget -highlightbackground]
+	if {[string first [winfo name $Current(selected_widget_type)].gif \
+	     [image names]]>-1} {
+	    $Current(selected_widget_type) configure -image [winfo name $Current(selected_widget_type)].gif
+	}
+	set Current(selected_widget_type) {}
+    }
+}
+
+# procedures for managing hits on widget palette
+
+proc palette_down {win x y} {
+    dputs $win $x $y
+    global _Message Current
+    set _Message "Drag to create a new [$win cget -text]"
+    select_palette $win
+}
+
+proc palette_up {win x y} {
+    dputs $win $x $y
+    global Current P
+
+    # This rigamarole is to handle toggling the palette on/off
+    if {$Current(last_selected_widget_type) == $win} {
+	unselect_palette
+	set Current(selected_widget_type) ""
+    } else {
+	if {$win != ""} {
+	    select_palette $win
+	}
+    }
+    if {$P(op-sheet-handling) > 1 && [winfo ismapped .widget]} {
+	activate_generic [winfo name $win]
+    }
+}
+
+# To autoscroll a canvas, we schedule scrolling using after.
+# Cancel contains the next scheduled auto-scroll command.
+# to stop auto scrolling, cancel "Cancel"
+
+proc palette_start_sweep {win x y} {
+    dputs $win $x $y
+    global Type In_view Where Row Col Current
+    set Where ""
+    set Type [$win cget -text]
+    set In_view 0
+    set Row ""; set Col ""
+    unselect_all
+    current_frame .can.f
+    catch {destroy .label}
+    label .label -text $Type -relief ridge
+#    $win config -relief ridge
+}
+
+# track the cursor over the canvas, keep track of its position
+# The optional "repeat" argument is used for auto-scrolling
+
+proc palette_sweep {win x y {repeat 0}} {
+    dputs $win $x $y $repeat
+    global P Current Frames Where Before
+    global Root_x Root_y Cancel Row Col
+    global _Message
+    global Status
+
+    # make sure the widget is in view
+
+    if {$repeat == 0} {
+	after cancel $Cancel
+    }
+    if {[set viewresult [keep_in_view .can $x $y]] > 0} {
+	if {[winfo exists .label]} {
+	    place .label -anchor c -x [expr $x - $Root_x] -y [expr $y-$Root_y]
+	}
+    } else {
+	if {[winfo exists .label]} {
+	    # let us keep showing the widget wherever it is...funny as
+	    # this looks.  this is important so that when the user
+	    # drops it over the palette,
+	    place .label -anchor c -x [expr $x - $Root_x] -y [expr $y-$Root_y]
+	}
+	set Cancel [after $P(scroll_delay) "palette_sweep $win $x $y 1"]
+    }
+
+    # where on the canvas are we?
+
+    set Before $Where
+    set row $Row; set col $Col
+    set Where [find_slot $Current(frame) $x $y Row Col]
+    if {$Where == $Before && $Row == $row && $Col == $col} {
+	return
+    }
+    if {$viewresult < 2} {
+	$win configure -cursor [cursor $Where]
+    } else {
+	$win configure -cursor exchange
+    }
+
+    switch  -glob $Where {
+	Cr	{		# on a row grid line
+	    arrow_unhighlight row
+	}
+	Cc	{		# on a column grid line
+	    arrow_unhighlight column
+	}
+	Crc	{		# on both row and column grid line
+	    arrow_unhighlight column
+	    arrow_unhighlight row
+	}
+	C* {			# in a slot
+	    set on [grid slaves $Current(frame) -row $Row -column $Col]
+	    if {$on != ""} {
+		foreach qq $on {
+		    if {[info exists Frames($qq)]} {
+			$win configure -cursor [cursor occupied]
+			dputs "Entering sub-frame $on"
+			current_frame [find_grid $x $y "" $qq]
+		    }
+		    set Status "Occupied"
+		    set color $P(grid_highlight)
+		}
+	    } else {
+		set Status ""
+		set color $P(generic_over_color)
+	    }
+	    arrow_highlight column $Current(frame) $Col $color
+	    arrow_highlight row $Current(frame) $Row $color
+	    set _Message "row: [expr $Row/2]	col: [expr $Col/2]	$Status"
+	}
+	default {				# outside the grid
+	    dputs left frame $Current(frame)
+	    current_frame [find_grid $x $y]
+	}
+    }
+}
+
+# Create a new widget and plunk it down
+
+proc palette_end_sweep {win x y} {
+    dputs $win $x $y
+    global Type
+    global Current P
+    global Cancel _Message
+    global Row Col Widgets
+    global Widget_data
+    global In_view Where
+    
+    # create the widget
+    
+    $win configure -cursor [cursor reset]
+    catch {destroy .label}
+
+    # If we haven't entered the grid yet, or if we're over the
+    # palette, forget this drag.
+    if {$In_view == 0 || ($x < [winfo rootx .can] \
+	    && [winfo rootx .can] < [expr [winfo rootx .can.f]])} {
+	return
+    }
+    check_table $Current(frame) $Where Row Col
+    set on [grid slaves $Current(frame) -row $Row -column $Col]
+    if {$on != ""} {
+	if {$Current(selected_widget_type) != ""} {
+	    unselect_palette
+	    return "occupied"
+	} else {
+	    set _Message "$Row,$Col is occupied"
+	}
+    } else {
+	undo_mark
+	add_widget $Type $Current(frame) $Row $Col
+    }
+    
+    # clean up
+    arrow_unhighlight row
+    arrow_unhighlight column
+    after cancel $Cancel
+    set Type ""
+    sync_all
+}
+
+#######  AUX procedures used by bindings
+
+# scroll canvas to keep in view
+# x and y are root coords
+# Make sure we don't scroll before the widget is in bounds
+
+proc keep_in_view {win x y} {
+    global In_view
+    set in_bounds 0
+    if {$x < [winfo rootx $win] } {
+	if {$In_view && [winfo rootx $win] > [expr [winfo rootx .can.f]-20]} {
+	    $win xview scroll -1 units
+	    ${win}_column xview scroll -1 units
+	} else {
+	    return 2
+	}
+    } elseif {$y < [winfo rooty $win]} {
+	$win yview scroll -1 units
+	${win}_row yview scroll -1 units
+    } elseif {$x > [winfo rootx $win] + [winfo width $win]} {
+	$win xview scroll 1 units
+	${win}_column xview scroll 1 units
+    } elseif {$y > [winfo rooty $win] + [winfo height $win]} {
+	$win yview scroll 1 units
+	${win}_row yview scroll 1 units
+    } else {
+	set In_view 1
+	set in_bounds 1
+    }
+    if {$In_view && !$in_bounds} {
+	return 0
+    } else {
+	return 1
+    }
+}
+
+# get the row and column position
+# win: table master
+# x,y: Root x and y coords
+# row,col: get filled in if True
+# result: code indicating where it is
+#  position relative to grid:  nw n ne e se s sw w
+#  where in grid: r c rc (row, column, row&column)
+#  "" on a grid slot
+
+proc find_slot {win x y set_row set_col} {
+    upvar $set_row row $set_col col
+    set result ""
+    incr x [expr 0 - [winfo rootx $win.@0]]
+    incr y [expr 0 - [winfo rooty $win.@0]]
+    foreach {col row} [grid location $win $x $y] {}
+    foreach {xwidth ywidth} [grid size $win] {}
+    incr xwidth -1
+    incr ywidth -1
+
+    if {$y < 0} {
+	append result n
+    } elseif {$row > $ywidth} {
+	append result s
+    } elseif {$row == $ywidth && $row&&1} {
+	append result s
+    }
+    if {$x < 0} {
+	append result w
+    } elseif {$col > $xwidth} {
+	append result e
+    } elseif {$col == $xwidth & $col&&1} {
+	append result e
+    }
+    
+    if {$result != ""} {
+	dputs $win $x,$y $row,$col $result
+	return $result
+    }
+    set result C
+    
+    if {$row&1} {
+	append result r
+    }
+    if {$col&1} {
+	append result c
+    }
+    dputs $win $x,$y $row,$col $result
+    return $result
+}
+
+########################################################3
+# procedures for managing hits on widgets
+# these should be combined with the palette routines!!
+
+proc widget_down {win x y} {
+    global _Message Current
+    if {$win == $Current(widget)} {
+	set _Message "Double click to activate properties dialog"
+    } else {
+	upvar \#0 [winfo name $win] data
+	if {[info exists data(item_name)]} {
+	    set _Message "selecting $data(item_name)"
+	} else {
+	    set _Message "selecting [winfo name $win]"
+	}
+    }
+}
+
+# take 2 - sweep a label, not the entire widget
+
+proc widget_start_sweep {win x y} {
+    global In_view Where Row Col
+    upvar #0 [winfo name $win] data
+    set Where ""
+    set In_view 0
+    set Row $data(row)
+    set Col $data(column)
+    unselect_widget
+    current_frame .can.f[find_master $win]
+    label .label -bd 2 -relief raised -text [widget_describe $win]
+}
+
+proc widget_sweep {win x y {repeat 0}} {
+    palette_sweep $win $x $y $repeat
+}
+
+proc widget_end_sweep {win x y} {
+    dputs $win $x $y
+    global Shift Cancel _Message Current
+    global Row Col Where
+    after cancel $Cancel
+
+    # move or copy it!
+    destroy .label
+    $win configure -cursor [cursor reset]
+    check_table $Current(frame) $Where Row Col
+    unselect_widget
+    set on [grid slaves $Current(frame) -row $Row -column $Col]
+
+    set master $Current(frame)
+    set masters $Current(frame)
+    while {[set master [find_master $master]] != ""} {
+	set master .can.f$master
+	lappend masters $master
+    }
+    if {[lsearch $masters $win] != -1} {
+	set _Message "Can't move or copy widget to itself"
+	return
+    }
+    if {$on == ""}  {
+	if {$Shift} {
+	    undo_mark
+	    set win [copy_widget $Current(frame) $win $Row,$Col]
+	} else {
+	    set win [move_widget $Current(frame) $win $Row $Col]
+	}
+	set_master $win $Current(frame)
+	select_widget $win
+
+	grid configure $win -rowspan 1 -columnspan 1
+	set rowspan 1
+	set columnspan 1
+	set row $Row
+	set column $Col
+
+	foreach i {row column columnspan rowspan} {
+	    sync_form $i [set $i]
+	}
+    }
+    arrow_unhighlight row
+    arrow_unhighlight column
+    sync_all
+}
+
+# add_widget --
+#
+#	Adds a new widget of the given type to row,column.
+#
+# Arguments:
+#	type		The type of the widget.
+# 	master		The frame to manage the copy in.
+#  	row,column	where to put it.
+#
+# Result:
+#	Returns the pathname of the new widget. 
+
+proc add_widget {type master row column} {
+    global Next_widget P _Message Widgets Widget_data
+
+    set template .sample_$type
+    set new .can.f.$type\#[incr Next_widget($type)]
+    clone_widget $template $new
+    if {$type == "frame"} {
+	bindtags $new "busy frame widget [bindtags $new]"
+    } else {
+	bindtags $new "busy widget [bindtags $new]"
+    }
+    set_master $new $master
+    grid $new -in $master -row $row -column $column
+	
+    widget_extract $new
+    set _Message "Created new $type at [expr $row/2],[expr $column/2]"
+    set name [winfo name $new]
+    set Widgets($name) 1
+    undo_log create_widget $name
+	
+    # Each widget class (potentially) has its own special case
+    # code to configure the class.  Run it here, as a filter
+	
+    if {[info exists Widget_data(filter:[winfo class $new])]} {
+	eval $Widget_data(filter:[winfo class $new]) $new
+    }
+	
+    outline_create $name
+    unselect_widget
+    select_widget $new
+	
+    if {$P(apply-defaults-widgets) > 0} {
+	# These will force the default settings onto the widgets
+	foreach q [array names P default:*] {
+	    regexp {default:(.*)} $q dummy prop
+	    catch {$new configure -$prop $P($q)}
+	}
+    }
+	    
+    # testing
+	
+    if {$type == "frame"} {
+	dputs "Inserting subgrid tag for $new"
+	insert_tag $new sub_grid
+    }
+
+    return $new
+}
+
+# copy_widget --
+#
+#	Copy a widget to row,col. Assumes new widget is a sibling of
+#	the old one
+#
+# Arguments:
+# 	master		The frame to manage the copy in
+#  	win		The widget to copy
+#	position	row,col: where to put it (if moved)
+#
+# Result:
+#	Returns the pathname of the new widget. 
+
+# BROKEN for copying frames!
+
+proc copy_widget {master win {position ""} } {
+    global Next_widget Widgets Frames P
+    dputs $master $win $position
+    
+    # name and clone the widget parameters
+
+    set class [winfo class $win]
+    set type [string tolower \
+	    [string index $class 0]][string range $class 1 end]
+    set name $type#[incr Next_widget($type)]
+    set path .can.f.$name
+    clone_widget $win $path
+
+    upvar #0 $name dst [winfo name $win] src
+    array set dst [array get src]
+    if {[set dst(master) [winfo parent $path]] == ".can.f"} {
+	set dst(master) {}
+    }
+    
+    # change the parameters
+
+    set geom [grid info $win]
+    if {$position != ""} {
+	foreach {r c} [split $position ","] {}
+	set geom "-column $c -row $r [lrange $geom 6 end]"
+    } else {
+	set geom [lrange $geom 2 end ]
+    }
+    eval "grid $path -in $master $geom"
+    if {$type == "frame"} {
+	bindtags $path "busy frame widget [bindtags $path]"
+    } else {
+	bindtags $path "busy widget [bindtags $path]"
+    }
+    set Widgets($name) 1
+    undo_log create_widget $name
+    outline_create $name
+    
+    catch {unset dst(focus)}
+    set dst(item_name) $name
+    set dst(pathname) $name
+    
+    # If this is a frame, copy all its children, 
+    # Then make the grid and arrows (broken, but close)
+
+    upvar \#0 [winfo name $win] data
+    set subwin .can.f.[winfo name $win]
+    dputs "$path $name $master"
+    dputs "'$subwin' "
+    if {[info exists Frames($subwin)]} {
+	dputs "COPYING SUB FRAME $subwin"
+	grid_size $subwin maxrows maxcols
+	frame_create $path $maxrows $maxcols
+	foreach child [grid slaves $subwin] {
+	    if {$child != $path} {
+		dputs "Copying $child for $subwin to $win"
+		if {[info exists Widgets([winfo name $child])]} {
+		    set new [copy_widget $path $child]
+		    set_master  $new $path
+		    after idle "outline_trace [winfo name $new]"
+		}
+	    }
+	}
+	arrow_update .can $path
+    }
+
+    widget_update $path
+
+    return $path
+}
+
+# move_widget --
+#
+#	Move a widget to row,col and update form entries.
+#
+# Arguments:
+#	table		Where to move the widget to
+# 	win		The name of the window to move
+#	row,column	Where in the table to put it
+
+proc move_widget {table win row column} {
+    global Current
+    set Current(dirty) 1
+    set info [grid info $win]
+
+    array set xx $info
+
+    if {$xx(-in) == $table} {
+	gridforget $win
+	eval "grid $win -in $table -column $column -row $row \
+	    [lrange $info 6 end]"
+	if {[winfo class $win] != "Frame"} {
+	    raise $win
+	}
+	return $win
+    } else {
+	# the gridder has bugs reparenting widgets. So we'd better destroy
+	# the widgets and create a new one.
+	if {[winfo class $win] != "Frame"} {
+	    upvar #0 [winfo name $win] data
+	    set btags [bindtags $win]
+	    bindtags $win ""
+
+	    set opts ""
+	    set specs [$win configure]
+	    destroy $win
+
+	    if [catch {$data(type) $win}] {
+		# Some widgets automatically want to set variable traces
+		# on [winfo $win]. That will break because that variable
+		# is an array.
+		if [catch {$data(type) $win -textvariable "!dummy"} err] {
+		    $data(type) $win -variable "!dummy"
+		}
+	    }
+
+	    foreach spec $specs {
+		catch {
+		    $win config [lindex $spec 0] [lindex $spec 4]
+		}
+	    }
+	    catch {
+		uplevel #0 unset !dummy
+	    }
+
+	    uplevel #0 set errorInfo \{\}
+	    bindtags $win $btags
+
+	    eval "grid $win -in $table -column $column -row $row \
+		[lrange $info 6 end]"
+	    raise $win
+	    return $win
+	} else {
+	    undo_mark
+	    set w [copy_widget $table $win $row,$column]
+
+	    select_widget $win
+	    delete_selected
+	    select_widget $w
+
+	    return $w
+	}
+    }
+}
+
+# make the proper widget selected
+# 1 if frame and selected, de-select and select row/col instead
+# 2 if "parent" is current frame, select widget
+# 3 select parent who is a child of the current frame
+
+proc widget_up {win x y {focus ""}} {
+    dputs $win $x $y $focus
+    global _Message Current 
+    set array_name [winfo name $win]
+    upvar #0 $array_name data
+    if {$focus != ""} {
+	set data(focus) $focus
+    }
+
+    # Clicked in frame, select row/col
+    grid_single_click $win \
+	[expr $x - [winfo rootx $win]] [expr $y - [winfo rooty $win]]
+}
+
+# make the named widget "selected"
+# as a side effect, make its "master" current
+
+proc select_widget {win} {
+    global Current P _Message
+    window_highlight $win
+    set name [winfo name $win]
+    
+    unselect_grid
+    set widgetmaster [find_master $win]
+    set master .can.f$widgetmaster
+    dputs $win in $master (current is $Current(frame))
+    set Current(widget) $win
+    current_frame $master
+    if {![winfo exists ${win}_outline]} {
+	# we need to undo this!
+	outline_activate $name
+	outline_update $name
+    }
+
+    add_resize_handles .can.f.${name}_outline \
+	$P(highlight_border_width) $P(resize_handles)
+
+    arrow_unhighlight row
+    arrow_unhighlight column
+    if {[winfo ismapped .widget] && $P(op-sheet-handling) > 1} {
+	activate_option $win
+    }
+
+    #
+    # We'll allow editing on the text of the widget in the toolbar only
+    # if the widget has such an option.
+    #
+
+    .entry config -takefocus 0 -state disabled
+    foreach item {text label} {
+	if ![catch {
+	    if {"[lindex [$win configure -$item] 0]" != "-$item"} {
+		error not_an_option
+	    }
+	}] {
+	    .entry config -takefocus 1 -state normal
+	    break
+	}
+    }
+}
+
+
+# unselect the current widget, removing the option box if any
+# might as well get rid of the resize-handles, if any, and extra outline box
+
+proc unselect_widget {} {
+    global Current Geometry P
+    if {[set current $Current(widget)] != ""} {
+	dputs $current
+	set Current(widget) {}
+	set Current(form) {}
+	set Current(text) {}
+	if {$P(op-sheet-handling) == 0} {
+	    if {[winfo ismapped .widget]} {
+		set Geometry(widget) [wm geometry .widget]
+		wm withdraw .widget
+	    }
+	}
+	# this doesn't belong here!
+	.entry configure -state disabled
+	# undo the highlighting
+	set name [winfo name $current]
+	window_unhighlight $current
+	# this will remove a superfluous outline
+	global $name
+	outline_trace $name
+	del_resize_handles ${current}_outline
+    }
+}
+
+
+# If we selected a spot that is "out of bounds", then extend the table, 
+# and make sure the spot IS in bounds
+
+proc check_table {table where myrow mycol} {
+    global P
+    upvar $myrow row $mycol col
+    set add 0
+    
+    if {$P(insert_on_gridline) == "0"} {
+	# Make sure we don't drop widgets on grid/row lines.
+	if {$row&1} {
+	    incr row
+	}
+	if {$col&1} {
+	    incr col
+	}
+    }
+	
+    # check front of table
+    dputs $table at $where $row,$col
+    
+    if {$row <= 1} {
+	table_insert $table row [set row 2]
+	grid_process $table row 1
+	incr add
+    }
+    if {$col <= 1} {
+	table_insert $table column [set col 2]
+	grid_process $table column 1
+	incr add
+    }
+    
+    if {$P(insert_on_gridline) != "0"} {
+	# check on grid lines
+	
+	if {$row&1} {
+	    table_insert $table row [incr row]
+	    grid_process $table row 1
+	    incr add
+	}
+	if {$col&1} {
+	    table_insert $table column [incr col]
+	    grid_process $table column 1
+	    incr add
+	}
+    }
+    
+    # check ends of table
+   
+    if {[string match *e $where]} {
+	resize_insert $table column 999
+	grid_process $table column 1
+	incr add
+    }
+    if {[string match s* $where]} {
+	resize_insert $table row 999
+	grid_process $table row 1
+	incr add
+    }
+    return $add
+}

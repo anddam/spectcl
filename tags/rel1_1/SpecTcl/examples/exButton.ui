@@ -1,0 +1,90 @@
+WidGet file, version 1.1, created:  Wed Jul 30 14:57:08 PDT 1997
+Widget label#1
+	geometry row 3
+	other error {- Label configuration -}
+	other type label
+	other master {}
+	configure text {Post message}
+	other pathname label#1
+	other tags {}
+	other level {}
+	other help {}
+	configure borderwidth 2
+	geometry column 2
+	other comments {}
+	geometry sticky new
+	other item_name label#1
+	other tabbing {}
+Widget button#2
+	geometry row 2
+	other error {}
+	other type button
+	other master {}
+	configure default disabled
+	configure text button
+	other pathname button#2
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	configure borderwidth 2
+	other tabbing {}
+	other item_name button#2
+	geometry sticky esw
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0 0 0}
+	other type frame
+	other code {# The exButton.ui example demonstrate that a button
+# can display an image file instead of text.
+
+proc ShowImage {w} {
+   # Display the image file in the button
+   set iw [image create photo -file exButton.gif]
+   $w config -image $iw
+}
+
+ShowImage .button#2
+
+
+
+
+
+
+
+
+
+
+
+
+}
+	other min_row {10 39 30 10}
+	other master {}
+	other pathname f
+	other resize_column {0 0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {11 30 11}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+
