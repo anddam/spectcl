@@ -475,7 +475,7 @@ proc form_build {win form {option Widget_data} {height 10}} {
     }
     incr idx -1
 
-    for {set i 0} {$i < 50} {incr i} {
+    for {set i 0} {$i < 100} {incr i} {
 	set formslabels($i)  {}
 	set formstypes($i)   {}
 	set formsentries($i) {}
