@@ -108,7 +108,8 @@ array set ::menueditor::currentmenu {number -1 ident menu#? item_name m?.m?}
 #****v* SpecTcl/menueditor::pos
 # DESCRIPTION
 #    The current position in the current menu
-# 
+#    Position 0 is the first non-tearoff item
+#    (i.e. the tearoff item doesn't count)
 # SOURCE
 #
 set ::menueditor::pos 0
@@ -210,7 +211,8 @@ proc ::menueditor::setpos {newpos} {
          set newpos 0
       }
       set ::menueditor::pos $newpos
-      $::menueditor::mbase activate $::menueditor::pos
+      set demopos [expr $newpos+[$::menueditor::mbase cget -tearoff]]
+      $::menueditor::mbase activate $demopos
    }
    global mbType.value
    set mbType.value [lindex $Ident(gadgets) [expr 2*$::menueditor::pos]]
@@ -496,7 +498,8 @@ proc ::menueditor::ClassFilter {win opt var args} {
 proc ::menueditor::insert {} {
    upvar #0 [set ::menueditor::currentmenu(ident)] Ident
    set Ident(gadgets) [linsert $Ident(gadgets) [expr $::menueditor::pos*2] command {}]
-   $::menueditor::mbase insert $::menueditor::pos command
+   set demopos [expr $::menueditor::pos+[$::menueditor::mbase cget -tearoff]]
+   $::menueditor::mbase insert $demopos command
    ::menueditor::setpos $::menueditor::pos
 }
 #***
@@ -528,8 +531,9 @@ proc ::menueditor::add {} {
 proc ::menueditor::replace {} {
    upvar #0 [set ::menueditor::currentmenu(ident)] Ident
    set type ${::mbType.value}
-   $::menueditor::mbase delete $::menueditor::pos
-   $::menueditor::mbase insert $::menueditor::pos $type
+   set demopos [expr $::menueditor::pos+[$::menueditor::mbase cget -tearoff]]
+   $::menueditor::mbase delete $demopos
+   $::menueditor::mbase insert $demopos $type
    set opts {} ;# To be saved
    set localopts {} ;# For the demo menu
    foreach w [winfo children $::menueditor::base.fr] {
@@ -544,9 +548,9 @@ proc ::menueditor::replace {} {
          lappend localopts $opt [$w get]
       }
    }
-   eval $::menueditor::mbase entryconfigure $::menueditor::pos $localopts
+   eval $::menueditor::mbase entryconfigure $demopos $localopts
    set Ident(gadgets) [lreplace $Ident(gadgets) [expr $::menueditor::pos*2] [expr $::menueditor::pos*2+1] $type $opts]
-   $::menueditor::mbase activate $::menueditor::pos
+   $::menueditor::mbase activate $demopos
 }
 #***
 
@@ -586,7 +590,8 @@ proc ::menueditor::tearoffcmd {args} {
 proc ::menueditor::delete {} {
    upvar #0 [set ::menueditor::currentmenu(ident)] Ident
    set Ident(gadgets) [lreplace $Ident(gadgets) [expr $::menueditor::pos*2] [expr $::menueditor::pos*2+1]]
-   $::menueditor::mbase delete $::menueditor::pos
+   set demopos [expr $::menueditor::pos+[$::menueditor::mbase cget -tearoff]]
+   $::menueditor::mbase delete $demopos
    set newpos $::menueditor::pos
    if {$newpos >= [llength $Ident(gadgets)]/2} { # deleting the last item
       incr newpos -1
