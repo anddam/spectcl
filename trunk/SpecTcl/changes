@@ -527,3 +527,19 @@ Works for Tcl/Tk 8.4a2 widgets (i.e. spinbox)
 Other widget sets like BLT, Tix etc can be used
 WYSIWYG menu editor and code generation
 
+---------------------------
+European date system used from now on
+
+11/6/2001 (bug fix) No longer prompts for a filename when saving a
+project that was specified on the command line.
+
+11/6/2001 (bug fix) Cut, Copy & Paste between different frames now
+should work.
+
+11/6/2001 (bug fix) Correct menuname displayed when editing the menu
+name.
+
+11/6/2001 (improvement) Widgets & properties are now saved in the
+same sequence every time so that 'diff' clearly shows the changes.
+Especially useful under CVS.
+
