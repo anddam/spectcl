@@ -1,0 +1,49 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# pick a relief menu item
+
+# pop-up a relief menu
+# return selected ceolor
+#  win: the toplevel (created if needed)
+
+proc setup_reliefs {win {cmd puts}} {
+    global P
+    set Reliefs {flat raised sunken ridge groove}
+    
+    # create the top level (if needed)
+    
+    catch "destroy $win"
+    toplevel $win -bd 2 -relief ridge  -cursor [cursor menu]
+    wm overrideredirect $win 1
+    set parent [winfo parent $win]
+    foreach i {rootx rooty height} {
+	set $i [winfo $i $parent]
+    }
+    wm geometry $win +$rootx+[expr $rooty + $height]
+    
+    # pack in existing colors, set bindings
+    
+    set index -1
+    foreach i $Reliefs {
+	frame $win.$i -bd 2  -cursor [cursor item]
+	frame $win.$i.l -width 15 -height 15 \
+	    -bd 4 -relief $i -cursor [cursor item] -bg grey
+	grid $win.$i -row [incr index] -column 0
+	grid $win.$i.l -row 0 -column 0 -padx 2 -pady 2
+	incr index
+	foreach j {"" .l} {
+	    bind $win.$i$j <ButtonRelease-1> "$cmd $i"
+	    bind $win.$i$j <Enter> "$win.$i configure -relief raised"
+	    bind $win.$i$j <Leave> "$win.$i configure -relief flat"
+	}
+    }
+    bind $win <ButtonRelease-1>  \
+	{catch {destroy [winfo toplevel %W]}}
+    tkwait visibility $win
+    grab $win
+}
+
