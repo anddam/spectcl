@@ -30,9 +30,6 @@ proc menueditor_ui {root args} {
 	button $base.view \
 		-text Post/View
 
-	button $base.add \
-		-text Add
-
 	label $base.lType \
 		-text Type
 
@@ -44,16 +41,14 @@ proc menueditor_ui {root args} {
 		-text command \
 		-textvariable mbType.value
 
+	button $base.add \
+		-text Add
+
 	button $base.new \
 		-text New
 
 	button $base.insert \
 		-text Insert
-
-	label $base.lLabel \
-		-text Label
-
-	entry $base.eLabel
 
 	button $base.remove \
 		-text Remove
@@ -61,24 +56,15 @@ proc menueditor_ui {root args} {
 	button $base.delete \
 		-text Delete
 
-	label $base.lCommand \
-		-text Command
-
-	entry $base.eCommand
+	button $base.rename \
+		-text Rename
+	catch {
+		$base.rename configure \
+			-font -*-Helvetica-Bold-R-Normal-*-*-120-*-*-*-*-*-*
+	}
 
 	button $base.replace \
 		-text Replace
-
-	label $base.lVariable \
-		-text Variable
-
-	entry $base.eVariable
-
-	label $base.lMenu \
-		-text Menu
-
-	entry $base.eMenu \
-		-textvariable entry
 
 	checkbutton $base.cbTearoff \
 		-text Tearoff \
@@ -95,31 +81,25 @@ proc menueditor_ui {root args} {
 		-pady 5 \
 		-rowspan 6 \
 		-sticky ns
-	grid $base.fr -in $root	-row 1 -column 4  \
-		-rowspan 6 \
+	grid $base.fr -in $root	-row 2 -column 4  \
+		-columnspan 2 \
+		-rowspan 5 \
 		-sticky n
 	grid $base.lbEntries -in $root	-row 1 -column 1  \
 		-rowspan 6 \
 		-sticky nesw
 	grid $base.view -in $root	-row 1 -column 2 
-	grid $base.add -in $root	-row 1 -column 6 
-	grid $base.lType -in $base.fr	-row 1 -column 1 
-	grid $base.mbType -in $base.fr	-row 1 -column 2 
+	grid $base.lType -in $root	-row 1 -column 4 
+	grid $base.mbType -in $root	-row 1 -column 5 
+	grid $base.add -in $root	-row 1 -column 7 
 	grid $base.new -in $root	-row 2 -column 2 
-	grid $base.insert -in $root	-row 2 -column 6 
-	grid $base.lLabel -in $base.fr	-row 2 -column 1 
-	grid $base.eLabel -in $base.fr	-row 2 -column 2 
+	grid $base.insert -in $root	-row 2 -column 7 
 	grid $base.remove -in $root	-row 3 -column 2 
-	grid $base.delete -in $root	-row 3 -column 6 
-	grid $base.lCommand -in $base.fr	-row 3 -column 1 
-	grid $base.eCommand -in $base.fr	-row 3 -column 2 
-	grid $base.replace -in $root	-row 4 -column 6 
-	grid $base.lVariable -in $base.fr	-row 4 -column 1 
-	grid $base.eVariable -in $base.fr	-row 4 -column 2 
-	grid $base.lMenu -in $base.fr	-row 5 -column 1 
-	grid $base.eMenu -in $base.fr	-row 5 -column 2 
+	grid $base.delete -in $root	-row 3 -column 7 
+	grid $base.rename -in $root	-row 4 -column 2 
+	grid $base.replace -in $root	-row 4 -column 7 
 	grid $base.cbTearoff -in $root	-row 5 -column 2 
-	grid $base.dismiss -in $root	-row 5 -column 6 
+	grid $base.dismiss -in $root	-row 5 -column 7 
 
 	# Resize behavior management
 
@@ -135,14 +115,7 @@ proc menueditor_ui {root args} {
 	grid columnconfigure $root 4 -weight 0 -minsize 30
 	grid columnconfigure $root 5 -weight 0 -minsize 30
 	grid columnconfigure $root 6 -weight 0 -minsize 30
-
-	grid rowconfigure $base.fr 1 -weight 0 -minsize 30
-	grid rowconfigure $base.fr 2 -weight 0 -minsize 30
-	grid rowconfigure $base.fr 3 -weight 0 -minsize 30
-	grid rowconfigure $base.fr 4 -weight 0 -minsize 25
-	grid rowconfigure $base.fr 5 -weight 0 -minsize 30
-	grid columnconfigure $base.fr 1 -weight 0 -minsize 30
-	grid columnconfigure $base.fr 2 -weight 0 -minsize 30
+	grid columnconfigure $root 7 -weight 0 -minsize 30
 # additional interface code
 source /home/msj/projects/SpecTcl/SpecTcl/menueditor.tk
 
@@ -156,6 +129,7 @@ source /home/msj/projects/SpecTcl/SpecTcl/menueditor.tk
 $base.view config -command {::menueditor::view}
 $base.new config -command {::menueditor::new}
 $base.remove config -command {::menueditor::remove}
+$base.rename config -command {::menueditor::rename}
 $base.add config -command {::menueditor::add}
 $base.insert config -command {::menueditor::insert}
 $base.delete config -command {::menueditor::delete}
@@ -177,6 +151,8 @@ bind $root <Key-Delete> "
    }
 "
 bind $root <Key-Escape> "$base.dismiss invoke"
+
+
 
 
 
