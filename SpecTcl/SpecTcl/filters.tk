@@ -321,6 +321,22 @@ proc OutFilter_gadgets {win option variable args} {
     set data "Cannot be modified"
     return 0
 }	
+	
+
+# For menu widgets
+# convert "false" & "true" to 0 & 1
+proc OutFilter_tearoff {win option variable args} {
+    upvar $variable data
+    regsub -all "\[ \t\]" $data {} data
+    switch -regexp $data {
+       0 -
+       1 {}
+       [Ff][Aa][Ll][Ss][Ee] {set data 0}
+       [Tt][Rr][Uu][Ee] {set data 1}
+       default {set data "Illegal value - use 0 or 1 "; return 0}
+    }
+    return 1
+}	
 
 
 
@@ -427,6 +443,7 @@ proc install_filters {} {
 	outfilter:label			OutFilter_text
 	outfilter:panel			OutFilter_panel
 	outfilter:gadgets		OutFilter_gadgets
+	outfilter:tearoff		OutFilter_tearoff
     }
 }
 
