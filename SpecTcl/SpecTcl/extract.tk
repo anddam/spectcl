@@ -1,0 +1,323 @@
+# extract.tk --
+#
+#	Extract and manipulate the info about a widget in an array,
+#	including:
+#		- configuration options
+#		- geometry options
+#		- misc stuff
+#
+# Copyright (c) 1994-1997 The Regents of the University of California.
+#
+# See the file "license.terms" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# SCCS: @(#) extract.tk 1.20 97/06/25 17:14:22
+
+# widget_extract --
+#
+#	Extract configuration options and their default values for a
+#	given widget type.
+#
+# {,i}pad[xy] and friends are problematic because both widgets and blt_table
+# use the same name.
+
+proc widget_extract {widget {array ""}} {
+    global P
+    dputs $widget
+    if {$array == ""} {
+	set array [winfo name $widget]
+    }
+    global $array
+    upvar #0 $array data
+
+    # extract widget attributes
+    # don't extract command options if they already exist
+
+    foreach option [$widget configure] {
+	if {[llength $option] == 5} {
+	    set item [string trimleft [lindex $option 0] -]
+	    if {(![string match *command* $item] || ![info exists data($item)])
+	        && (![string match class $item] || ![info exists data($item)])} {
+		set data($item) [lindex $option 4]
+	    }
+	}
+    }
+
+    # handle misc stuff
+
+    # options added to all widgets
+    foreach extra "tags master $P(other_items)" {
+	if {![info exists data($extra)]} {
+	    set data($extra) {}
+	}
+    }
+    if {![info exists data(item_name)]} {
+	set data(item_name) [winfo name $widget]
+    }
+    set data(pathname) [winfo name $widget]
+    set class [winfo class $widget]
+    set data(type) [string tolower [string index $class 0]][string range $class 1 end]
+    if {[info comm $data(type)] == "" && [info comm [string tolower $data(type)]]!= ""} {
+	set data(type) [string tolower $data(type)]
+    }
+
+    # options added to "this" widget
+
+    if {[info exists P(other_items:$data(type))]} {
+	foreach extra $P(other_items:$data(type)) {
+	    if {![info exists data($extra)]} {
+		set data($extra) {}
+	    }
+	}
+    }
+
+    # extract geometry attributes (assume blt_table for now)
+    # need to handle row, col separately
+
+    if {[winfo manager $widget] == "grid"} {
+	regsub -all { -([^ ]+)} [grid info $widget] { \1} options
+	regsub -all pad $options wad options	;# botch for padding
+	regsub -all anchor $options align options	;# botch for padding
+	set kludgefactor [regexp {\-anchor ([^ ]*)} $options dummy anchorkludge]
+	set kludgefactor [expr $kludgefactor + [regexp {\-fill ([^ ]*)} $options dummy fillkludge]]
+	if {$kludgefactor != 0} {
+	    regsub {-anchor [^ ]*} $options {} options
+	    regsub {-fill [^ ]*} $options {} options
+	    regsub {-sticky [^ ]*} $options {} options
+	    lappend options ${fillkludge}$anchorkludge
+	    set msg "Warning: You are loading a version 0.3"
+	    append msg " SpecTcl file.  If you save it, it will "
+	    append msg "Saved as a version 1.0 file."
+	    tk_dialog .version Warning $msg warning 0 OK
+	}
+	array set $array [lrange $options 2 end]
+	regexp {([0-9]+),([0-9]+)} [lindex $options 1] x \
+	    data(row) data(column)
+    }
+
+    # special (temporary) hack for frames
+
+    if {$data(type) == "frame" && ![info exists data(panel)]} {
+	dputs "setting $widget panel to {}"
+	set data(panel) ""
+    }
+    # outline_inhibit 0
+}
+
+# Make a widget reflect its properties.
+
+proc widget_update {widget} {
+    dputs $widget
+    upvar \#0 [winfo name $widget] data
+    array set fillarray {
+	none {{}} x {ew} y {ns} both {nsew} center {{}} c {{}}
+	n n s s e e w w
+    }
+    
+    set class  $data(type)
+    set config {}
+    set fillanchorkludge {}
+    foreach i [array names data] {
+	if {[info exists Widget_data(default:$class,$i)]} {
+	    if {![string match *command* $i]} {
+		if {$i == "font"} {
+		    set font $data($i)
+		} elseif {$i == "colormap"} {
+		    if {$data($i) != {}} {
+			append config " -$i [list $data($i)]"
+		    }
+		} else {
+		    append config " -$i [list $data($i)]"
+		}
+	    }
+	} elseif {[info exists Widget_data(default:table,$i)]} {
+	    append geom " -$i [list $data($i)]"
+	} elseif {$i == "anchor"  || $i == "fill"} {
+	    catch {
+		append fillanchorkludge $fillarray($data($i))
+	    }
+	}
+    }
+    if {$fillanchorkludge != {}} {
+	append geom " -sticky $fillanchorkludge"
+    }
+
+    eval "$widget config $config"
+}
+
+# widget_configure --
+#
+#	Change a widget to reflect the current value of its array.
+#	Validation should already be done.
+#
+# Arguments:
+#	array	name of the array that stores info about widget.
+#	root	pathname of the parent of the widget
+#	manage	true iff the widget should be managed in its parent.
+#
+# Return value:
+#	- if $manage is 0, returns a command which can be eval'ed to
+#	  manage the widget in its master.
+#	- if $manage is 0, returns the pathname of the widget.
+
+proc widget_configure {array {root .can.f} {manage 1}} {
+    global Widget_data
+    upvar #0  $array data
+    array set fillarray {
+	none {{}} x {ew} y {ns} both {nsew} center {{}} c {{}}
+	n n s s e e w w
+    }
+    dputs $array $root
+    set widget $root.$data(pathname)
+    set class  $data(type)
+
+    # extract the widget and geometry options
+
+    set config "$class $widget"
+    set font ""
+    set fillanchorkludge {}
+    foreach i [array names data] {
+	if {[info exists Widget_data(default:$class,$i)]} {
+	    if {![string match *command* $i]} {
+		if {$i == "font"} {
+		    set font $data($i)
+		} elseif {$i == "colormap"} {
+		    if {$data($i) != {}} {
+			append config " -$i [list $data($i)]"
+		    }
+		} else {
+		    append config " -$i [list $data($i)]"
+		}
+	    }
+	} elseif {[info exists Widget_data(default:table,$i)]} {
+	    append geom " -$i [list $data($i)]"
+	} elseif {$i == "anchor"  || $i == "fill"} {
+	    catch {
+		append fillanchorkludge $fillarray($data($i))
+	    }
+	}
+    }
+    if {$fillanchorkludge != {}} {
+	append geom " -sticky $fillanchorkludge"
+    }
+
+    # make the widget and manage it
+    
+    regsub -all {(-i?)wad([xy])} $geom {\1pad\2} geom	;# padding botch
+    regsub -all align $geom anchor geom	;# padding botch
+    dputs $config
+    eval $config
+    if {$font != ""} {
+	catch {$widget configure -font $font}
+    }
+    if {$manage} {
+	if {$root != $data(master)} {
+	    dputs "grid $widget -in $root$data(master) $geom"
+	    eval "grid $widget -in $root$data(master) $geom"
+	} else {
+	    dputs "grid $widget -in $data(master) $geom"
+	    eval "grid $widget -in $data(master) $geom"
+	}
+	return $widget
+    } else {
+	if {$root != $data(master)} {
+	    return "grid $widget -in $root$data(master) $geom"
+	} else {
+	    return "grid $widget -in $data(master) $geom"
+	}
+    }
+}
+
+# validate_field --
+#
+#	 Validate and apply an option.
+#
+# Arguments:
+#	name	The pathname of the widget.
+#	item  	The option to be changed
+#	value	The value it wants to be set to
+#
+# Return value:
+#  	""	Validation suceeded, the widget value and associate array
+#		was changed
+#   <message>   Validation failed, reason is returned in result
+
+proc validate_field {name item value} {
+    global Widget_data
+    if {[regexp {^\.} $name]} {
+	set class [string tolower [winfo class $name]]
+	set name [winfo name $name]
+    }
+    upvar #0 $name data
+    
+    # run the output filter (if any) to do data conversion and (some)
+    # validation
+    
+    dputs "validating: $name $item $value"
+    if {[info exists Widget_data(outfilter:$item)]} {
+	dputs out-filtering $name: $item=<$value>
+	if {![$Widget_data(outfilter:$item) $name $item value]} {
+	    return $value
+	}
+    }
+    
+    # set the widget value
+    # make sure to preserve any embedded "\n"'s in the value
+    
+    dputs $name
+    if {[string compare [info commands .$name] .$name] == 0} {
+	set widget .$name
+    } elseif {![string compare [info commands .sample_$name] .sample_$name]} {
+	set widget .sample_$name
+    } else {
+	set widget .can.f.$name
+    }
+    if {[info exists data(type)]} {
+	set class  $data(type)
+    }
+    set cmd ""
+    if {[string match *command* $item]} {
+	dputs skipping $item - its a command
+    } elseif {[string match $item "class"]} {
+	set cmd "set data($item) $value"
+    } elseif {[info exists Widget_data(default:$class,$item)]} {
+	set cmd "$widget configure -$item \"[sub_bs $value 1]\""
+    } elseif {[info exists Widget_data(default:table,$item)]} {
+	set cmd [list grid configure $widget -$item $value]
+	regsub -all {(-i?)wad([xy])} $cmd {\1pad\2} cmd	;# padding botch
+	regsub -all align $cmd anchor cmd	;# padding botch
+    } elseif {[info exists Widget_data(default:position,$item)]} {
+	set base "grid $widget -in .can.f$data(master) [lrange [grid info $widget] 2 end]"
+	if {$item == "row"} {
+	    regsub {(\-row )([0-9]+)} $base {\1$value} cmd
+	} else {
+	    regsub {(\-column )([0-9]+)} $base {\1$value} cmd
+	}
+    } else {
+	dputs "unknown type: $item <- $value"
+	set data($item) $value
+    }
+    
+    # go set the value, and update the array
+    dputs "($item) $cmd"
+    set bad [catch "$cmd" msg]
+    if {$bad} {
+	return $msg
+    } else {
+	set data($item) $value
+	return ""
+    }
+}
+
+# do '\n' substitutions on a string, but leave commands and variables alone
+
+proc sub_bs {str {nosub 0}} {
+    regsub -all {([][$])} $str {\\\1} str
+    dputs $str
+    if {$nosub} {
+	return $str
+    } else {
+	return [subst $str]
+    }
+}
+
