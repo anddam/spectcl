@@ -167,6 +167,9 @@ proc ::menueditor::init {root} {
 #
 proc ::menueditor::nameexists {name} {
    upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   if {![info exists Ident(item_name)]} {
+      set Ident(item_name) $::menueditor::currentmenu(ident)
+   }
    return [::have_name $name $Ident(item_name)]
 }
 #***
