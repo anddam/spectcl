@@ -80,7 +80,8 @@ proc ::menueditor::init {root} {
 #
 proc ::menueditor::view {} {
    $::menueditor::mbase post 0 0
-   catch {$::menueditor::mbase activate 0}
+   set ::menueditor::pos 0
+   catch {$::menueditor::mbase activate $::menueditor::pos}
 }
 #***
 
@@ -137,14 +138,14 @@ foreach item {Label Command Variable Menu} {
 # Selection callback in listbox
 set l $::menueditor::base.lbEntries
 rename $l ::menueditor::.l
-proc ::$l {args} "
-   puts \$args
-   if {\[regexp {^selection\$} \[lindex \$args 0\]\] &&
-       \[regexp {^set\$} \[lindex \$args 1\]\]} {
-      ::menueditor::displaymenu $::menueditor::mbase \[::menueditor::.l index \[lindex \$args 2\]\]
+proc ::$l {args} {
+   puts $args
+   if {[regexp {^selection$} [lindex $args 0]] &&
+       [regexp {^set$} [lindex $args 1]]} {
+      ::menueditor::displaymenu $::menueditor::mbase [::menueditor::.l index [lindex $args 2]]
    }
-   uplevel ::menueditor::.l \$args
-"
+   uplevel ::menueditor::.l $args
+}
 
 catch {$l selection set 0}
 catch {$::menueditor::mbase activate 0}
@@ -169,6 +170,10 @@ proc ::menueditor::new {} {
    array set $ident [list type menu item_name $name gadgets {}]
    lappend ::menueditor::menulist [list $ident $name]
    $::menueditor::base.lbEntries insert end $name
+   $::menueditor::base.lbEntries activate end
+   $::menueditor::base.lbEntries see active
+   $::menueditor::base.lbEntries selection clear 0 end
+   $::menueditor::base.lbEntries selection set active
    return $ident
 }
 #***
@@ -195,6 +200,7 @@ proc ::menueditor::remove {} {
    unset $ident
    set ::menueditor::menulist [lreplace $::menueditor::menulist $number $number]
    $::menueditor::base.lbEntries delete $number
+   $::menueditor::base.lbEntries selection set active
 }
 #***
 
@@ -229,6 +235,8 @@ proc ::menueditor::displaymenu {mbase {number 0}} {
       }
    }
    $mbase post 0 0
+   set ::menueditor::pos 0
+   catch {$mbase activate $::menueditor::pos}
 }
 #***
 
@@ -319,7 +327,7 @@ proc ::menueditor::delete {} {
 # SOURCE
 #
 proc ::menueditor::keyup {} {
-   set ::menueditor::pos [expr [$::menueditor::mbase index active]-1]
+   incr ::menueditor::pos -1
    if {$::menueditor::pos<0} {set ::menueditor::pos 0}
    catch {$::menueditor::mbase activate $::menueditor::pos}
 }
@@ -333,9 +341,10 @@ proc ::menueditor::keyup {} {
 # SOURCE
 #
 proc ::menueditor::keydown {} {
+   if {"[focus]"=="$::menueditor::base.lbEntries"} {return}
    upvar #0 [set ::menueditor::currentmenu(ident)] Ident
    set lastpos [expr [llength $Ident(gadgets)]/2-1]
-   set ::menueditor::pos [expr [$::menueditor::mbase index active]+1]
+   incr ::menueditor::pos
    if {$::menueditor::pos>$lastpos} {
       ::menueditor::add
    } else {

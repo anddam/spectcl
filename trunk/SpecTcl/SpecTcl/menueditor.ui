@@ -322,9 +322,13 @@ bind $root <Key-Left> {::menueditor::keyleft}
 bind $root <Key-Right> {::menueditor::keyright}
 
 # Fast button invoking
-bind $root <Key-Return> "$base.add invoke"
+bind $root <Key-Return> "$base.replace invoke"
 bind $root <Key-Insert> "$base.insert invoke"
-bind $root <Key-Delete> "$base.delete invoke"
+bind $root <Key-Delete> "
+   if {\"\[focus\]\"!=\"$base.lbEntries\"} {
+      $base.delete invoke
+   }
+"
 bind $root <Key-Escape> "$base.dismiss invoke"
 
 
