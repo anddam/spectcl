@@ -29,7 +29,7 @@ The file <b>demo/newmenudemo.ui</b> is a good example of how to do this.
 New menus are added with the <i>New</i> button</li>
 
 <li>
-Edit the name of a menu with the <i>Rename</i> button</li>
+Copy a menu (non-recursively) with the <i>Copy</i> button</li>
 
 <li>
 Delete a menu with the <i>Remove</i> button</li>
@@ -40,11 +40,20 @@ the <i>View/Post</i> button</li>
 </ul>
 
 <h2>
+Menu Properties</h2>
+The overall properties of a menu can be edited with the same tool as used
+for other widgets (but only when the menueditor window is open). The window
+for editting widget properties is obtained either by pressing Ctrl-w or
+by selecting the "Widget Properties..." item in the "Edit" menu in the
+main window. Note that at present, the widget property buttons (e.g. font
+size, foreground colour, borderwidth etc) in the main window do not really
+work for menu widgets.
+<h2>
 Managing Items</h2>
 The right part of the menueditor window shows the available properties
 for the selected item in the selected menu. These can be changed by editing
 the values and pressing the <i>Update</i> button or the <i>Return</i> key
-on your keyboard. the type should always be set first as it resets all
+on your keyboard. The type should always be set first as it resets all
 the other values. Other things that one can do are:
 <ul>
 <li>
