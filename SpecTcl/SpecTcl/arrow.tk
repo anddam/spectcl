@@ -19,15 +19,15 @@
 #  master:	 The name of the table, which is also the tag name
 
 proc arrow_update {base master} {
-	global P Current
+    global P Current
 
     if {$Current(frame) != "" && $Current(frame) != $master} {
 	#move existing arrows out of view
 	${base}_row move tag:$Current(frame) -50 0
 	${base}_column move tag:$Current(frame) 0 -50
     }
-	set center 5
-	set tag tag:$master
+    set center 5
+    set tag tag:$master
     foreach {maxcolumn maxrow} [grid size $master] {}
     for {set x1 2} {$x1 < $maxcolumn} {incr x1 2} {
 	foreach {dumcolumn dumrow dumcolumnh dumrowh} [grid bbox $master $x1 0] {}
