@@ -1,0 +1,821 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# set some initial preferences (This is temporary)
+#
+# KAC- 
+#  Okay, this is a little more permanent.  If the variables don't exist, 
+#  *or* we pass 'em the magic 'restore' flag, then they are set to default values,
+#  otherwise elave them puppies (as presumably set in the .SpecTclrc file) alone!
+proc set_default_preferences {} {
+    set_preferences 1
+}
+
+set P(Version) 1.1
+set P(patchlevel) 0
+
+proc set_preferences {{restore 0}} {
+    global P tcl_platform
+    if {![info exists P(grid_size)] || $restore} {
+	set P(grid_size)	3	;#size of the grid lines
+    }
+    if {![info exists P(grid_color)] || $restore} {
+	set P(grid_color)	gray	;# grid color
+    }
+    if {![info exists P(grid_spacing)] || $restore} {
+	set P(grid_spacing)	30	;#size of the empty rows/cols lines
+    }
+    if {![info exists P(grid_highlight)] || $restore} {
+	set P(grid_highlight)	red	;# color of grid line when highlighted
+    }
+    if {![info exists P(generic_over_color)] || $restore} {
+	set P(generic_over_color) green ;# color to use to indicate the
+					;#cursor is "over" something
+    }
+    if {![info exists P(title)] || $restore} {
+	set P(title)		"SpecTcl $P(Version)"	;#  name of the application
+    }
+    if {![info exists P(maxrows)] || $restore} {
+	set P(maxrows)		6	;#  of rows in the table * 2
+    }
+    if {![info exists P(maxcols)] || $restore} {
+	set P(maxcols)		6	;#  of cols in the table * 2
+    }
+    if {![info exists P(gravity)] || $restore} {
+	set P(gravity)		5	;# how many pixels of mouse motion "counts"
+    }
+    if {![info exists P(scroll_delay)] || $restore} {
+	set P(scroll_delay)	75	;# ms to wait for scrolling canvas/w widget
+    }
+    if {![info exists P(button)] || $restore} {
+	set P(button)		1	;# which button to use for selecting/dragging
+    }
+    if {![info exists P(project)] || $restore} {
+	set P(project)		untitled;# name of this project
+    }
+    if {![info exists P(can_bg)] || $restore} {
+	set P(can_bg)		#ebebeb	;# color of canvas background
+    }
+    if {![info exists P(can_dis)] || $restore} {
+	set P(can_dis)		#EE0	;# color of disabled canvas background
+    }
+    if {![info exists P(frame_bg)] || $restore} {
+	set P(frame_bg)		#e9e9e9	;# color of frame background
+    }
+    if {![info exists P(incr)] || $restore} {
+	set P(incr)	       10    ;# pixel scroll increment on main canvas
+    }
+    if {![info exists P(fast)] || $restore} {
+	set P(fast)		1    ;# stuff to set for fast machines
+    }
+    if {![info exists P(debug)] || $restore} {
+	set P(debug)		0    ;# print debugging info
+    }
+    if {![info exists P(help)] || $restore} {
+	set P(help)             1    ;# field specific help
+    }
+    if {![info exists P(insert_on_gridline)] || $restore} {
+	set P(insert_on_gridline) 0  ;# flag to allow insertion if a widget dropped on gridline
+    }
+    if {![info exists P(center)] || $restore} {
+	set P(center)		0    ;# center canvas in frame
+    }
+    if {![info exists P(balloondelay)] || $restore} {
+	set P(balloondelay)	150  ;# update delay for text entry
+    }
+    if {![info exists P(balloontext)] || $restore} {
+	set P(balloontext)      {}   ;# text to display after delay
+    }
+    if {![info exists P(balloonpending)] || $restore} {
+	set P(balloonpending)   {}   ;# after ID of the next balloonhelp to be posted.
+    }
+    if {![info exists P(balloonerasepending)] || $restore} {
+	set P(balloonerasepending) {} ;# after ID of the balloonhelp erase.
+    }
+    if {![info exists P(balloonhelpforget)] || $restore} {
+	set P(balloonhelpforget) 0   ;# Whether help should ever be erased.
+    }
+    if {![info exists P(balloonlength)] || $restore} {
+	set P(balloonlength)  4000   ;# length of time to show balloons.
+    }
+    if {![info exists P(help_current)] || $restore} {
+	set P(help_current)     0    ;# indicates the current menu item, used
+    }
+    ;#     to provide menu help.
+    if {![info exists P(frame_size)] || $restore} {
+	set P(frame_size)	0    ;# initial frame size
+    }
+    if {![info exists P(other_items)] || $restore} {
+	set P(other_items)	"help comments tabbing level"	;# extra widget options
+    }
+    if {![info exists P(file_suffix)] || $restore} {
+	set P(file_suffix)	"ui"		;# user interface file suffix
+    }
+    if {![info exists P(target_suffix)] || $restore} {
+	set P(target_suffix) "ui.tcl"	;# generated code file suffix
+    }
+    if {![info exists P(include_suffix)] || $restore} {
+	set P(include_suffix) "tcl"		;# source'd code file suffix
+    }
+    if {![info exists P(edit_font_size)] || $restore} {
+	set P(edit_font_size) 12		;# size of the edit window font
+    }
+    if {![info exists P(wish)] || $restore} {
+	set P(wish)			bw	;# name of wish binary
+    }
+    if {![info exists P(resize_handles)] || $restore} {
+	set P(resize_handles)   3               ;# size of the resize handles
+    }
+    if {![info exists P(highlight_border_width)] || $restore} {
+	set P(highlight_border_width) 3         ;# size of the widget highlight border
+    }
+    if {![info exists P(skip-textstyle)] || $restore} {
+	set P(skip-textstyle) {entry {} listbox {} text {} canvas {} frame {} scrollbar {}} 
+    }
+    ;# The list of widgets that you can't set the text style on.
+    if {![info exists P(drop-outside-grid)] || $restore} {
+	set P(drop-outside-grid) 0  ;# Allow creation of a row/column as needed when dropping
+    }
+    ;# a widget outside of the grid.
+    if {![info exists P(sticky-palette)] || $restore} {
+	set P(sticky-palette)    1  ;# Whether a button on palette stays selected after clicking
+    }
+    if {![info exists P(confirm-delete-item)] || $restore} {
+	set P(confirm-delete-item) 0;# confirm deletion of items
+    }
+    if {![info exists P(confirm-save-layout)] || $restore} {
+	set P(confirm-save-layout) 1;# confirm saving of layouts
+    }
+    if {![info exists P(confirm-autosave-on-quit)] || $restore} {
+	set P(confirm-autosave-on-quit) 0;# automatically save on quitting.
+    }
+    if {![info exists P(confirm-replace-on-save)] || $restore} {
+	set P(confirm-replace-on-save) 1;# replace files when saving.
+    }
+    if {![info exists P(confirm-quit-without-save)] || $restore} {
+	set P(confirm-quit-without-save) 1;# confirm quit with a "dirty" layout
+    }
+    if {![info exists P(cache-widgets)] || $restore} {
+	set P(cache-widgets) 1;# cache the widgets
+    }
+    if {![info exists P(apply-defaults-widgets)] || $restore} {
+	set P(apply-defaults-widgets) 0;# apply the defaults.
+    }
+    if {![info exists P(use-external-editor)] || $restore} {
+	set P(use-external-editor) 0;# flag to use an external editor
+    }
+    if {![info exists P(external-editor-command)] || $restore} {
+	set P(external-editor-command) {};# string to use to invoke editor
+    }
+    
+    set P(current_editted_file) {}    ;# This is the name of the file
+                                      ;# currently being editted by an
+                                      ;# external viewer. Used as a flag
+                                      ;# to indicate if external viewer 
+                                      ;# is running.
+    # For option sheet handling:
+    # 0 is the old style, where the option sheet goes away 
+    #   after almost anything.
+    # 1 is where the sheet is that of the last valid selection
+    # 2 is where the sheet tries to be smart and show *accurate*
+    #   information.
+#    if {![info exists P(op-sheet-handling)] || $restore} {
+	set P(op-sheet-handling) 2;# How to handle the option sheets
+#    }
+    # the platform specific preferences
+    
+    switch $tcl_platform(platform) {
+	unix {array set P {path_sep :  exe_suffix ""}}
+	windows {array set P {path_sep ;  exe_suffix .exe}}
+    }
+
+    if {![info exists P(project_dir)] || $restore} {
+	set P(project_dir) [pwd]
+    }
+
+    set P(build_option_form_pending) 0
+    set P(file_untitled) 1
+}
+
+proc create_preferences {} {
+    global P tcl_platform
+
+    #
+    # Loads in thepreference panels needed by the current platform/
+    # target language
+    #
+    port_loadprefs
+
+    toplevel .prefs
+    wm protocol .prefs WM_DELETE_WINDOW {bind_unmap .prefs}
+    wm withdraw .prefs
+    wm title .prefs "Preferences"
+    frame .prefs.b
+
+    if {$tcl_platform(platform) == "macintosh"} {
+	.prefs config -bg #a0a0a0
+	.prefs.b config -bg #a0a0a0
+    }
+
+    button .prefs.b.o -text "OK" -width 8 -command {
+	preferences_apply
+	mainmenu_save_options
+	bind_unmap .prefs
+    }
+    button .prefs.b.a -text "Apply" -width 8  -command {
+	preferences_apply
+    }
+    button .prefs.b.c -text "Cancel" -width 8  -command {
+	preferences_cancel
+	bind_unmap .prefs
+    }
+    pack .prefs.b.c -side right -padx 3 -pady 4
+    pack .prefs.b.a -side right -padx 3 -pady 4
+    pack .prefs.b.o -side right -padx 3 -pady 4
+    frame .prefs.f
+    set P(preferences_root) .prefs.f
+    grid .prefs.b -row 1 -column 0 -sticky nsew -padx 5 -pady 0
+    grid .prefs.f -row 0 -column 0 -sticky nsew -padx 5 -pady 5
+    grid rowconfigure .prefs.f 0 -weight 1
+    grid columnconfigure .prefs.f 0 -weight 1
+    grid propagate .prefs.f 1
+    grid rowconfigure .prefs 0 -weight 1
+    grid columnconfigure .prefs 0 -weight 1
+    grid [recipe_box .prefs.f.c] -row 0 -column 0 -sticky nsew
+
+    foreach pref $P(panels) {
+	set holder [frame .prefs.f.$pref]
+	pref_${pref}_ui $holder
+	set pref [string toupper \
+	    [string range $pref 0 0]][string range $pref 1 end]
+	recipe_tab .prefs.f.c $pref $holder
+    }
+    recipe_raise_tab .prefs.f.c 1
+}
+
+
+proc setcolorbinding {w var} {
+    global P
+    bind $w <$P(button)> "
+        set_pref_color $w $var
+    "
+}
+
+proc set_pref_color {w var} {
+    global p
+    if {[set temp [tk_chooseColor -initialcolor $p($var)]] != ""} {
+	set p($var) $temp
+        $w config -bg $p($var)
+    }
+}
+
+proc preferences_popup {} {
+    global p P tcl_platform oldSpecCommon specCommon
+
+    set root $P(preferences_root)
+
+    #
+    # Set up the "output" box
+    #
+    case $tcl_platform(platform) {
+	unix {
+	    set text $root.output.text
+	    if [winfo exists $text] {
+		if ![info exists P(unix-stub)] {
+		    set P(unix-stub) [unix_stub_default]
+		}
+	        set state [$text cget -state]
+		$text config -state normal
+		$text delete 1.0 end
+		$text insert 1.0 $P(unix-stub)
+		$text config -state $state
+		if ![info exists P(unix-perm)] {
+		    set P(unix-perm) u+x
+		}
+	    }
+	}
+    }
+
+    set oldSpecCommon(lang) $specCommon(lang)
+    set oldSpecCommon(dontAskLang) $specCommon(dontAskLang)
+
+    foreach qq [array names P] {
+	set p($qq) $P($qq)
+    }
+    $root.appearance.grid_bg_color config -bg $p(grid_color)
+    setcolorbinding $root.appearance.grid_bg_color grid_color
+    $root.appearance.over_color config -bg $p(generic_over_color)
+    setcolorbinding $root.appearance.over_color generic_over_color
+    $root.appearance.can_bg config -bg $p(can_bg)
+    setcolorbinding $root.appearance.can_bg can_bg
+    $root.appearance.frame_bg config -bg $p(frame_bg)
+    setcolorbinding $root.appearance.frame_bg frame_bg
+    $root.appearance.selection_color config -bg $p(grid_highlight)
+    setcolorbinding $root.appearance.selection_color grid_highlight
+    set where [port_getproxy]
+    array set offset {proxy_host 0 proxy_port 1 username 2 email 3}
+    foreach q {proxy_host proxy_port username email} {
+	if {![info exists P($q)]} {
+	    set p($q) [lindex $where $offset($q)]
+	}
+    }
+    bind_map .prefs
+    raise .prefs
+}
+
+proc preferences_apply {} {
+    global p P tcl_platform
+    global oldSpecCommon specCommon
+
+    foreach qq [array names p] {
+	set P($qq) $p($qq)
+    }
+    set P(maxcols) $P(maxrows)
+
+    set root $p(preferences_root)
+    case $tcl_platform(platform) {
+	unix {
+	    set text $root.output.text
+	    if [winfo exists $text] {
+		set P(unix-stub) [string trim [$text get 1.0 end]]
+	    }
+	}
+    }
+
+    if {$oldSpecCommon(lang) != $specCommon(lang) || 
+    	    $oldSpecCommon(dontAskLang) != $specCommon(dontAskLang)} {
+
+	tk_messageBox -title "Target language settings changed" \
+	    -type ok -icon info \
+	    -message "For the changes to take effect, you must save the options and restart SpecTcl"
+    }
+}
+
+proc preferences_cancel {} {
+    global oldSpecCommon specCommon
+
+    set specCommon(lang) $oldSpecCommon(lang)
+    set specCommon(dontAskLang) $oldSpecCommon(dontAskLang)
+}
+
+# save_preferences
+
+proc save_preferences {} {
+    global P Widget_data
+    set filename [find_a_home]
+
+    save_common_preferences 
+    set lines {}
+    if {[file exists $filename]} {
+	set file [open "$filename" "r"]
+	if {$file != ""} {
+	    set lines [read $file]
+	    close $file
+	} else {
+	    puts "Saw but couldn't open $filename"
+	    return
+	}
+	port_ownPrefsFile $filename
+    }
+    set replacement {}
+    foreach qq [lsort [array names P]] {
+	# the first things in this switch statement are skipped.
+        # the 'default' is the only thing that does any work.
+	switch -glob $qq {
+	    project_dir {}
+            patchlevel {}
+	    file_suffix {}
+	    target_suffix {}
+	    title {}
+	    extends {}
+	    geom-*-orig {}
+	    current_editted_file {}
+	    geom-* {
+		append replacement "set P($qq-orig) [list $P($qq)]\n"
+	    }
+	    unix-* {	
+		append replacement "[list set P($qq) $P($qq)]\n"
+	    }
+	    default {
+		append replacement "[list set P($qq) $P($qq)]\n"
+	    }
+	}
+    }
+    if {$P(cache-widgets) >0} {
+	foreach qq [lsort [array names Widget_data]] {
+	    append replacement "set Widget_data($qq) [list $Widget_data($qq)]\n"
+	}
+    }
+    if {[regexp {\#\#begin\#\#\-\-Do not edit this section\!(.*)\#\#end\#\#--This is the end, you may add code after this\!} $lines dummy filler]} {
+	regsub {(\#\#begin\#\#\-\-Do not edit this section\!)(.*)(\#\#end\#\#--This is the end, you may add code after this\!)} $lines "\\3" lines
+	set lines "##begin##--Do not edit this section!\n$replacement$lines"
+    } else {
+	append lines "\n\#\#begin\#\#\-\-Do not edit this section\!\n$replacement\n\#\#end\#\#--This is the end, you may add code after this\!\n"
+    }
+    set file {}
+    set file [open "${filename}" "w"]
+    if {$file != ""} {
+	puts $file [string trim $lines]
+	close $file
+    }
+}
+
+# save_common_preferences
+
+proc save_common_preferences {} {
+    global specCommon
+    set filename [find_common_rc]
+
+    set lines {}
+    set file [open "$filename" "w"]
+    if {$file == ""} {
+	tk_messageBox -icon error -type ok -message \
+	    "Couldn't open preference file \"$filename\" for writing"
+	return
+    }
+    port_ownPrefsFile $filename
+    
+    puts $file "# SpecTcl common preference file"
+    puts $file "set specCommon(lang) $specCommon(lang)"
+    puts $file "set specCommon(dontAskLang) $specCommon(dontAskLang)"
+    close $file
+}
+
+# pref_lang_choice
+#
+#	Create a frame that contains widgets for choosing which target
+#	language to output by SpecTcl
+
+proc pref_lang_choice {root isstartup} {
+    global specCommon
+
+    set w [frame $root.langFrame]
+
+    label $w.title -text "Target Language:" 
+    radiobutton $w.tcl   -variable specCommon(lang) -value tcl \
+	-text "Tcl" 
+    radiobutton $w.java  -variable specCommon(lang) -value java \
+	-text "Java 1.0"
+    radiobutton $w.jdk11 -variable specCommon(lang) -value jdk11 \
+	-text "Java 1.1 (Experimental)"
+    radiobutton $w.html  -variable specCommon(lang) -value html \
+	-text "HTML (Experimental)"
+    radiobutton $w.perl  -variable specCommon(lang) -value perl \
+	-text "Perl (Experimental)"
+
+    frame $w.f -height 2 -bd 1 -relief sunken 
+
+    checkbutton $w.dont -variable specCommon(dontAskLang)
+    if {$isstartup} {
+	$w.dont config -text "Don't ask this question during SpecTcl start up"
+    } else {
+	$w.dont config -text \
+	    "Don't prompt for target language during SpecTcl start up"
+    }
+    pack $w.title -side top -anchor w -padx 2 -pady 5
+    pack $w.tcl   -side top -anchor w -padx 22 -pady 0
+    pack $w.java  -side top -anchor w -padx 22 -pady 0
+    pack $w.jdk11 -side top -anchor w -padx 22 -pady 0
+    pack $w.html  -side top -anchor w -padx 22 -pady 0
+    pack $w.perl  -side top -anchor w -padx 22 -pady 0
+    pack $w.f -side top -fill x -pady 3 -padx 2
+    pack $w.dont  -side top -anchor w -padx 4 -pady 4
+
+    return $w
+}
+
+# chooseLang --
+#
+#	Choose a target language for SpecTcl, according to command line
+#	switch, the ~/.SpecCommonrc file and interactive user input.
+#
+proc chooseLang {} {
+    global argv specCommon askLangDone
+
+    set comrc [find_common_rc]
+    if [file exists $comrc] {
+	catch {source $comrc}
+    }
+
+    if ![info exists specCommon(lang)] {
+	set specCommon(lang) tcl
+    }
+    if ![info exists specCommon(dontAskLang)] {
+	set specCommon(dontAskLang) 0
+    }
+
+    #
+    # See if the user has specified a target language in the command line
+    #
+    set valid(-tcl)   1
+    set valid(-perl)  1
+    set valid(-java)  1
+    set valid(-jdk11) 1
+    set valid(-html)  1
+
+    foreach arg $argv {
+	if {$arg == "--"} {
+	    break
+	}
+	if [info exists valid($arg)] {
+	    set specCommon(lang) [string range $arg 1 end]
+	    set lang_set 1
+	    break
+	}
+    }
+
+    if {![info exists lang_set] && !$specCommon(dontAskLang)} {
+	set t [toplevel .asklang]
+	wm title $t "Target Language"
+	set w [pref_lang_choice $t 1]
+	pack $w -side top -fill x
+	button $w.ok -command "set askLangDone 1" -text "OK" -width 8
+	pack $w.ok -side top -anchor e -padx 4 -pady 3
+
+	catch {$w.ok config -default active}
+	catch {focus $w.ok}
+	bind $t <Return> "$w.ok invoke"
+
+	wm withdraw $t
+	update idletasks
+	set x [expr [winfo screenwidth $t]/2 - [winfo reqwidth $t]/2]
+	set y [expr [winfo screenheight $t]/2 - [winfo reqheight $t]/2]
+	wm geom $t [winfo reqwidth $t]x[winfo reqheight $t]+$x+$y
+	wm deiconify $t
+	raise $t
+
+	bind $t <Destroy> "exit"
+
+	tkwait variable askLangDone
+	unset askLangDone
+
+	wm withdraw $t
+	update
+	bind $t <Destroy> ""
+	update
+	destroy $t
+    }
+}
+
+proc pref_target_ui {root} {
+    set w [pref_lang_choice $root 0]
+    grid $w -padx 5 -pady 5 -sticky new
+    grid rowconfig $root 2 -weight 1
+    grid columnconfig $root 2 -weight 1
+}
+
+
+# pref_load_rc_file --
+#
+#    Read in the "rc" file, if any, during the startup of SpecTcl
+#
+proc pref_load_rc_file {} {
+    global P
+
+    set rc [find_a_home]
+    if {[file readable $rc]} {
+	set f [open $rc r]
+	set lines [read $f]
+	close $f
+	set version 0.0
+	if {![info exists P(Version)]} {
+	    set P(Version) 1.1
+	}
+	regexp "\nset P\\(Version\\) (\[^\n]*)" $lines match version
+	regsub "\n(set P\\(patchlevel\\) )(\[^\n]*)" $lines {} lines
+
+	if {$version < $P(Version)} {
+	    regsub "\n(set P\\(geom\\) )(\[^\n]*)" $lines {} lines
+	    regsub "\nset Widget_data(.*)(\#\#end\#\#\\-\\-This is the end, you may add code after this!)" $lines "\n\\2" lines
+	    tk_dialog .err "Preferences update" "Your preferences file has
+been updated to run with
+this version of SpecTcl." info 0 OK
+	    eval $lines
+	    set P(Version) 1.1
+	    save_preferences
+	} else {
+	    eval $lines
+	}
+	port_ownPrefsFile $rc
+    }
+
+    if {[info exists P(geom)]} {
+	wm geom . $P(geom)
+    }
+    set P(file_untitled) 1
+}
+
+proc init_target_lang {} {
+    global specCommon file_select_types 
+
+    set file_select_types {
+	{"SpecTcl Interfaces"       {.ui}           {TEXT STui}}
+	{"All files"		    *}
+    }
+
+    if {$specCommon(lang) != "tcl"} {
+	if {[catch {Source $specCommon(lang)_init.tk} msg]} {
+	   tk_messageBox -type ok -title "cannot initialize target language" \
+		-message $msg -icon error
+	} else {
+	    # These items are not supported in any configuration other
+	    # than Tcl.
+	    del_menuitem "Build and Test"
+	    del_menuitem "Stop Test"
+	    del_menuitem "Attach Scrollbars"
+
+	    bind all <Control-t> ";"
+	    bind all <Control-k> ";"
+	    set spec(noexecute) 1
+
+	    sync_all
+	}
+    }
+}
+
+
+# pref_set_default_geometry --
+#
+# set default geometry for the future...
+#
+
+proc pref_set_default_geometry {} {
+    global P
+    if {![info exists P(geom)]} {
+	update idletasks
+	set P(geom) [wm geom .]
+	regexp {([0-9]*)x([0-9]*)} $P(geom) dummy width height
+	wm minsize . $width $height
+	set P(minimum_geom) $P(geom)
+    } else {
+	if {![info exists P(minimum_geom)]} {
+	    # wierd case now...old startup script.
+	    # give a reasonable default...
+	    set P(minimum_geom) 471x414
+	    wm minsize . 471 414
+	} else {
+	    regexp {([0-9]*)x([0-9]*)} $P(minimum_geom) dummy width height
+	    wm minsize . $width $height	
+	}
+    }
+}
+
+# pref_check_email --
+#
+#	Check if user has input an e-mail address (used for error reporting
+#	purposes.) If not, ask for it.
+#
+proc pref_check_email {} {
+
+    # NOTE: feature disabled because SpecTcl no longer sends bug report
+    # automatically
+    #
+    return
+
+    global P
+    if {![info exists P(email)]} {
+	# information doesn't exist, try to get it from netscape...
+	set where [port_getproxy]
+	array set offset {proxy_host 0 proxy_port 1 username 2 email 3}
+	foreach q {proxy_host proxy_port username email} {
+	    if {![info exists P($q)]} {
+		set P($q) [lindex $where $offset($q)]
+	    }
+	}
+	if {$P(email) == ""} {
+	    tk_dialog .err "Network Configuration" "Please enter your name and email address in the network tab of preferences." questhead 0 "I will..."
+	    mainmenu_options
+	}
+    }
+}
+
+proc _pref_output_macintosh_ui {root args} {
+    global p
+    # this treats "." as a special case
+
+    if {$root == "."} {
+	set base ""
+    } else {
+	set base $root
+    }
+
+    label $base.help -justify left -text \
+"Choose a stub file for creating a Tcl application.
+By default, choose the file \"stub\" from the SpecTcl
+installation directory.
+
+Choose a four letter creator code for the Tcl
+application.
+"
+
+    label $base.lab1 -text "Application stub file:"
+    entry $base.stub -textvariable p(mac-stub)
+    button $base.browse -text "Browse ..." \
+	-command "set p(mac-stub) \[tk_getOpenFile -parent $root\]"
+
+    label $base.lab2 -text "Creator code:"
+    entry $base.code -textvariable p(mac-creator) -width 6
+
+    trace variable p(mac-creator) w check_mac_creator
+
+    grid $base.help    -column 1 -row 0 -sticky nw
+    grid $base.lab1    -column 1 -row 1 -sticky nw
+    grid $base.stub    -column 1 -row 2 -sticky ew -columnspan 3
+    grid $base.browse  -column 4 -row 2 -sticky w -padx 4
+    grid $base.lab2    -column 1 -row 3 -sticky nw
+    grid $base.code    -column 1 -row 4 -sticky nw
+
+    grid columnconfig $root 0 -minsize 7
+    grid columnconfig $root 0 -minsize 7
+    grid columnconfig $root 5 -minsize 7
+    grid columnconfig $root 2 -weight 1
+
+    grid rowconfig $root 7 -weight 1
+}
+
+
+proc check_mac_creator {name1 name2 op} {
+    global p
+
+    if {[string length $p(mac-creator)] > 4} {
+	set p(mac-creator) [string range $p(mac-creator) 0 3]
+    }
+}
+
+proc _pref_output_unix_ui {root args} {
+    # this treats "." as a special case
+
+    if {$root == "."} {
+	set base ""
+    } else {
+	set base $root
+    }
+
+    label $base.help -justify left -text \
+"The startup stub appears at the beginning of
+the Tcl file generated by SpecTcl. It specifies
+the wish program needed to run the Tcl file
+as a stand-alone application.
+
+Use the Permission entry to set the permission
+mode of the Tcl file. Leave it empty if you don't
+want to change the permission mode. See chmod(1)
+for a list of possible permission modes."
+
+    text $base.text -width 60 -height 6 -wrap none \
+	-xscrollcommand "$base.sbx set" \
+	-yscrollcommand "$base.sby set"
+    scrollbar $base.sbx -command "$base.text xview" -orient horizontal
+    scrollbar $base.sby -command "$base.text yview" -orient vertical
+
+    button $base.default -text Default \
+	-command "unix_stub_default_set $base.text"
+    label $base.lab  -text "Startup stub:"
+    label $base.lab1 -text "Permission:"
+    entry $base.perm -textvariable p(unix-perm) -width 6
+
+    grid $base.help -column 1 -row 0 -sticky nw -columnspan 3 
+    grid $base.lab  -column 1 -row 1 -sticky nw
+    grid $base.text -column 1 -row 2 -sticky news -columnspan 4
+    grid $base.sbx  -column 1 -row 3 -sticky news -columnspan 4
+    grid $base.sby  -column 5 -row 2 -sticky nws
+    grid $base.default -column 4 -row 7 -columnspan 2 -padx 4 -pady 5 -sticky e
+
+    grid $base.lab1 -column 1 -row 4 -sticky w -pady 5
+    grid $base.perm -column 2 -row 4 -sticky w -pady 5
+
+    grid columnconfig $root 0 -minsize 7
+    grid columnconfig $root 0 -minsize 7
+    grid columnconfig $root 6 -minsize 7
+    grid columnconfig $root 2 -weight 1
+
+    grid rowconfig $root 8 -weight 1
+}
+
+proc unix_stub_default_set {text} {
+    global p
+    set state [$text cget -state]
+    $text config -state normal
+    $text delete 1.0 end
+    $text insert 1.0 [unix_stub_default]
+    $text config -state $state
+
+    set p(unix-perm) "u+x"
+}
+
+proc unix_stub_default {} {
+    global tcl_platform
+
+    if {$tcl_platform(platform) != "unix"} {    
+	return ""
+    }
+
+    return \
+"#! /bin/sh
+# the next line restarts using [file tail [info nameofexecutable]] \\
+exec [file tail [info nameofexecutable]] \"\$0\" \"\$@\"
+"
+}

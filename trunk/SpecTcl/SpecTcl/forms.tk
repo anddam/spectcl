@@ -1,0 +1,584 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# generic fill in the form mega-widget (not done yet) 11/94
+# build a data entry form in a frame, inside a scrollable canvas
+# The form consists of keyword - value pairs represented as an array.
+
+# form_applychange
+# form - array to apply the change to
+# item - element to change/apply
+# $entry - place to find the data
+proc form_applychange {form item entry} {
+    upvar #0 $form data
+    set data($item) [$entry get]
+    if {![catch {.can.f.$form config -$item $data($item)}]} {
+	sync_all
+    }
+}
+
+# Get and set the defaults for this widget to be one of:
+# widget  - the template's values
+# template - the defaults for the platform, obtained from a widget.
+proc form_getdefaults {win} {
+    global P
+    regexp {([^,]*),([^.]*)(.*)} $P(option_focus) dummy field which tail
+    upvar #0 $win data
+    if {[set templateflag [string match {sample*} $win]]} {
+	catch {destroy .templ_$win}
+	regexp {sample_(.*)} $win dummy type
+	set source .templ_$win
+	if {[catch {$type $source}]} {
+	    return
+	}
+	set dest .$win
+    } else {
+	regexp {([^\#]*)\#([0-9]*)} $win dummy type number
+	set source .sample_$type
+	set dest .can.f.$win
+    }
+    set configs {}
+    if {![catch {$source cget -$field} answer]} {
+	set data($field) $answer
+	.widget.form.can.f.${win},${field},entry$tail delete 0 end
+	.widget.form.can.f.${win},${field},entry$tail insert end $answer
+	$dest config -$field $answer
+    }
+    sync_all
+}
+
+proc form_getlist {form option} {
+    # get the list of items
+    global Advanced
+    upvar #0 $form data  ;# name of array with data
+    upvar #0 $option config	 ;# name of array with configuration stuff
+
+    # decide what to skip
+    array set Skip { row 1 column 1 rowspan 1 columnspan 1 }
+
+    set items ""
+    foreach item [array names data] {
+	if {[info exists Skip($item)]} {
+	    continue
+	}
+	if {!$Advanced && [info exists config(advanced:$item)]} {
+	    continue
+	}
+	
+	if {[info exists config(ignore:$item)]} {
+	    continue
+	}
+	if {[info exists config(ignore:$data(type),$item)]} {
+	    continue
+	}
+	lappend items $item
+    }
+    return $items
+}
+
+proc form_comboreturn {w} {
+    global P
+    regexp {(.*)\.[^\.]*} $w dummy e
+    form_comborelease $w
+    if {[$w.lb curselection] != ""} {
+	set entry $e.e$P(option_sheet_entry).e
+	$entry delete 0 end
+	$entry insert 0 [$w.lb get [$w.lb curselection]]
+	check_field $e $P(option_sheet_entry)
+    }
+}
+
+proc form_comborelease {w} {
+    global P
+    regexp {(.*)\.[^\.]*} $w dummy e
+    grab release $w
+    wm withdraw [winfo toplevel $w]
+    $e.e$P(option_sheet_entry).b config -relief flat
+}
+
+proc form_combodouble {e w y} {
+    global P Current
+    set Current(dirty) 1
+    set entry $e.e$P(option_sheet_entry).e
+    $entry delete 0 end
+    $entry insert 0 [$w.lb get [$w.lb index @5,$y]]
+    check_field $e $P(option_sheet_entry)
+    form_comborelease $w
+}
+
+proc form_combo {e w args} {
+    if {![winfo exists $w]} {
+	toplevel $w
+	wm overrideredirect $w 1
+	wm transient $w
+	wm withdraw $w
+	$w config -bd 2 -relief raised
+	scrollbar $w.sb -command "$w.lb yview"
+	listbox $w.lb -yscrollc "$w.sb set"
+	bind $w.lb <Double-1>        "form_combodouble $e [list $w] %y"
+	bind $w.lb <1>               "form_combodouble $e [list $w] %y"
+	bind $w.lb <ButtonPress> "form_comborelease $w"
+	bind $w.lb <ButtonRelease> "form_combodouble $e [list $w] %y"
+	bind $w.lb <Escape> "form_comborelease $w"
+	bind $w.sb <Escape> "form_comborelease $w"
+	bind $w <ButtonPress> "if \{\"$w.sb\" != \"%W\"\} \{form_comborelease $w\}"
+	bind $w <Escape> "form_comborelease $w"
+	bind $w.lb <Return> "form_comboreturn $w"
+	bind $w.lb <Insert> ""
+	bind $w.lb <Delete> ""
+	pack $w.sb -side right -fill y
+	pack $w.lb -side left -fill both -expand y
+    }
+    foreach q [lindex $args 0] {
+	$w.lb insert end "$q"
+    }
+}
+
+proc form_combodrop {idx w} {
+    global formstypes P
+
+    if {$formstypes($idx) != ""} {
+	set win $w.$formstypes($idx)toplevel
+	set x1 [expr \
+		[winfo rootx ${w}.e${idx}.b]-[winfo reqwidth $win]+\
+		[winfo reqwidth ${w}.e${idx}.b]]
+
+	set y1 [expr [winfo rooty ${w}.e${idx}.b]+\
+		[winfo height ${w}.e${idx}.b]]
+
+	set P(option_sheet_entry) $idx
+	wm geom $win +$x1+$y1
+	wm deiconify $win
+	raise $win
+	focus $win.lb
+
+	if {[catch {grab -global $win}]} {
+	    wm geom $win +$x1+$y1
+	    update idletasks
+	    wm deiconify $win
+	    raise $win
+	    focus $win.lb
+	    update
+
+	    # After all this, even *Elvis* should be visible, but I'm
+	    # getting bug reports of spurious errors where the grab
+	    # failed because the window isn't visible.  The grab is
+	    # necessary because we want this menu to go away if the
+	    # user clicks outside.  So we bind to a <Leave> event so
+	    # that if the user leaves the toplevel, we punt.
+
+	    if {[catch {grab -global $win}]} {
+		if [winfo exists $win] {
+		    bind $win <Leave> "form_comborelease $win"
+		}
+	    }
+	}
+    }
+}
+
+proc form_combo_destroy {idx} {
+}
+
+proc form_types_template {} {
+    uplevel 1 {
+	global Colors
+	array set entrytypes {string 1 distance 1 integer 1 boolean 1 color 1
+	    anchor 1 relief 1 bitmap 1 cursor 1 state 1
+	    orientation 1 font 1 special 1 unknown 1}
+	array set stringtype {}
+	array set distancetype {0 1 1 1 2 1 3 1 4 1 5 1 8 1 10 1 16 1 20 1 32 1
+	    50 1 64 1}
+	array set integertype {}
+	array set booleantype {true 1 false 1}
+	regsub -all {([^ ]*) } $Colors {\1 1 } colorarray
+	append colorarray " 1"
+	array set colortype $colorarray
+	array set anchortype {nw 1 n 1 ne 1 w 1 c 1 e 1 sw 1 s 1 se 1}
+	array set relieftype {flat 1 sunken 1 raised 1 ridge 1 groove 1}
+	array set bitmaptype {error 1 gray25 1 gray50 1 hourglass 1 info 1 questhead 1
+	    question 1 warning 1}
+	foreach q {X_cursor arrow 
+	    double_arrow sizing spraycan draft_large draft_small
+	    based_arrow_down based_arrow_up pencil draped_box
+	    exchange bogosity plus tcross bottom_left_corner
+	    fleur question_arrow top_left_arrow bottom_side gumby
+	    right_side top_right_corner bottom_tee hand1 right_tee
+	    top_side center_ptr circle trek icon ul_angle iron_cross
+	    sb_down_arrow umbrella coffee_mug left_ptr sb_h_double_arrow
+	    ur_angle cross left_side sb_left_arrow watch cross_reverse
+	    left_tee sb_right_arrow xterm crosshair sb_up_arrow
+	    diamond_cross ll_angle sb_v_double_arrow dot lr_angle shuttle} {
+	    set cursortype($q) 1
+	}
+	array set statetype {normal 1 active 1 disabled 1}
+	array set orientationtype {h 1 v 1}
+	array set fonttype {}
+	array set specialtype {}
+	array set unknowntype {}
+    }
+}
+
+proc form_comboButtonRelease {w X Y n} {
+    global formstypes
+    $w config -relief flat
+    if {[winfo containing %X %Y] == "${w}.$formstypes($n)toplevel.lb"} {
+	regexp {([0-9]*)x([0-9]*)+([0-9]*)+([0-9]*)} [winfo geom ${w}.$formstypes($n)toplevel.lb] match w h x y
+	form_combodouble $w ${w}.$formstypes($n)toplevel.lb [expr $Y - $y]
+    }
+}
+
+proc form_build_basic {win form option height} {
+    global formslabels formsentries P Current
+    scrollbar $win.scroll -command "$win.can yview"
+    canvas $win.can -yscrollc "$win.scroll set" \
+	-highlightthickness 0 -yscrollincrement $P(canvas_yscrollincrement)
+
+    # setup the scrollbar so that when it's scrolled and then released, 
+    # the top thing showing is set as the focused item.
+    bind $win.scroll <ButtonRelease-$P(button)> "form_focus_top $win"
+        
+    if {[info comm down_bm] == {}} {
+	set down_bm {
+	    #define dwnarrow.icn_width 15
+	    #define dwnarrow.icn_height 15
+	    static unsigned char dwnarrow.icn_bits[] = {
+		0x00, 0x00, 0x00, 0x00, 0xe0, 0x07, 0xe0, 0x07, 0xe0,
+		0x07, 0xe0, 0x07, 0xe0, 0x07, 0xfc, 0x3f, 0xf8, 0x1f,
+		0xf0, 0x0f, 0xe0, 0x07, 0xc0, 0x03, 0x80, 0x01, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00};
+	}
+	image create bitmap down_bm -data [set down_bm]
+	unset down_bm
+    }
+    
+    frame $win.can.f
+    $win.can create window 2 2 -window $win.can.f -anchor nw  
+
+    form_types_template
+    foreach q [array names entrytypes] {
+	if {[catch {lsort -integer [array names ${q}type]} contents]} {
+	    set contents [lsort [array names ${q}type]]
+	}
+	set contents 
+	form_combo $win.can.f $win.can.f.${q}toplevel $contents
+    }
+    
+    for {set i 0} {$i<50} {incr i} {
+	set f $win.can.f
+	label $f.l$i -textvar formslabels($i)
+	frame $f.e$i
+	set ent [entry $f.e$i.e -textvar formsentries($i) -bg \#f0f0f0]
+	set lab [label $f.e$i.b -image down_bm]
+
+	bind $ent <KeyPress> \
+	    "$ent config -fg red;set Current(dirty) 1"
+	bind $lab <1> \
+	    "form_combodrop $i $f ;%W config -relief sunken"
+	bind $ent <Down>  \
+	    "form_combodrop $i $f ;$lab config -relief sunken"
+
+	bindtags $ent "busy [bindtags $ent]"
+
+	bind $ent <Return> \
+	    "check_field $f $i"
+	bind $ent <Tab> \
+	    "check_field $f $i;if {\"\[.widget.msg cget -text]\"!= {}} {break}"
+	bind $ent <Shift-Tab> \
+	    "check_field $f $i;if {\"\[.widget.msg cget -text]\"!= {}} {break}"
+	bind $ent <FocusIn> \
+	    "form_focus $win.can $f $i;set P(option_focus) $i"
+	bind $ent <FocusOut> \
+	    "check_field $f $i"
+
+	grid $f.l$i -row $i -column 0 -sticky e
+	grid $ent -row 0 -column 0 -sticky ew
+	grid $lab -row 0 -column 1 -sticky e
+	grid $f.e$i -row $i -column 1 -sticky ew	
+	grid columnconfigure $f.e$i 0 -weight 1
+    }
+
+    grid rowconfigure $win 0 -weight 1
+    grid columnconfigure $win 0 -weight 1000
+    bind $win.can <Configure> "%W itemconfigure all -width %w;form_reset $win"
+    grid $win.scroll -row 0 -column 1 -sticky ns
+    grid columnconfigure $win.can.f 1 -weight 1
+    grid propagate $win.can.f 1
+    grid $win.can -row 0 -column 0 -sticky nsew
+    grid propagate $win 1
+    # make some buttons
+    frame $win.buttons -bd 1 -relief raised
+    checkbutton $win.buttons.advanced -text "additional\nproperties" \
+	-variable Advanced -padx 10 \
+	-command "form_additionalOptions $win $form $option $height"
+    button $win.buttons.quit -text OK -command "form_button_quit $win" \
+	-width 7
+    button $win.buttons.cancel -text Revert -command "form_button_cancel" \
+	-width 7
+    button $win.buttons.default -text Default \
+	-command "form_getdefaults $form" \
+	-width 7
+
+    wm protocol .widget WM_DELETE_WINDOW "form_button_quit $win"
+        
+    pack $win.buttons.advanced -side left
+    pack $win.buttons.default -side right
+    pack $win.buttons.cancel -side right
+    pack $win.buttons.quit -side right
+
+    grid $win.buttons -in $win -row 1 -column 0 -columnspan 2 -sticky {ew}
+    grid columnconfigure $win 1 -weight 1
+    grid rowconfigure $win 0 -weight 1
+    form_reset $win
+}
+
+proc form_additionalOptions {win form option height} {
+    global Current
+    if {$Current(widget) != ""} {
+	form_build $win [winfo name $Current(widget)] $option $height
+    } elseif {$Current(selected_widget_type) != ""} {
+	set who $Current(selected_widget_type)
+	set name sample_[winfo name $who]
+	form_build $win $name $option $height
+    } else {
+	set title [wm title .widget]
+	if {[lindex $title 0] == "Default"} {
+	    set name sample_[lindex $title 1]
+	} else {
+	    set name [lindex $title 1]
+	    global $name
+	    if ![winfo exists .can.f.$name] {
+		.widget.msg config -text "Invalid widget."
+		return
+	    }
+	}
+	form_build $win $name $option $height
+    }
+}
+
+proc form_button_quit {win} {
+    global Geometry
+    set Geometry([winfo name [winfo toplevel $win]]) \
+	[wm geometry [winfo toplevel $win]]
+    bind_unmap [winfo toplevel $win]
+    sync_all
+}
+
+proc form_button_cancel {} {
+    global olddata Current formslabels formsentries Widget_data
+    upvar #0 $Current(widget) data
+    array set data [array get olddata]
+    set myvalue {}
+    foreach q [lsort [array names data]] {
+	catch {$Current(widget) config -$q $data($q)}
+	foreach r [lsort [array names formslabels]] {
+	    if {[string length $formslabels($r)]>0 &&
+		    [string match $formslabels($r) $q]!=0} {
+		if {[info exists Widget_data(infilter:$q)]} {
+		    set myvalue $data($q)
+		    if {[$Widget_data(infilter:$q) myvalue]} {
+			set formsentries($r) $myvalue
+		    } else {
+			set formsentries($r) $data($q)
+		    }
+		} else {
+		    set formsentries($r) $data($q)
+		}
+		break
+	    }
+	}
+    }
+    sync_all
+}
+
+proc form_reset {form} {
+    $form.can config -scrollregion [$form.can bbox 1]
+}
+
+# build_form win form <match>
+#  win:	The name of the frame to put this in - it will be created if needed
+#  form: The name of the array to fill out the form with
+#  height:  How many entries
+# side effects:
+#  The bind tags "validate" and "entry" are provided for each entry field
+#  various options are processed by looking at the Widget_data array
+#    ignore:<name>	not placed in the form
+#    infilter:<name> processed through an input filter first
+#    outfilter:<name> processed through an out filter
+#    rename:<name>    the option is re-named as its label
+
+proc form_build {win form {option Widget_data} {height 10}} {
+    global Advanced P Colors olddata formslabels formsentries \
+	formstypes Widget_data typestemplate olddata Current
+    upvar #0 $form data  	;# name of array with data
+    upvar #0 $option config	;# name of array with configuration stuff
+
+    # get current data
+    array set olddata [array get data]
+
+    form_types_template
+
+    if {$win == "."} {
+	set base ""
+    } else {
+	set base $win
+    }
+    if {![winfo exists $base.can]} {
+	form_build_basic $base $form $option $height
+    }
+
+    if {$Current(widget) != ""} {
+	$win.buttons.default config -state normal
+    } else {
+	$win.buttons.default config -state disabled
+    }
+
+    set P(option_sheet) "$base.can"
+    set P(option_command) \
+	"form_build [list $win] [list $form] [list $option] [list $height]"
+    set P(option_focus) 0
+    focus .
+    focus .widget
+    set idx 0
+    set labels {}
+    set entries {}
+
+    #hide all the elements of the grid...
+    regsub -all {([^ ]* )} [info comm $base.can.f.*] {[gridforget \1] } results
+    subst $results
+
+    # fill out and show all the ones we need
+    foreach item [lsort [form_getlist $form $option]] {
+	append labels "$idx [list $item] "
+	if {[info exists Widget_data(infilter:$item)]} {
+	    set myvalue $data($item)
+	    if {[$Widget_data(infilter:$item) myvalue]} {
+		append entries "$idx [list $myvalue] "
+	    }
+	} else {
+	    append entries "$idx [list $data($item)] "
+	}
+	if {[info exists Widget_data(option:$item)]} {
+	    if {[array names $Widget_data(option:$item)type] != ""} {
+		grid $base.can.f.e$idx.b -row 0
+	    }
+	    append types "$idx $Widget_data(option:$item) "
+	} else {
+	    append types "$idx {} "
+	}
+	grid $base.can.f.l$idx -row $idx
+	grid $base.can.f.e$idx -row $idx
+	grid $base.can.f.e$idx.e -row 0
+	incr idx
+    }
+    incr idx -1
+
+    for {set i 0} {$i < 50} {incr i} {
+	set formslabels($i)  {}
+	set formstypes($i)   {}
+	set formsentries($i) {}
+    }
+    array set formslabels $labels
+    array set formsentries $entries
+    array set formstypes $types
+    update 
+    $base.can yview moveto 0
+    form_reset $base
+}
+
+# set the top entry entirely visible in the option sheet to have
+# the focus.
+
+proc form_focus_top {base} {
+    global P
+    
+    foreach q [winfo children $base.can.f] {
+	if {[regexp {can.f.e} $q]} {
+	    if {([winfo y $q]+[winfo y $base.can.f]) >= 0} {
+		focus $q
+		regexp {.*\.e([0-9]*)} $q dummy P(option_focus)
+		return
+	    }
+	}
+    }
+}
+
+# focus and make visible (by scrolling canvas as needed)
+
+proc form_focus {canvas frame item} {
+    if {$item<0} return
+    set item $frame.e$item
+    set yscrolli [$canvas cget -yscrollincrement]
+    set yscrolli [expr $yscrolli?$yscrolli:1]
+    $item.e selection range 0 end
+    set below [expr [winfo y $item] + [winfo y $frame]]
+    if {$below <= 0 } {
+	$canvas yview scroll \
+	    [expr $below/$yscrolli] units
+	return -1
+    }
+    set above [expr [winfo y $item] + [winfo y $frame] - \
+		   ([winfo height $canvas] - [winfo height $item])]
+    if {$above > 0} {
+	$canvas yview scroll \
+	    [expr $above/$yscrolli+1] units
+	return 1
+    }
+    return 0
+}
+
+# check_field --
+#
+#	Validate a field entry - this is done any time the field is
+#	"left" This is called from "bind" and causes the remaining
+#	bindings to be skipped if the validation fails errors (if any)
+#	are placed in the "error" entry of the array, which is
+#	displayed on the form
+#
+# Arguments:
+#   	win:	The name of the entry window, from which re can derive
+#		the widget info
+#	idx:	The index of the entry widget assocaited with this field.
+#
+# Result:
+#	None.
+
+proc check_field {win idx} {
+    global Current
+
+    if {$Current(widget) != ""} {
+	set who $Current(widget)
+	set name [winfo name $who]
+    } elseif {$Current(selected_widget_type) != ""} {
+	set who $Current(selected_widget_type)
+	set name sample_[winfo name $who]
+    } else {
+	set title [wm title .widget]
+	if {[lindex $title 0] == "Default"} {
+	    set name sample_[lindex $title 1]
+	} else {
+	    set name [lindex $title 1]
+	    global $name
+	    if ![winfo exists .can.f.$name] {
+		.widget.msg config -text "Invalid widget."
+		return
+	    }
+	}
+    }
+    set value $win.e$idx.e
+    set item $win.l$idx
+    $value config -fg black
+    upvar #0 $name data
+    set thisvalue [$value get]
+    set thisitem [$item cget -text]
+    set data(error) [validate_field $name $thisitem $thisvalue]
+    if {$data(error) != {}} {
+	.widget.msg config -text $data(error)
+	focus $value
+    } else {
+	.widget.msg config -text ""
+    }
+    sync_all
+}
