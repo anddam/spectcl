@@ -543,3 +543,5 @@ name.
 same sequence every time so that 'diff' clearly shows the changes.
 Especially useful under CVS.
 
+11/7/2001 (new feature) Properties of menu widgets can be directly
+editted and menu widgets can be copied.
