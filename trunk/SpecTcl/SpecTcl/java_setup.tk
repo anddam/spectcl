@@ -48,6 +48,8 @@ array set Field_help {
     .palette.f.checkbutton "Drag onto canvas to create a checkbox"
     .palette.f.entry "Drag onto canvas to create a textfield"
     .palette.f.frame "Drag onto canvas to create a container"
+    .palette.f.message "Drag onto canvas to create a message box"
+    .palette.f.scale "Drag onto canvas to create a scale"
     .palette.f.label "Drag onto canvas to create a label"
     .palette.f.listbox "Drag onto canvas to create a listbox"
     .palette.f.menubutton "Drag onto canvas to create a menu button"
@@ -69,8 +71,8 @@ array set Widget_data {
 	ignore:activebackground 1
 	ignore:activeforeground 1
 	ignore:activerelief 1
-	ignore:bitmap 1
-	ignore:image 1
+	#ignore:bitmap 1
+	#ignore:image 1
 	ignore:borderwidth 1
 	ignore:command 1
 	ignore:disabledforeground 1
@@ -79,7 +81,7 @@ array set Widget_data {
 	ignore:highlightbackground 1
 	ignore:highlightcolor 1
 	ignore:highlightthickness 1
-	ignore:image 1
+	#ignore:image 1
 	ignore:insertbackground 1
 	ignore:insertborderwidth 1
 	ignore:insertofftime 1
@@ -91,9 +93,9 @@ array set Widget_data {
 	ignore:relief 1
 	ignore:selectbackground 1
 	ignore:selectborderwidth 1
-	ignore:selectcolor 1
-	ignore:selectforeground 1
-	ignore:selectimage 1
+	#ignore:selectcolor 1
+	#ignore:selectforeground 1
+	#ignore:selectimage 1
 	ignore:setgrid 1
 	ignore:spacing1 1
 	ignore:spacing2 1
@@ -223,12 +225,12 @@ array set Javahelp {
 }
 
 array set Jdefault {
-	package ""
-	extends 	java.applet.Applet
-	imports	""
-	implements	""
-	arg			Object
-	init			super.init();
+	package		"" 
+	extends 	JApplet
+	imports		""
+	implements	ActionListener
+	arg		Object
+	init		super.init();
 }
 
 # set/extract the preferences.

@@ -38,6 +38,7 @@ proc mainmenu_new {} {
 #	0 - if the operation has been aborted by the user
 
 proc mainmenu_open {} {
+
     global file_select_types P Current
 
     if ![save_if_dirty] {

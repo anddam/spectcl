@@ -59,6 +59,7 @@ array set Javamap {
     	menubutton  	JComboBox
 	listbox 	JList
 	canvas 		Canvas
+	menu		JMenu
 }
 	
 # Value is the
@@ -68,9 +69,11 @@ array set Javamap {
 	entry.text		$var.setText("$value");	
 	checkbutton.text 	$var.setText("$value");
 	radiobutton.text 	$var.setText("$value");
-	entry.width		[entry_width]
+	entry.width		$var.setColumns($value);
 	button.text		$var.setText("$value");
     	menubutton.text 	{[choice_text $var $value]}
+        *.bitmap	        {[do_icon $var $value]}
+        *.image            	{[do_image_icon $var $value]}
 	*.font			{$var.setFont([jfont $value]);}
 	*.state			{[do_state $var $value]}
 	*.help			{[do_help $var $value]}
@@ -131,6 +134,8 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 	global Widget_data Format Masters Version Javamap Javaanchormap Javafillmap Boiler P
 	global CB_Groups
 	catch "unset CB_Groups"
+	global CB_MenuBar
+	catch "unset CB_MenuBar"
 	set Id "WidGet file"
 	catch "unset Masters"
 	array set map {row height column width}
@@ -259,7 +264,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			set arg $P(arg)
 		}
 	}
-	puts $out_fd "public $arg arg;\n"
+	puts $out_fd "private $arg arg;\n"
 
 	# Declare an instance variable for each widget:
 	foreach name $names {
@@ -281,14 +286,38 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		} else {
 			set data(actual) $Javamap($type)
 		}
-		catch {puts $out_fd "public $data(actual) $var;"}
+		catch {puts $out_fd "private $data(actual) $var;"}
 		if {$type == "radiobutton"} {
 			set group default_group
 			catch {set group $data(configure,variable)}
 			if {![info exists CB_Groups($group)]} {
 				set CB_Groups($group) 1
-				puts $out_fd "public ButtonGroup $group = new ButtonGroup();"
+				puts $out_fd "private ButtonGroup $group = new ButtonGroup();"
 				append widget_names \"$group\",
+			}
+		}
+		if {$type == "menu"} {
+			set menubar defaultMenuBar
+			catch {set group $data(configure,variable)}
+			foreach {item options} $data(other,gadgets) {
+                                set menu_name ""
+                                foreach {option val} $options {
+                                        if {"$option" == "-label"} {
+                                                set menu_name [list $val]
+                                                #delete all white space
+                                                regsub -all " " $menu_name "" menu_name
+                                                regsub -all "\'" $menu_name "" menu_name
+                                                set menu_name [lindex $menu_name 0]
+                                                set menu_name menuItm$menu_name
+						puts $out_fd "private JMenuItem $menu_name;"			
+                                                append widget_names \"$menu_name\",
+					}
+				}
+			}
+			if {![info exists CB_MenuBar($menubar)]} {
+				set CB_MenuBar($menubar) 1
+				puts $out_fd "private JMenuBar $menubar = new JMenuBar();"
+				append widget_names \"$menubar\",
 			}
 		}
 		append widget_names \"$var\",
@@ -298,7 +327,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 	# make lists of widget pointers and names available to apps
 
 	puts $out_fd "\n//methods to support form introspection"
-	puts $out_fd "public static String names\[] = \{\n\t$widget_names\n\};"
+	puts $out_fd "private static String names\[] = \{\n\t$widget_names\n\};"
 	puts $out_fd "public String\[] getNames() \{\n\treturn names;\n\}"
 
 	regsub -all {"} $widget_names {} widget_names
@@ -419,7 +448,128 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 				foreach i [split $data(other,items) ,] {
 					puts $out_fd "\t$var.addItem(\"$i\");"
 				}
-			}			
+			}
+			puts $out_fd "\t$var.addActionListener(this);"
+		 } elseif {$type == "menu" } {
+                        puts $out_fd "\t$var = new JMenu(\"$var\");"
+			#puts $out_fd "\t$var.addActionListener(this);"
+                        foreach {item options} $data(other,gadgets) {
+				#puts $out_fd "\tItem is now $item and other gadgets $data(other,gadgets)"
+				# $item is what to check ie command is menuitem seperator is separator etc
+				#puts $out_fd "\tOptions are now set to $options"
+                                if {$options == ""} {
+					puts $out_fd "\t$var.addSeparator();"
+				}
+				set accelerator ""
+				set menu_name ""
+				set background_colour ""
+				set menu_bitmap ""
+				set menu_image ""
+				set foreground_colour ""
+				#set active_background_colour ""
+				#set active_foreground_colour ""				
+				set menu_font ""
+				set menu_icon_bitmap ""
+				set action_menu ""
+				foreach {option val} $options {
+                                        if {"$option" == "-label"} {
+						#example of Option is -label ie the options for this menu or menu item
+						#puts $out_fd "\tOption $option and value $val"
+						set menu_name [list $val]
+						set menu_label [list $val]
+						set menu_label [lindex $menu_label 0]									
+						#delete all white space
+						regsub -all " " $menu_name "" menu_name 
+						regsub -all "\'" $menu_name "" menu_name 
+						set menu_name [lindex $menu_name 0]			
+						set menu_name menuItm$menu_name
+						append widget_names \"$menu_name\",   
+                                                puts $out_fd "\t$menu_name = new JMenuItem(\"$menu_label\");"						
+                                        }
+                                        if {"$option" == "-accelerator"} {
+						set accelerator [list $val]
+                                        }					
+                                        if {"$option" == "-bitmap"} {
+						set menu_bitmap [list $val]
+                                        }					
+                                        if {"$option" == "-image"} {
+						set menu_image [list $val]
+                                        }					
+                                        if {"$option" == "-background"} {
+						set background_colour [list $val]
+                                        }					
+                                        if {"$option" == "-foreground"} {
+						set foreground_colour [list $val]
+                                        }					
+                                        #if {"$option" == "-activebackground"} {
+					#	set active_background_colour [list $val]
+                                        #}					
+                                        #if {"$option" == "-activeforeground"} {
+					#	set active_foreground_colour [list $val]
+                                        #}					
+                                        if {"$option" == "-bitmap"} {
+						set menu_icon_bitmap [list $val]
+                                        }					
+                                        if {"$option" == "-command"} {
+						set action_menu [list $val]
+                                        }	
+                                        if {"$option" == "-font"} {
+						set menu_font [list $val]
+                                        }	
+                                }
+				
+				if {"$menu_name" != ""} {
+					if {"$accelerator" != ""} {					
+						puts $out_fd "\t$menu_name.setMnemonic(\'$accelerator\');"
+					}
+					if {"$menu_image" != ""} {					
+						puts $out_fd \t[do_image_icon $menu_name $menu_image]
+					}
+					if {"$menu_bitmap" != ""} {					
+						puts $out_fd \t[do_icon $menu_name $menu_bitmap]
+					}
+					if {"$background_colour" != ""} {					
+						puts $out_fd "\t$menu_name.setBackground([jcolor $background_colour]);"
+					}
+					if {"$foreground_colour" != ""} {					
+						puts $out_fd "\t$menu_name.setForeground([jcolor $foreground_colour]);"
+					}
+					#this functionality can not be acheived because selecting a menu item does
+					#not allow it's color to be changed.  :(
+					#if {"$active_background_colour" !="" || $active_foreground_colour != ""} {
+					#	puts $out_fd "\t$menu_name.ChangeListener("
+					#	puts $out_fd "\t\tnew ChangeListener() {"
+					#	puts $out_fd "\t\t\tpublic void stateChanged( ChangeEvent e )"
+					#	puts $out_fd "\t\t\t{"
+					#	puts $out_fd "\t\t\t\tif ($menu_name.isArmed() )"
+					#	puts $out_fd "\t\t\t\t{"
+					#	if {$active_background_colour != ""} {	
+					#		puts $out_fd "\t\t\t\t\t$menu_name.setBackground([jcolor $active_background_colour]);"
+					#	}
+					#	if {$active_foreground_colour != ""} {	
+					#		puts $out_fd "\t\t\t\t\t$menu_name.setForeground([jcolor $active_foreground_colour]);"
+					#	}						
+					#	puts $out_fd "\t\t\t\t}"
+					#	puts $out_fd "\t\t\t\telse"
+					#	puts $out_fd "\t\t\t\t{"
+					#	puts $out_fd "\t\t\t\t\t$menu_name.setBackground(Color.gray);"
+					#	puts $out_fd "\t\t\t\t\t$menu_name.setForeground(Color.black);"
+					#	puts $out_fd "\t\t\t\t}"
+					#	puts $out_fd "\t\t\t}"
+					#	puts $out_fd "\t\t}"
+					#	puts $out_fd "\t);"
+					#}
+					if {"$menu_font" != ""} {		
+						puts $out_fd "\t$menu_name.setFont([jmenufont $menu_font]);"
+					}
+					if {"$menu_icon_bitmap" != ""} {					
+						puts $out_fd "\t[do_icon $menu_name $menu_icon_bitmap]"
+					}
+                                        puts $out_fd "\t$menu_name.addActionListener(this);"
+                                        puts $out_fd "\t$var.add($menu_name);"
+				}
+                        }
+			puts $out_fd "\t$menubar.add($var);"			
 		} elseif {$type == "checkbutton" } {			
 			puts $out_fd "\t$var = new JCheckBox();"
 			
@@ -461,16 +611,38 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		}
 		if {$type == "listbox" || $type == "text"} {
 			#set type "listbox"
-			puts $out_fd "	[Jreal_master $name]getContentPane().add($var$scroll);"			
-		} else {
+			if {[Jreal_master $name]=="this."} {
+				puts $out_fd "	[Jreal_master $name]getContentPane().add($var$scroll);"			
+			} else {
+				puts $out_fd "	[Jreal_master $name]add($var$scroll);"	
+			} 
+		} elseif {$type == "menu"} {
+			puts $out_fd "\tsetJMenuBar($menubar);"
+			#puts $out_fd "	[Jreal_master $name]getContentPane().add($menubar);"								
+		} elseif {$type != "frame"} {
 			set orange 0
-			puts $out_fd "	[Jreal_master $name]getContentPane().add($var);"
+			if {[Jreal_master $name]=="this."} {
+				puts $out_fd "	[Jreal_master $name]getContentPane().add($var);"		
+			} else {
+				puts $out_fd "	[Jreal_master $name]add($var);"
+			} 
+			
 		}
 		# puts $out_fd "\twidgets\[[incr count]] = $var;\n"
                 if {[info exists P(java_include_comments)] && $P(java_include_comments) != 0} {
                     puts $out_fd "\t$data(other,comments)"
                 } 
 	}
+	#Add the frames last.
+        foreach name $names {
+                upvar #0 __X_$name data
+                if {$name == "f" } continue
+                set type $data(other,type)
+                set var $data(other,item_name)
+                if {$type == "frame"} {
+                        puts $out_fd "\t[Jreal_master  $name]getContentPane().add($var);"
+                }
+        }
 
 	# Create the geometry management commands:
 	puts $out_fd "\n\t// Geometry management"
@@ -481,6 +653,10 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 
 		set type $data(other,type)
 		set var $data(other,item_name)
+		
+		#don't set the geometry for menus
+                if {$type == "menu"} continue
+		
 		puts  $out_fd "\treset(con);"
 		puts  $out_fd "\tcon.gridx = $data(geometry,column);"
 		puts  $out_fd "\tcon.gridy = $data(geometry,row);"
@@ -517,9 +693,19 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		    set uname $data(other,item_name).
 		    set vname $data(other,item_name)_
 		}
-		puts $out_fd "\t${uname}getContentPane().setLayout(${vname}grid);"
+		if {${uname}=="this."} {
+			puts $out_fd "\t${uname}getContentPane().setLayout(${vname}grid);"	
+		} else {
+			puts $out_fd "\t${uname}setLayout(${vname}grid);"
+		}
+		
 		puts $out_fd "\t//Set the Background Color"
-		puts $out_fd "\t${uname}getContentPane().setBackground([jcolor $P(frame_bg)]);"
+		if {${uname}=="this."} {
+			puts $out_fd "\t${uname}getContentPane().setBackground([jcolor $P(frame_bg)]);"		
+		} else {
+			puts $out_fd "\t${uname}setBackground([jcolor $P(frame_bg)]);"
+		} 
+		
 	}
 	
 	#do some other event handling stuff	
@@ -552,7 +738,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			puts $out_fd "\t\t\t}"
 			puts $out_fd "\t\t}"
 			puts $out_fd "\t);"		
-		} elseif {$data(other,type)=="menubutton" || $data(other,type)=="checkbutton" || $data(other,type)=="radiobutton"} {
+		} elseif {$data(other,type)=="checkbutton" || $data(other,type)=="radiobutton"} {
 			puts $out_fd "\t$data(other,item_name).addItemListener("
 			puts $out_fd "\t\tnew ItemListener() {"
 			puts $out_fd "\t\t\tpublic void itemStateChanged( ItemEvent e )"
@@ -580,15 +766,46 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 
 	foreach name $names {
 		upvar #0 __X_$name data
-		if {$data(other,type)=="button" || $data(other,type)=="entry" || $data(other,type)=="text"} {
+		if {$data(other,type)=="button" || $data(other,type)=="entry" || $data(other,type)=="text" || $data(other,type)=="menubutton"} {
 			if {[info exists data(other,action)]} {
 				if {$data(other,action) != ""} {
 					puts $out_fd "\tif (event.getSource() == $data(other,item_name)) \{"
+					if {$data(other,type)=="menubutton"} {
+						puts $out_fd "\t\tString itemSelected = (String) $data(other,item_name).getSelectedItem();"
+					}
 					puts $out_fd "\t\t$data(other,action)"
 					puts $out_fd "\t\}"
 				}
 			}
 		}
+		
+		if {$data(other,type)=="menu"} {
+                        foreach {item options} $data(other,gadgets) {
+				set menu_name ""
+                                set command ""
+				foreach {option val} $options {
+                                        if {"$option" == "-label"} {
+                                                #example of Option is -label ie the options for this menu or menu item
+                                                #puts $out_fd "\tOption $option and value $val"
+                                                set menu_name [list $val]
+                                                #delete all white space
+                                                regsub -all " " $menu_name "" menu_name
+                                                regsub -all "\'" $menu_name "" menu_name
+                                                set menu_name [lindex $menu_name 0]
+                                                set menu_name menuItm$menu_name
+                                        }
+                                        if {"$option" == "-command"} {
+						set command [list $val]					
+					}
+                                }
+				if {"$command" != ""} {
+                                        set command [lindex $command 0]					
+					puts $out_fd "\tif (event.getSource() == $menu_name) \{"
+					puts $out_fd "\t\t$command"
+					puts $out_fd "\t\}"
+				}
+                        }
+		}	
 	}
 
 
@@ -652,6 +869,18 @@ proc jfont {value} {
 	return "new Font(\"$family\",$style, $size)"
 }
 
+proc jmenufont {value} {
+	set value [lindex $value 0]
+	set font [split $value " "]
+	set family [lindex $font) 0]
+	set size [lindex $font 1]
+	set style "Font.PLAIN "
+	foreach i [lrange $font 2 end] {
+		append style "+ Font.[string toupper $i] "
+	}
+	return "new Font(\"$family\",$style, $size)"
+}
+
 # convert colors
 
 proc jcolor {value} {
@@ -698,6 +927,13 @@ proc frames_first {name1 name2} {
 	} elseif {$data2(other,type) == "frame"} {
 		return 1
 	}
+ 	
+	# menus, widgets 
+        if {$data1(other,type) == "menu"} {
+                return -1
+        } elseif {$data2(other,type) == "menu"} {
+                return 1
+        }
 
 	# sort by explicit tabbing order field
 	if {[set result [string compare $data1(other,tabbing) $data2(other,tabbing)]] != 0} {
@@ -827,6 +1063,7 @@ proc do_state {var value} {
     }
 }
 
+
 proc do_help {var value} {
 	if {$value == ""} {
 	    return {}
@@ -834,6 +1071,28 @@ proc do_help {var value} {
 	    return $var.setToolTipText("$value")\;
 	}
 }
+
+#if {$value == "question" || $value=="grey25" || $value=="grey50" || $value=="info{
+
+proc do_icon {var value} {
+	set image_type ".gif"
+
+	if {$value == ""} {
+	    return {}
+	} else {
+	    return $var.setIcon(new\ ImageIcon(".."+java.io.File.separator+"SpecTcl"+java.io.File.separator+"$value$image_type"))\;
+	}
+}
+
+proc do_image_icon {var value} {
+        if {$value == ""} {
+            return {}
+        } else {
+	    return $var.setIcon(new\ ImageIcon(".."+java.io.File.separator+"SpecTcl"+java.io.File.separator+"images"+java.io.File.separator+"$value"))\;
+        }
+}
+
+
 
 proc do_comments {value} {
 	if {$value == ""} {

@@ -15,6 +15,33 @@ Source java_setup.tk	;# Java code generator
 add_menuitem "Help" "Java notes" {html_help javanotes.html}
 set found 0
 
+proc sync_run {win} {
+    # This is a dreadful kludge.  This "sync_run" replaces the
+    # sync_run defined in toolbar.tk, which would have disabled
+    # the "run" button.
+    .run config -image run.gif -state normal
+    .run config -command {                  
+       .stop config -state normal
+       .stop config -image stop.gif
+       test_java $Current(project) 
+    }                             
+}
+
+.stop config -command {
+   .stop config -state disabled
+   .stop config -image stop_u.gif
+   catch {exec kill $Jpid}
+   set _Message ""
+}
+
+add_menuitem "Build and Test" "Build and Test Java" {
+   .stop config -state normal
+   .stop config -image stop.gif
+   test_java $Current(project)
+}
+
+menu_setstate "Build and Test Java" disabled
+
 # the following 2 lines can be "patched" from the windows installer
 # to prevent the dialogs below from appearing
 if {![info exists P(skip_nojava)]} {
@@ -55,7 +82,7 @@ foreach path [split $env(PATH) $P(path_sep)] {
     }
 }
 if {[llength $look] < 1} {
-    set msg "Can't find java-api documentation. You may download this from http://www.javasoft.com:80/products/jdk/1.1/docs/api/packages.html"
+    set msg "Can't find java-api documentation. You may download this from http://www.javasoft.com/products/jdk/1.3/docs/api/packages.html"
     append msg "It will not be accessable from the help menu."
     set result 0
     if {$skip_nodocs == 0} {set P(skip_nodocs) [tk_dialog .java Error  $msg error 0 OK "Don't show this\n warning in future."]}

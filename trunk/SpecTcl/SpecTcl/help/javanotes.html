@@ -39,7 +39,11 @@ Component names
 <li>menubutton	->		JComboBox
 <li>listbox		->		JList
 <li>canvas		->		Canvas
-<li>frame		->		Jpanel
+<li>frame		->		JPanel
+<li>menu		->		JMenu
+<li>bitmap              ->              Icon
+<li>image               ->              Icon
+
 </menu>
 <li src=aqball.gif align=baseline>
 Option names
@@ -65,12 +69,20 @@ as a choice if specified.
 Several options on the component property sheets have special meaning to <color value=red>java</color>.
 They are:
 <dl>
-<dt>action
+<dt>action or command (in the menu editor)
 <dd>A valid <color value=red>java</color> statement should be entered here.  Typically this is a method invocation, either
-from a method inherited in the current class, a static method, such as <code>System.out.println()</code>,
-or a method of the <code>arg</code> instance variable, such as <code>arg.foo()</code>.
+from a method inherited in the current class, a static method, such as <code>System.out.println();</code>,
+or a method of the <code>arg</code> instance variable, such as <code>arg.foo();</code>.
 The local variable <code>event</code> of type <code>Event</code> is available as an argument, as
 are all of the user interface objects.
+<dt>image and bitmaps
+<dd>
+Images should be stored in the SpecTcl/SpecTcl/images directory and can be either jpeg or gif types. Bitmaps are set types (such as the questhead.gif icon) that are avaliable from the 
+ pulldown menu. Note that you need to restart SpecJava if you add a new image to the images directory.
+<dt>fonts
+<dd>
+In most of the components the font can be specified by fontname,size,type ie Helvectica,12,bold. 
+ However menu item fonts are specified using space separaters such as fontname size type, i.e. Helvetica 12 bold .
 <dt>item_name
 <dd>
 This is used as the name of the <color value=red>java</color> instance for this user interface element.
