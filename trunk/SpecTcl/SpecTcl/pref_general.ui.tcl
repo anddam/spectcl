@@ -112,7 +112,7 @@ proc pref_general_ui {root args} {
 		-variable p(balloonhelpforget)
 
 	button $base.button#1 \
-		-command FindWidgets \
+		-command "tk_messageBox -message {Please see Help in the miscellaneous section for instructions on how to use non-core widgets} -parent $root" \
 		-text {Find Widgets}
 
 	label $base.label#8 \
