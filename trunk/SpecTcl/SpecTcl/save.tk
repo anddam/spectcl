@@ -288,8 +288,7 @@ proc get_file_data {{start_widget ""}} {
 	    } elseif {[string match *align* $i]} {
 		set type geometry
 		regsub align $i anchor map
-	    } elseif {$i == "master" && $item == $start_widget} {
-		set data($i) {}
+	    } elseif {"$i" == "master" && "$item" == "$start_widget"} {
 	    } else {
 		set type other
 	    }
