@@ -1,0 +1,743 @@
+# This file contains the Perl backend for SpecTcl.
+#
+# This file has been modified by Mark Kvale (Apr 1997) to work with 
+# perl 5.003 and Tk400.202. It was downloaded by the SpecTcl team from
+# http://www.keck.ucsf.edu/~kvale/specperl.html and incorporated into
+# SpecTcl 1.1 as an experimental/unsupported package. More info about
+# SpecTcl/perl can be found at the above web page.
+#
+# This file also includes patches sent by Warren Jones to allow this 
+# code to work with SpecTcl 1.1.
+#
+# This is the only perl file loaded in, so its functions encompass  those 
+# of perl_setup.tk, compile_perl.tk, and perl_init.tk
+# There are no warranty or gaurantees on this code.
+
+set _Message "Loading perl code generator"
+update idletasks
+
+#set file_select_types [linsert $file_select_types 0 {
+#    "SpecPerl Interfaces" {.pui} {TEXT STui}
+#}]
+
+#set P(file_suffix)     "pui"		;# user interface java file suffix
+#set P(target_suffix)   "pl"		;# generated code file suffix
+
+add_menuitem "Build" "Kill perl" {
+   .stop config -state disabled
+   .stop config -image stop_u.gif
+   catch {exec kill $Perlpid}
+   set _Message ""
+}
+.stop config -command {
+   .stop config -state disabled
+   .stop config -image stop_u.gif
+   catch {exec kill $Perlpid}
+   set _Message ""
+}
+add_menuitem "Build" "Build and Test Perl" {
+   .stop config -state normal
+   .stop config -image stop.gif
+   test_perl $Current(project)
+}
+.run config -command {
+   .stop config -state normal
+   .stop config -image stop.gif
+   test_perl $Current(project)
+}
+
+proc sync_run {win} {
+    # This is a dreadful kludge.  This "sync_run" replaces the
+    # sync_run defined in toolbar.tk, which would have disabled
+    # the "run" button.
+    .run config -image run.gif -state normal
+    .run config -command {
+       .stop config -state normal
+       .stop config -image stop.gif
+       test_perl $Current(project)
+    }
+}
+
+#set file_select_types [linsert $file_select_types 0 {"Perl Scripts" {.ui.pl} {TEXT}}]
+
+del_menuitem "Build Test"
+del_menuitem "Attach scrollbars"
+
+set P(file_suffix)   "ui"		;# user interface file suffix
+set P(target_suffix) "ui.pl"		;# tcl generated code file suffix
+set P(title) "SpecTcl (Perl enabled) $Version"
+
+# menu hook for compiling perl code and starting perl interpreter
+
+proc test_perl {name} {
+   global _Message Widgets Current P Perlpid env
+
+   if {[array size Widgets] == 0} {
+      .stop config -state disabled
+      .stop config -image stop_u.gif
+      set msg "Nothing to test"
+      tk_dialog .perl Error  $msg error 0 OK
+      return
+   }
+
+   # compute frame stacking and tabbing order
+   global f; set f(level) 0
+   set_frame_level .can.f
+
+   # The following two lines are a kludge until, specTcl fixes it's
+   # "setting $Current(dirty) when it is needed" problem
+   save_project [file join $P(project_dir) $Current(project).$P(file_suffix)]
+   set Current(dirty) ""
+
+   if {$Current(dirty)>0 || ![file readable $name.$P(file_suffix)]} {
+      set msg "$Current(project) has not been saved"
+      if {$P(confirm-save-layout)>0} {
+         switch [tk_dialog .sure "Testing $Current(project)"  $msg "questhead" \
+               0 "Cancel test" "Save $Current(project) first"] {
+            0 {return 0}
+            1 {save_project  [file join $P(project_dir) $Current(project).$P(file_suffix)] 1}
+         }
+      } else {
+         save_project [file join $P(project_dir) $Current(project).$P(file_suffix)] 1
+      }
+   }
+
+   set _Message "Creating $name.ui.pl ..."
+   compile_ui $name.ui $name.ui.pl $name .
+   set _Message "Compiling $name.ui.pl ..."
+   update  idletasks
+   catch {exec kill $Perlpid}
+   set msg ""
+   busy_on
+   update
+
+   # compile the app and see if the syntax is ok
+   catch {exec perl -c $name.ui.pl} msg
+   if {[regsub -all \n $msg {} x] > 20} {
+      set msg [string range $msg 0 250]\n....
+   }
+   if { [regexp {syntax OK} $msg] == 0 } {
+      append msg "\n\n** Perl compilation failed **"
+      help_dialog .perl $msg "Okay"
+      busy_off
+      set _Message ""
+      return
+   }
+
+   set leaf_name [file tail $name]
+   update		;# flushes any help messages
+
+   set _Message "Running perl $name.ui.pl ..."
+   set msg ""
+   if {[catch {exec perl $name.ui.pl &} msg]} {
+      append msg "\n\n** Perl runtime failed **"
+      help_dialog .perl $msg "Okay"
+   } else {
+      set Perlpid $msg
+   }
+   busy_off
+}
+
+# I will bend save_project to my ends...
+# save just the .ui and .ui.pl files and not buggy .ui.tcl code
+# also fixed a problem with executing from another directory
+
+proc __save_project {{file ""} {compile 0} {start_widget ""}} {
+    dputs "Saving $file"
+    global Widgets _Message Id P Current Version
+    global Widget_data f Colors
+
+    if {[edit_statusFile $file] != 0} {
+	tk_messageBox -message "Please exit the external editor before attempting to save this file." -type ok -icon warning
+	return -code return
+    }
+
+    if {$file != "" && [catch {open "$file" "w"} fd]} {
+	tk_dialog .open "Save Error"  $fd "error" 0 OK
+	set _Message "Can't open file $file"
+	return 0
+    }
+    busy_on
+    append result "$Id, version $Version, created:  [clock format [clock seconds]]\n"
+    set_title $Current(project)
+    set Current(dirty) ""
+
+    # compute geometry options (fix padding name clash)
+    blt_get .can geom
+
+    set f(level) 0
+    set_frame_level .can.f
+    outline_inhibit 1
+    set Widgets(f) 1
+    set widget_list [array names Widgets]
+    if {$start_widget != ""} {
+	set widget_list $start_widget
+	set widget_list [concat $widget_list [get_children $start_widget]]
+    }
+    foreach item $widget_list {
+	dputs "saving $item to $file"
+	set _Message "saving $item"
+	update
+	append result "Widget $item\n"
+	if {$item == "f"} {
+	    widget_extract .can.f
+	    set f(Colors) $Colors
+	} else {
+	    widget_extract .can.f.$item
+	}
+	upvar #0 $item data
+	set class $data(type)
+	foreach i [array names data] {
+
+	    # figure out what "type" of option we have
+	    # since {,i}pad[xy] are used both for geometry
+	    # and configuration, handle them specially
+
+	    # skip configuration values that are defaulted!
+	    # This doesn't catch equivalent forms of the
+	    # same value
+
+	    set skip 0
+	    foreach type "$class geometry table" {
+		if {![catch {set default $Widget_data(default:$type,$i)}]} {
+		    set attrib $i
+		    if {$item == "f"} {
+			set thisitem ""
+		    } else {
+			set thisitem ".$item"
+		    }
+		    if {[regexp {highlight(.*)} $i dummy what]} {
+			set attrib "highlight[string toupper [string range $what 0 0]][string range $what 1 end]"
+		    }
+		    if {[set defaultdb [option get .can.f$thisitem $attrib widgetDefault]] != ""} {
+			set default $defaultdb
+		    }
+		    if {([string compare [list $default] [list $data($i)]] == 0)
+			|| ([string compare $default [list $data($i)]] == 0)} {
+			incr skip
+			break
+		    }
+		}
+	    }
+	    if {$skip} continue
+	    set map $i
+	    if {[info exists Widget_data(default:$class,$i)]} {
+		set type configure
+	    } elseif {[info exists geom(-$i)]} {
+		set type geometry
+	    } elseif {[string match *wad* $i]} {
+		set type geometry
+		regsub wad $i pad map
+	    } elseif {[string match *align* $i]} {
+		set type geometry
+		regsub align $i anchor map
+	    } elseif {$i == "master" && $item == $start_widget} {
+		set data($i) {}
+	    } else {
+		set type other
+	    }
+
+	    # run the input conversion filters
+	    set value $data($i)
+	    if {[info exists Widget_data(infilter:$i)]} {
+		$Widget_data(infilter:$i) value
+		dputs "filtering $i"
+	    }
+	    append result \t[list $type $map $value]\n
+	}
+    }
+    outline_inhibit 0
+    if {$file != ""} {
+	puts $fd $result
+	close $fd
+	port_ownThisFile $file
+    }
+    update idletasks
+    if {$compile} {
+	set _Message "Generating perl code"
+	update idletasks
+	compile_ui [file join $P(project_dir) $Current(project).$P(file_suffix)] [file join $P(project_dir) $Current(project).$P(target_suffix)] [file join $P(project_dir) $Current(project)] .
+    }
+    set _Message "save completed"
+    busy_off
+    return $result
+}
+
+# compile a .pui file into a .pui.pl Tk perl file
+
+proc compile_ui {file {out ""} {prefix ""} {run ""}} {
+   global Widget_data Masters Version
+   set Id "WidGet file"
+   catch "unset Masters"
+   array set map {row height column width}
+
+   if {![file readable $file]} {
+      puts stderr "$file does not exist"
+      return 1
+   }
+   set fd [open "$file" r]
+
+   set line ""
+   gets $fd line
+   if {[string first $Id $line] != 0} {
+      puts stderr "$file is not a UI file"
+      close $fd
+      return 1
+   }
+
+   if {$out == ""} {
+      set out_fd stdout
+   } else {
+      if {[file exists $out] && ![file writable $out]} {
+         set _Message "cannot write to $out"
+         return 1
+      }
+      set out_fd [open "$out" w]
+   }
+   
+
+   # gather up all of the data for each widget
+
+   while {1} {
+      gets $fd line
+      if {[eof $fd]} break
+
+      # gather entire line
+
+      while {![info complete $line]} {
+         append line "\n[gets $fd]"
+      }
+      if {[string first Widget $line] == 0} {
+         set name [lindex $line 1]
+         lappend names $name
+         upvar #0 __X_$name data
+      } else {
+         set index -1
+         foreach i {type option value} {
+            set $i [lindex $line [incr index]]
+         }
+
+         # fix the font name
+         if {$option == "font"} {
+            $Widget_data(outfilter:font) dummy font value
+         }
+
+         if {$option == "master"} {
+            set Masters([string trimleft [expr {$value=="" ? "f" : $value}] .]) 1
+         }
+         set data($type,$option) $value
+      }
+   }
+   close $fd
+
+   # now output the info as a perl-tk script
+
+   if {$prefix == ""} {
+      set prefix [file root [file tail $file]]
+   }
+
+   set prefix_leaf [file tail $prefix]
+   if {$run != ""} {
+      puts $out_fd "# Sample SpecTcl main program for testing GUI\n"
+      puts $out_fd "use Tk;"
+      puts $out_fd "my(\$top) = MainWindow->new();"
+      puts $out_fd "\$top->title(\"$prefix_leaf test\");"
+      puts $out_fd "my(\$main_frame) = \$top->Frame()->pack("
+      puts $out_fd "\t-fill=>'both', \n\t-expand=>1\n);\n"
+   }
+   puts $out_fd "# interface generated by SpecTcl (Perl enabled) version $Version "
+   puts $out_fd "# from $file"
+   puts $out_fd "# For use with Tk400.202, using the gridbag geometry manager"
+   puts $out_fd "\nsub ${prefix_leaf}_ui {"
+   puts $out_fd "\tmy(\$root) = @_;"
+   puts $out_fd "\n\t# widget creation \n"
+
+   # Sort the widgets to end up with the correct tabbing order
+
+   set names [lsort -command "frames_first" $names]
+   foreach name $names {
+      upvar #0 __X_$name data
+      
+      if {$name == "f" } continue
+      
+      # gather up the widget command.
+      # Substitute %W's in -command.  This needs to change
+
+      puts -nonewline $out_fd "\tmy(\$[fix_ $data(other,item_name)]) = \$root->[uc1st $data(other,type)] ("
+      set options [lsort [array names data configure,*]]
+      set font ""
+      set comma ,
+      foreach option $options {
+         regsub configure, $option {} param
+         set value $data($option)
+         # perl/Tk crashes on a null cursor!
+         if {$param != "cursor" || [string length $value] } {
+            # In perl, sub and var refs \& and \$ should not be quoted
+            # -<foo>command should also not have quoted args
+            # To get scrollbars to work, we need to put all command options
+            # at end of widget creation, after they are all defined
+            if { [regexp {command} $param] == 1 } {
+               append widget_cmds "\n\t\$[fix_ $data(other,item_name)]->configure(\n\t\t-$param => $value\n\t);"
+               # set widget_cmd($name) "\n\t\t-$param => $value);"
+            } elseif { [regexp {\\\$|\\\&} $value] == 0} {
+               puts -nonewline $out_fd "\n\t\t-$param => '$value'$comma"
+            } else {
+               puts -nonewline $out_fd "\n\t\t-$param => $value$comma"
+            }
+         } else {   # don't print anything
+         }
+      }
+      puts $out_fd "\n\t);"
+      
+      # find the tags
+      if {$data(other,tags) != ""} {
+         append tags "\t\$[fix_ $data(other,item_name)]->bindtags([$data(other,tags)]);\n"
+      }
+   }
+
+   # ok, now we can set all the commands without worrying about 
+   # undefined widgets
+
+   if {[info exists widget_cmds]} {
+      puts $out_fd "\n\t# widget commands\n$widget_cmds"
+   }
+
+   # print out any binding tags
+   # Note: user needs to use Perlish tags here: 
+   # $b for .b
+   # $b->toplevel for .
+   # 'all' for all
+   # if b is a Button, ref($b) for Button
+   # all put into a comma delimited list
+
+   if {[info exists tags]} {
+      puts $out_fd "\n\t# binding tags\n\n$tags"
+   }
+
+   # now create the geometry management commands
+   # this has to wait until all of the widgets are created to
+   # avoid forward references
+
+   puts $out_fd "\n\t# Geometry management"
+   foreach name $names {
+      upvar #0 __X_$name data
+      if {[set master [real_master $name]] == ""} {
+         continue
+      }
+      puts $out_fd ""
+      puts $out_fd "\t\$[fix_ $data(other,item_name)]->grid("
+      puts $out_fd "\t\t-in => $master,"
+      puts $out_fd "\t\t-column => '$data(geometry,column)',"
+      puts -nonewline $out_fd "\t\t-row => '$data(geometry,row)'"
+      foreach option [lsort [array names data geometry,*]] {
+         regsub geometry, $option {} param
+         if {$param == "row" || $param == "column"} continue
+         puts -nonewline $out_fd ",\n\t\t-$param => '$data($option)'"
+      }
+      puts -nonewline $out_fd "\n\t);"
+   }
+
+   # now for the resize behavior, this is only run for geometry masters"
+
+   puts $out_fd "\n\n\t# Resize behavior management"
+
+   foreach name [array names Masters] {
+      upvar #0 __X_$name data
+      set master [real_master $name]
+      if {$name == "f"} {
+         set master \$root
+      } else {
+         set master \$[fix_ $name]
+      }
+      puts $out_fd "\n\t# container $master (rows)"
+      set index 0
+      set list $data(other,resize_row)
+      foreach size $data(other,min_row) {
+         set weight [expr {[lindex $list $index] > 1 ? 1 : 0}]
+         incr index
+         puts $out_fd "\t$master->gridRowconfigure($index, -weight  => $weight, -minsize  => $size);"
+      }
+      set index 0
+      set list $data(other,resize_column)
+      puts $out_fd "\n\t# container $master (columns)"
+      foreach size $data(other,min_column) {
+         set weight [expr {[lindex $list $index] > 1 ? 1 : 0}]
+         incr index
+         puts $out_fd "\t$master->gridColumnconfigure($index, -weight => $weight, -minsize => $size);"
+      }
+   }
+
+   # now output the additional interface code  (turned off for now)
+
+   global __X_f
+   puts $out_fd "\n\t# additional interface code"
+   if {[info exists __X_f(other,code)]} {
+      puts $out_fd $__X_f(other,code)
+   }
+   puts $out_fd "\t# end additional interface code\n"
+
+   puts $out_fd "}"
+
+   if {$run != ""} {
+      puts $out_fd "${prefix_leaf}_ui \$main_frame;"
+      puts $out_fd "Tk::MainLoop;"
+      puts $out_fd "\n1;"      
+   }
+
+   if {$out_fd != "stdout"} {
+      close $out_fd
+   }
+   foreach i [info globals __X_*] {
+      global $i
+      unset $i
+   }
+}
+
+
+# figure out the resize behavior
+
+proc get_resize {list} {
+   set index 0
+   set result ""
+   foreach i $list {
+      if {[lindex "x $list" [incr index]] > 1} {
+         lappend result $index
+      }
+   }
+   return $result
+}
+
+# Sort the widgets to generate the proper stacking order
+# * Create all the frames first.  Make sure all outer frames are 
+#   created before the inner ones
+# * Create all widgets in the specified tabbing order.  If the tab order is the
+#   same, then use row/col order based on the coordinates of the containing
+#   table cell
+
+# This version depends upon the running state of SpecTcl, and needs to be
+# re-written to permit the compiler to be invoked as a separate app
+
+proc frames_first {name1 name2} {
+   upvar #0 __X_$name1 data1 __X_$name2 data2
+   dputs "compare $name1 $name2"
+
+   # both frames
+   if {$data1(other,type) == "frame" && $data2(other,type) == "frame"} {
+      dputs "  frames: $data2(other,level) - $data1(other,level)"
+      return [expr $data1(other,level) - $data2(other,level)]
+   }
+
+   # 1 frame, 1 widget
+   if {$data1(other,type) == "frame"} {
+      return -1
+   } elseif {$data2(other,type) == "frame"} {
+      return 1
+   }
+
+   # sort by explicit tabbing order field
+   if {[set result [string compare $data1(other,tabbing) $data2(other,tabbing)]] != 0} {
+      dputs "  order $result"
+      return $result
+   }
+
+   # compute order based on cell coords
+
+   set c1 [get_tabbing_coords .can.f.$name1]
+   set c2 [get_tabbing_coords .can.f.$name2]
+
+   foreach index {0 1} {
+      set diff [expr [lindex $c1 $index] - [lindex $c2 $index]]
+      dputs "  diff ($index) -> $diff"
+      if {$diff != 0} {return $diff}
+   }
+   dputs "   equal??"
+   return 0
+}
+
+
+# find the real master of this window, as the user may have changed its name.
+
+proc real_master {name} {
+   upvar #0 __X_$name data
+   set master [string trimleft $data(other,master) .]
+   dputs $master
+
+   if {$name == "f" } return ""
+   
+   if {$master == ""} {
+      return {$root}
+   } else {
+      # the name of the master may have been changed!
+      upvar #0 __X_$master m
+      set master $m(other,item_name)
+      return \$[fix_ $master]
+   }
+}
+
+# Perl likes _ in preference to # in var names
+
+proc fix_ text {
+   regsub -all # $text _ text
+   return $text
+}
+
+proc uc1st text {
+   return [string toupper [string index $text 0]][string range $text 1 end]
+}
+
+# try to change a field option, return message on error
+#   name:  The name of the widget (e.g. [winfo name $window])
+#   item:  The option to be changed
+#   value: The value it wants to be set to
+#  return value:
+#   "":    validation suceeded, the widget value and associate array was changed
+#   <message>: Validation failed, reason is returned in resul
+
+# This proc is changed for perl, so that the backslashes in \$var 
+# and \&sub are not interpolated
+
+proc validate_field {name item value} {
+    global Widget_data
+    if {[regexp {^\.} $name]} {
+	set class [string tolower [winfo class $name]]
+	set name [winfo name $name]
+    }
+    upvar #0 $name data
+    
+    # run the output filter (if any) to do data conversion and (some) validation
+    
+    dputs "validating: $name $item $value"
+    if {[info exists Widget_data(outfilter:$item)]} {
+	dputs out-filtering $name: $item=<$value>
+	if {![$Widget_data(outfilter:$item) $name $item value]} {
+	    return $value
+	}
+    }
+    
+    # set the widget value
+    # make sure to preserve any embedded "\n"'s in the value
+    
+    dputs $name
+    if {[string compare [info commands .$name] .$name] == 0} {
+	set widget .$name
+    } elseif {[string compare [info commands .sample_$name] .sample_$name] == 0} {
+	set widget .sample_$name
+    } else {
+	set widget .can.f.$name
+    }
+    if {[info exists data(type)]} {
+	set class  $data(type)
+    }
+    set cmd ""
+    if {[string match *command* $item]} {
+	dputs skipping $item - its a command
+    } elseif { [regexp {\\\$|\\\&} $value] == 1 } {
+       set cmd "$widget configure -$item \{$value\}"
+    } elseif {[string match $item "class"]} {
+	set cmd "set data($item) $value"
+    } elseif {[info exists Widget_data(default:$class,$item)]} {
+	set cmd "$widget configure -$item \"[sub_bs $value 1]\""
+    } elseif {[info exists Widget_data(default:table,$item)]} {
+	set cmd [list grid configure $widget -$item $value]
+	regsub -all {(-i?)wad([xy])} $cmd {\1pad\2} cmd	;# padding botch
+	regsub -all align $cmd anchor cmd	;# padding botch
+    } elseif {[info exists Widget_data(default:position,$item)]} {
+	set base "grid $widget -in .can.f$data(master) [lrange [grid info $widget] 2 end]"
+	if {$item == "row"} {
+	    regsub {(\-row )([0-9]+)} $base {\1$value} cmd
+	} else {
+	    regsub {(\-column )([0-9]+)} $base {\1$value} cmd
+	}
+    } else {
+	dputs "unknown type: $item <- $value"
+	set data($item) $value
+    }
+    
+    # go set the value, and update the array
+    dputs "($item) $cmd"
+    set bad [catch "$cmd" msg]
+    if {$bad} {
+	return $msg
+    } else {
+	set data($item) $value
+	return ""
+    }
+}
+
+# alter the widgets in the palette
+
+proc InstallWidgets {} {
+    global widgets Next_widget sample_checkbutton Base_dir P
+    catch {unset Next_widget}
+    set row 0
+    set numcols 2
+    set topwidgets {}
+    set bottomwidgets {}
+    foreach w $widgets {
+	if {[lsearch [image names] $w.gif] == -1} {
+	    lappend bottomwidgets $w
+	} else {
+	    lappend topwidgets $w
+	}
+    }
+    foreach widget  [lsort $topwidgets] {
+	catch {destroy .palette.$widget}
+	if {[lsearch [image names] $widget.gif] > -1} {
+	    set imlabel $widget.gif
+	    set imlabelin ${widget}_r.gif
+	} else {
+	    set imlabel {}
+	    set imlabelin {}
+	}
+	label .palette.$widget -text $widget -image $imlabel\
+	    -anchor w -pady 1 -padx 2 -highlightthickness 1 -bg \#c0c0c0 -highlightbackground \#c0c0c0
+	bind .palette.$widget <1> {.palette.$widget config -image $imlabelin}
+	bind .palette.$widget <ButtonRelease-1> {.palette.$widget config -image $imlabel}
+	bindtags .palette.$widget {busy . palette palette_action all}
+	grid .palette.$widget -row [expr $row/$numcols] -column [expr $row%$numcols]
+	
+	# make a "sample" widget for configuration
+	
+	catch {destroy .sample_$widget}
+	if {[catch {$widget .sample_$widget}]} {
+	    $widget .sample_$widget
+	}
+	catch {.sample_$widget configure -text $widget}
+	catch {.sample_$widget configure -textvariable ""}
+	catch {.sample_$widget configure -variable ""}
+	catch {.sample_$widget configure -label $widget}
+	set Next_widget($widget) 0
+	incr row
+    }
+    set numcolumns 1
+    foreach widget  [lsort $bottomwidgets] {
+	catch {destroy .palette.$widget}
+	if {[lsearch [image names] $widget.gif] > -1} {
+	    set imlabel $widget.gif
+	    set imlabelin ${widget}_r.gif
+	} else {
+	    set imlabel {}
+	    set imlabelin {}
+	}
+	label .palette.$widget -text $widget -image $imlabel\
+	    -anchor w -pady 1 -padx 2 -highlightthickness 1 -bg \#c0c0c0 -highlightbackground \#c0c0c0
+	bind .palette.$widget <1> {.palette.$widget config -image $imlabelin}
+	bind .palette.$widget <ButtonRelease-1> {.palette.$widget config -image $imlabel}
+	bindtags .palette.$widget {busy . palette palette_action all}
+	grid .palette.$widget -row $row -column 0 -columnspan 2 -sticky {ew}
+	
+	# make a "sample" widget for configuration
+	
+	catch {destroy .sample_$widget}
+	if {[catch {$widget .sample_$widget}]} {
+	    $widget .sample_$widget
+	}
+	catch {.sample_$widget configure -text $widget}
+	catch {.sample_$widget configure -textvariable ""}
+	catch {.sample_$widget configure -variable ""}
+	catch {.sample_$widget configure -label $widget}
+	set Next_widget($widget) 0
+	incr row
+    }    
+    return $row
+}
