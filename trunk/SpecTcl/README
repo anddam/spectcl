@@ -1,18 +1,17 @@
-Welcome to release 1.1 of SpecTcl/SpecJava
+Welcome to release 1.2 of SpecTcl/SpecJava
 
-This is a source release of Spectcl 1.1.  This will run as provided
+This is a source release of Spectcl 1.2.  This will run as provided
 under Windows 95, MacOS, various UNIX flavors, with Tcl 7.6 and Tk
-4.2 or greater.
+4.2 or greater (Tcl/Tk 8.0+ is required for widget extensions like BLT).
 
 Under UNIX, if this distribution is unpacked into $SPECHOME, then the
 DIR variable in the scripts "specJava" and "specTcl" in the bin
 subdirectory of $SPECHOME need to be editted to point the
 $SPECHOME. See comments in these two scripts for details.
 
-Under Windows the installer puts an entry in the Startup menu for
-SpecTcl.
+Under Windows, use bin/specTcl.bat 
 
-Under Macintosh you simply need to run the provided installer.
+Under Macintosh it should hopefully be simple as well.
 
 See license.terms for the SpecTcl licensing terms.
 
@@ -20,13 +19,19 @@ See the file: "changes" for a list of changes made since the previous
 release.
 
 Information about SpecTcl and SpecJava is available at:
-	http://sunscript.sun.com/products/spectcl.html
+	http://spectcl.sourceforge.net/
 
 Send comments, suggestions, and bug reports to:
-	spectcl@tcl.eng.sun.com
+	msj@users.sourceforge.net
+or post a message on the discussion groups at the home page.
+
+Current maintainer: Morten Skaarup Jensen
+
+Original authors:
 
 Raymond Johnson - Project Manager
 Ioi Lam
 Allan Pratt
 Special Thanks to: Stephen Uhler, Ken Corey
-September 22, 1997
+
+April 20th 2001
