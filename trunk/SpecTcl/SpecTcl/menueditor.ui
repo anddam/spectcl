@@ -1,4 +1,4 @@
-WidGet file, version 1.2, created:  Wed Jul 11 20:45:27 CEST 2001
+WidGet file, version 1.2, created:  Wed Jul 11 20:50:35 CEST 2001
 Widget button#10
 	geometry column 2
 	other comments {}
@@ -176,7 +176,6 @@ Widget f
 $base.view config -command {::menueditor::view}
 $base.new config -command {::menueditor::new}
 $base.remove config -command {::menueditor::remove}
-$base.rename config -command {::menueditor::rename}
 $base.copy config -command {::menueditor::copy}
 $base.add config -command {::menueditor::add}
 $base.insert config -command {::menueditor::insert}
@@ -200,14 +199,6 @@ bind $root <Key-Delete> "
    }
 "
 bind $root <Key-Escape> "$base.dismiss invoke"
-
-
-
-
-
-
-
-
 
 }
 	other comments {}
