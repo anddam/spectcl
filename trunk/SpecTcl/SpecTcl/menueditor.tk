@@ -364,6 +364,9 @@ proc ::menueditor::getname::copy {name} {
    set ident menu#$tmp
    global Widgets $ident
    menu .can.f.$ident
+   foreach opt [array names Ident] {
+      catch {.can.f.$ident config -$opt $Ident($opt)}
+   }
    set Widgets($ident) 1
    array set $ident [array get Ident]
    array set $ident [list pathname $ident item_name $name]
@@ -467,7 +470,7 @@ proc ::menueditor::displaymenu {mbase {number 0}} {
    $mbase post 0 0
    ::menueditor::setpos 0
    # Widget properties
-   unselect_widget
+   catch {unselect_widget} ::_Message
    set ::Current(widget) .can.f.$ident
    set ::Current(text) {}
    if {[winfo ismapped .widget]} {
