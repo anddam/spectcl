@@ -1,0 +1,81 @@
+WidGet file, version 1.1, created:  Tue Jul 29 17:57:11 PDT 1997
+Widget button#1
+	geometry row 4
+	other error {}
+	other type button
+	other master {}
+	configure default disabled
+	geometry ipadx 4
+	configure text Show
+	geometry ipady 4
+	other pathname button#1
+	other tags {}
+	other level {}
+	configure background grey
+	other help {}
+	configure padx 4
+	geometry column 3
+	other comments {}
+	configure borderwidth 4
+	other item_name button#1
+	other tabbing {}
+	configure command ShowText
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0 0 0 0}
+	other type frame
+	other code #\ The\ exLabel2.ui\ example\ toggles\ between\ showing\ a\n#\ long\ and\ short\ strings\ to\ show\ how\ the\ interface\n#\ adjusts.\n\nproc\ ShowText\ \{\ \}\ \{\ \n\ \ \ global\ ltext\ toggle\n\ \n\ \ \ append\ sticky\ \\\n\ \ \ \"Sticky\ property:\ specifies\ which\ widget\ sides\ and\ grid-cell\ \"\ \\\n\ \ \ \"sides\ should\ stay\ together:\ n\ s\ e\ w\ or\ a\ combination,\ such\ as\ ew.\"\ \n\ \ \ \n\ \ \ set\ tStyle\ \\\n\ \ \ \"Specifies\ text\ is\ plain,\ bold,\ italic,\ or\ bold-italic.\"\n\ \n\ \ \ \ #\ Flip/flop\ between\ displaying\ long\ and\ short\ string\n\ \ \ \ set\ toggle\ \[expr\ 1\ ^\ \$toggle\]\n\ \ \ \ if\ \{\$toggle\}\ \{\n\ \ \ \ \ \ \ set\ ltext\ \$sticky\n\ \ \ \ \}\ else\ \{\n\ \ \ \ \ \ \ set\ ltext\ \$tStyle\n\ \ \ \ \}\n\}\n\nglobal\ toggle\nset\ toggle\ 0\n\n\n\n\n\n\n\n\n\n\n
+	other min_row {10 10 5 12 5}
+	other master {}
+	other pathname f
+	other resize_column {0 0 0 0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {5 16 30 30 5}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget label#3
+	geometry columnspan 3
+	geometry row 2
+	other error {}
+	other type label
+	configure textvariable ltext
+	other master {}
+	geometry ipadx 4
+	configure text {       }
+	geometry ipady 4
+	configure justify left
+	other pathname label#3
+	other tags {}
+	configure background yellow
+	other level {}
+	other help {}
+	configure wraplength 250
+	configure padx 4
+	configure pady 4
+	configure borderwidth 4
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name textlabel
+	configure relief groove
+

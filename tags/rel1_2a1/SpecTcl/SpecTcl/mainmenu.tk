@@ -1,0 +1,497 @@
+# Copyright (c) 1994-1997 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+# mainmenu_new --
+#
+#	Clears the grid.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	0 if the user has aborted the action. 1 otherwise
+
+proc mainmenu_new {} {
+    global P
+
+    if ![save_if_dirty] {
+	return 0
+    }
+    clear_all
+    set P(file_untitled) 1
+    return 1
+}
+
+# mainmenu_open --
+#
+#	Implements the File->Open menu command. Opens a new project UI
+#	in SpecTcl.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	1 - if the operation has successfully completed.
+#	0 - if the operation has been aborted by the user
+
+proc mainmenu_open {} {
+    global file_select_types P Current
+
+    if ![save_if_dirty] {
+	return 0
+    }
+    if {![file exists $P(project_dir)]} {
+	set P(project_dir) [pwd]
+    }
+    set filename [tk_getOpenFile -filetypes $file_select_types \
+	    -initialdir $P(project_dir) \
+	    -defaultextension .$P(file_suffix)]
+
+    if [string match "" $filename] {
+	# user has canceled
+	return 0
+    }
+
+    # (Patch): some versions of Tk don't handle the -defaultext switch
+
+    if {[file extension $filename] == ""} {
+	set filename $filename.$P(file_suffix)
+    }
+
+    # Clear the grid
+
+    foreach q {rows cols} {
+	set $q $P(max$q)
+	set P(max$q) 4
+    }
+    clear_all
+    set P(maxrows) $rows
+    set P(maxcols) $cols
+
+    # Load the file
+
+    if {![load_project $filename]} {
+	clear_all
+	set P(file_untitled) 1
+	return 0
+    } else {
+	set P(project_dir) [file dirname $filename]
+	cd $P(project_dir)
+	set Current(project) [file root [file tail $filename]]
+    
+	set P(file_untitled) 0
+	sync_all
+	return 1
+    }
+}
+
+# mainmenu_open_byname
+#
+#	Opens the UI file with the given name. This is invoked by
+#	specremote.tk
+
+proc mainmenu_open_byname {filename} {
+    global file_select_types P
+
+    if {![file exists $P(project_dir)]} {
+	set P(project_dir) [pwd]
+    }
+    if ![save_if_dirty] {
+	return 0
+    }
+
+    foreach q {rows cols} {
+	set $q $P(max$q)
+	set P(max$q) 4
+    }
+    set P(file_untitled) 0
+    clear_all
+    set P(maxrows) $rows
+    set P(maxcols) $cols
+    load_project $filename
+    set P(project_dir) [file dirname $filename]
+    cd $P(project_dir)
+    set Current(project) [file root [file tail $filename]]
+    if {$P(file_suffix) == ""} {
+	set temp [file extension $filename]
+	regsub -all {^\.} $temp {} temp
+	set P(file_suffix) $temp
+    }
+    if {[wm state .] != "normal"} {
+	wm deiconify .
+    }
+}
+
+# mainmenu_save --
+#
+#	Implements the 'File->Save' menu command.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	0 if the user has aborted the action. 1 otherwise
+
+proc mainmenu_save {} {
+    global Current P
+
+    if {$P(file_untitled)} {
+	return [save_project_as]
+    } else {
+	return [save_project \
+	    [file join $P(project_dir) $Current(project).$P(file_suffix)]]
+    }
+}
+
+# mainmenu_save_as --
+#
+#	Implements the 'File->Save as' menu command.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	0 if the user has aborted the action. 1 otherwise
+
+proc mainmenu_save_as {} {
+    return [save_project_as]
+}
+
+# mainmenu_quit --
+#
+#	This procedure is invoked by the following actions:
+#	- File->Quit command
+#	- "Quit" keyboard accelerator
+#	- WM_DELETE_WINDOW
+
+proc mainmenu_quit {} {
+    global P
+
+    if {$P(confirm-autosave-on-quit) && !$P(file_untitled)} {
+	set askUser 0
+    } else {
+	set askUser 1
+    }
+
+    if ![save_if_dirty $askUser] {
+	return 0
+    }
+    # Try to clean up on window manager destroy
+    # The app will automatically exit at the next idle time
+    # rename "update" to make sure everything is clean up before then
+    proc update {args} {}
+
+    really_quit
+}
+
+proc mainmenu_edit_code {} {
+    global Current
+    edit_code $Current(project)
+}
+
+# mainmenu_edit_label --
+#
+#	Handles the "Edit Widget Text" command in the Edit menu.
+
+proc mainmenu_edit_label {} {
+    if {[.entry cget -state] == "normal"} {
+	focus .entry
+    }
+}
+
+proc mainmenu_widget_options {} {
+    menu_widget
+}
+proc mainmenu_generic_options {} {
+    menu_generic
+}
+proc mainmenu_delete {} {
+    delete_selected
+    sync_all
+}
+proc mainmenu_keydelete {} {
+    global P
+    mainmenu_delete
+}
+proc mainmenu_insert {} {
+    insert_selected
+    sync_all
+}
+proc mainmenu_cut {} {
+    to_clipboard;delete_selected 0
+}
+proc mainmenu_copy {} {
+    to_clipboard
+}
+proc mainmenu_paste {} {
+    from_clipboard
+}
+
+# mainmenu_build --
+#
+#	Implements the 'Command->Build' menu command.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	0 if the user has aborted the action. 1 otherwise
+
+proc mainmenu_build {} {
+    global Current P
+
+    set projectFile [file join $P(project_dir) \
+	$Current(project).$P(file_suffix)]
+    check_project_file_exist
+    set targetFile \
+	[file join $P(project_dir) $Current(project).$P(target_suffix)]
+    if ![file exists $targetFile] {
+	catch {
+	    unset Current(no_rebuild)
+	}
+    }
+
+    catch {
+	if {[file mtime $targetFile] < [file mtime $projectFile]} {
+	    unset Current(no_rebuild)
+	}
+    }
+
+    if {$Current(dirty) != "" || $P(file_untitled)} {
+	catch {
+	    unset Current(no_rebuild)
+	}
+
+	set askUser 0
+
+	if {$P(file_untitled)} {
+	    set askUser 1
+	}
+	if {$P(confirm-save-layout)} {
+	    set askUser 1
+	}
+
+	set message [concat "\"$Current(project)\" has not been saved. " \
+	        "You must save it before building the application. Continue?"]
+
+	if {![save_if_dirty $askUser $message yesno] || $Current(dirty)!=""} {
+	    return 0
+	}
+    }
+
+    if ![info exists Current(no_rebuild)] {
+	compile_project
+	set Current(no_rebuild) 1
+    } else {
+	status_message "No need to rebuild"
+    }
+
+    return 1
+}
+
+# mainmenu_build_test --
+#
+#	Implements the 'Command->Build and Test' menu command.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	0 if the user has aborted the action. 1 otherwise
+
+proc mainmenu_build_test {} {
+    global Current P
+
+    if ![mainmenu_build] {
+	return 0
+    }
+
+    enable_kill_test
+    run_app $Current(project)
+    return 1
+}
+
+proc mainmenu_kill_test {} {
+    catch {
+	uplevel 1 test_interp eval exit
+    }
+    disable_kill_test 
+}
+
+proc enable_kill_test {} {
+    .stop config -image stop.gif
+}
+
+proc disable_kill_test {} {
+    .stop config -image stop_u.gif
+}
+
+proc mainmenu_load_project_into_frame {} {
+    global Current file_select_types
+    set cw {}
+    regexp {.*(frame\#[0-9]*)} $Current(widget) dummy cw
+    if {$cw != ""} {
+	if {[set filename [tk_getOpenFile -filetypes $file_select_types]]
+		!= {}} {
+	    load_project $filename .can.f.$cw 0 1
+	}
+    }
+}
+proc mainmenu_attach_scrollbars {} {
+    global _Message
+    set _Message [scroll_attach]
+}
+proc mainmenu_reapply_toolbar {} {
+    global Current _Message
+    set _Message "repeating: $Current(repeat)"
+    eval $Current(repeat)
+}
+proc mainmenu_next_widget {} {
+    short_cut Right
+}
+proc mainmenu_previous_widget {} {
+    short_cut Left
+}
+proc mainmenu_enter_subgrid {} {
+    Key_down
+}
+proc mainmenu_leave_subgrid {} {
+    Key_up
+}
+proc mainmenu_options {} {
+    preferences_popup
+}
+proc mainmenu_save_options {} {
+    save_preferences
+}
+proc mainmenu_about {} {
+    about
+}
+proc mainmenu_getting_started {} {
+    html_help quick.html
+}
+proc mainmenu_help {} {
+    html_help help.html
+}
+proc mainmenu_send_comments {} {
+    specerror "Comment about SpecTcl"
+}
+proc mainmenu_send_bug_report {} {
+    specerror "Bug Report on SpecTcl"
+}
+proc mainmenu_showconsole {} {
+    catch {console show}
+}
+
+proc mainmenu_hideconsole {} {
+    catch {console hide}
+}
+
+# mainmenu_build_macapp --
+#
+#	Implements the 'Command->Build Application' menu command for the Mac.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	0 if the user has aborted the action. 1 otherwise
+
+proc mainmenu_build_macapp {} {
+    global P Current tcl_platform
+
+    if {![info exists P(mac-stub)] || $P(mac-stub) == ""} {
+	tk_messageBox -icon error -type ok -message \
+	    "Please enter a stub file in the Options, Output panel"
+	preferences_popup
+	return
+    }
+    if ![file exists $P(mac-stub)] {
+	tk_messageBox -icon error -type ok -message \
+	    "Stub file \"$P(mac-stub)\" doesn't exist. Please enter an alternate stub file in the Options, Output panel"
+	preferences_popup
+	return
+    }
+
+    if ![mainmenu_build] {
+	return 0
+    }
+
+    set script [compile_ui \
+	[file join $P(project_dir) $Current(project).$P(file_suffix)]]
+
+    if {$tcl_platform(platform) != "macintosh" && 0} {
+	puts $script
+	return
+    }
+
+    set app [file join $P(project_dir) $Current(project)]
+    if [file exists $app] {
+	set answer [tk_messageBox -icon info -type yesno -message \
+	    "Application file $app already exists. Overwrite?"]
+	if {$answer == "no"} {
+	    return
+	}
+	catch {file delete -force $app}
+    }
+
+    set stub $P(mac-stub)
+    file copy -force $stub $app
+
+    set rsrcRef [resource open $app WRONLY]
+    resource write -file $rsrcRef -name tclshrc TEXT \
+	"catch {console hide}\nset argv0 \[info script\]\n$script"
+    resource close $rsrcRef
+
+    if {$P(mac-creator) != ""} {
+	set P(mac-creator) "$P(mac-creator)    "
+	set P(mac-creator) [string range $P(mac-creator) 0 3]
+	file attribute $app -creator $P(mac-creator)
+    }
+    file attribute $app -type APPL
+}
+
+# setup_mainmenu --
+#
+#	Create some bindings for menus. Disable/enable menus depending
+#	on platform and target language settings.
+#
+proc setup_mainmenu {} {
+    #
+    # Set up console on platforms that support it.
+    #
+    if {[info command console] == ""} {
+	set m [menubar_getmenuname .menu "Hide Console"]
+	if {$m != ""} {
+	    $m delete [$m index "Hide Console"]
+	}
+    
+	set m [menubar_getmenuname .menu "Show Console"]
+	if {$m != ""} {
+	    $m delete [$m index "Show Console"]
+	}
+    }
+
+    set m [menubar_getmenuname .menu "Delete"]
+    if {$m != ""} {
+	$m config -postcommand editmenu_active
+    }
+    set m [menubar_getmenuname .menu "Build and Test"]
+    if {$m != ""} {
+	$m config -postcommand commandmenu_active
+    }
+
+    # Tie in to the menus so that balloonhelp works.  This
+    # *should* be done in the menu editor, because it relies
+    # on the menu item's texts.  Ah well.  C'est la Vie.
+    # Until then, the definitions are in help.tk.
+    foreach qq [info comm .*.m] {
+	bindtags $qq [concat balloonmenu [bindtags $qq]]
+    }
+    foreach qq [info comm .*.\[0-9\]m] {
+	bindtags $qq [concat balloonmenu [bindtags $qq]]
+    }
+}

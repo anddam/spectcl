@@ -1,0 +1,189 @@
+WidGet file, version 1.0, created:  Tue Dec 31 11:06:23 PST 1996
+Widget button#1
+	other reqwidth {}
+	configure foreground Black
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure command {set Current(dirty) 1;set f(code) [%B.text get 1.0 end];destroy %R}
+	other focus .widget.form.can.f.button#1,width,entry
+	other master .frame#1
+	other pathname button#1
+	configure background #d9d9d9
+	other tabbing {}
+	other item_name dismiss
+	geometry row 1
+	configure highlightbackground #d9d9d9
+	other reqheight {}
+	other type button
+	configure text Dismiss
+	other comments {}
+	geometry column 1
+Widget scrollbar#1
+	configure highlightbackground #d9d9d9
+	geometry row 1
+	other reqheight {}
+	configure orient v
+	other type scrollbar
+	other master {}
+	other pathname scrollbar#1
+	other tags {}
+	configure background #d9d9d9
+	other reqwidth {}
+	other level {}
+	other help {}
+	other orientation v
+	geometry column 2
+	other comments {}
+	other item_name scrollbar#1
+	other tabbing {}
+	configure command {%B.text yview}
+	geometry sticky ns
+Widget button#2
+	other reqwidth {}
+	configure foreground Black
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure command {set Current(dirty) 1; set f(code) [%B.text get 1.0 end]}
+	other focus .widget.form.can.f.button#2,command,entry
+	other master .frame#1
+	other pathname button#2
+	configure background #d9d9d9
+	other tabbing {}
+	other item_name apply
+	geometry row 1
+	configure highlightbackground #d9d9d9
+	other reqheight {}
+	other type button
+	configure text Apply
+	other comments {}
+	geometry column 2
+Widget scrollbar#2
+	configure highlightbackground #d9d9d9
+	geometry row 2
+	other reqheight {}
+	configure orient h
+	other type scrollbar
+	other master {}
+	other pathname scrollbar#2
+	other tags {}
+	configure background #d9d9d9
+	other level {}
+	other reqwidth {}
+	other help {}
+	other orientation h
+	other comments {}
+	geometry column 1
+	other tabbing {}
+	other item_name scrollbar#2
+	configure command {%B.text xview}
+	geometry sticky ew
+Widget text#1
+	configure xscrollcommand {%B.scrollbar#2 set}
+	other reqwidth {}
+	configure wrap none
+	configure foreground Black
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.text#1,yscrollcommand,entry
+	configure height 20
+	other master {}
+	other pathname text#1
+	configure font Courier,14
+	configure background #d9d9d9
+	geometry sticky nesw
+	configure yscrollcommand {scroll_set %B.scrollbar#1}
+	other tabbing {}
+	other item_name text
+	geometry row 1
+	configure highlightbackground #d9d9d9
+	other reqheight {}
+	other type text
+	configure width 60
+	geometry column 1
+	other comments {}
+Widget f
+	other panel {}
+	other resize_row {2 0 0}
+	other type frame
+	other code {global f Clip
+bind $base.text <Control-w> {
+   if {$Current(widget) != ""} {
+      upvar #0 [winfo name $Current(widget)] data
+      %W insert insert $data(item_name)
+   }
+    break
+}
+bind $base.text <Control-c> {
+   set Clip [%W get sel.first sel.last]
+}
+bind $base.text <Control-v> {
+   %W insert insert $Clip
+}
+append f(code) {}
+$base.text insert 1.0 $f(code)
+tkwait visibility $root
+focus $base.text
+
+}
+	other min_row {225 30 30}
+	other master {}
+	other pathname f
+	other tags {}
+	other resize_column {3 0}
+	other level 0
+	configure background #e9e9e9
+	other help {}
+	other min_column {359 0}
+	other Colors {black white bisque grey red green blue magenta yellow #d9d9d9}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget button#3
+	other reqwidth {}
+	configure foreground Black
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure command {append f(code) {}; %R.text delete 1.0 end; %R.text insert 1.0 $f(code)}
+	other focus .widget.form.can.f.button#3,command,entry
+	other master .frame#1
+	other pathname button#3
+	configure background #d9d9d9
+	other tabbing {}
+	other item_name revert
+	geometry row 1
+	configure highlightbackground #d9d9d9
+	other reqheight {}
+	other type button
+	configure text Revert
+	other comments {}
+	geometry column 3
+Widget frame#1
+	configure highlightbackground #d9d9d9
+	other panel {}
+	geometry row 3
+	other resize_row 0
+	other reqheight {}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other resize_column {0 0 0}
+	other tags {}
+	configure background #d9d9d9
+	other level 1
+	other reqwidth {}
+	other min_column {30 30 30}
+	other help {}
+	geometry column 1
+	other comments {}
+	other item_name frame#1
+	other tabbing {}
+

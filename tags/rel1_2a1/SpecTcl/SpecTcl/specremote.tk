@@ -1,0 +1,12 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+wm withdraw .
+set interps [winfo interps]
+if {[set index [lsearch $interps "SpecTcl*"]] >-1} {
+    set target [lindex $interps $index]
+    send $target "mainmenu_open_byname [lindex $argv end]"
+}

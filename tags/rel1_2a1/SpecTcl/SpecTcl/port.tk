@@ -1,0 +1,257 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1997 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# routines that are needed to port things properly between systems
+
+proc port_seticon {icon} {
+    global Base_dir tcl_platform
+    # Mac icons don't need to be set here because mac icons are
+    # resources.
+    if {$tcl_platform(platform) != "macintosh"} {
+	wm iconbitmap . @[file join $Base_dir images icon.xbm]
+	wm iconmask . @[file join $Base_dir images icon.xbm]
+    }
+}
+
+proc port_loadprefs {} {
+    global tcl_platform Base_dir P tk_version argv specCommon
+
+    if {$specCommon(lang) == "java" || $specCommon(lang) == "jdk11"} {
+	set javapresent 1
+    } else {
+	set javapresent 0
+    }
+
+    if {$specCommon(lang) == "tcl"} {
+	set cmd _pref_output_$tcl_platform(platform)_ui
+	if {[info command $cmd] != ""} {
+	    rename $cmd pref_output_ui
+	}
+    }
+
+    # Hack begin ---
+    #
+    global env
+    if [info exists env(MAC_TEST)] {
+	catch {rename pref_output_ui ""}
+	rename _pref_output_macintosh_ui pref_output_ui
+    }
+    #
+    # Hack end ---
+
+    set panels "general appearance editor java output target"
+
+    if {!$javapresent} {
+	regsub java $panels "" panels
+    }
+    if {$tcl_platform(platform) == "windows"} {
+	regsub output $panels "" panels
+    }
+    if {$specCommon(lang) != "tcl"} {
+	regsub output $panels "" panels
+    }
+    if {$tcl_platform(platform) == "macintosh"} {
+	regsub editor $panels "" panels
+    }
+
+
+    set dontSource(output) 1
+    set dontSource(target) 1
+
+    foreach panel $panels {
+	if ![info exists dontSource($panel)] {
+	    Source pref_${panel}.ui.tcl
+	}
+    }
+
+    set P(panels) $panels
+}
+
+proc port_loadimages {} {
+    global Base_dir tcl_platform pictures tk_version
+
+    if {$tcl_platform(platform) == "macintosh"} {
+	if {![catch {Source gif.tk}]} {
+	    foreach qq [array names pictures *.gif] {
+		image create photo $qq -format gif -data $pictures($qq)
+	    }
+	    unset pictures
+	    Source helpgif.tk
+	    return
+	}
+    }
+
+    foreach qq [glob -nocomplain [file join $Base_dir images *.gif]] {
+	image create photo [file tail $qq] -file $qq
+    }
+}
+
+# This routine is what wish on the mac uses to handle DoScript 
+# AppleScript events on the Macintosh.  The procedure name cannot
+# be changed.
+proc tkOpenDocument {args} {
+    mainmenu_open_byname [lindex $args 0]
+}
+
+# This procedure is used to do whatever is necessary on each
+# platform to "own" a file.  Currently, this only has use on
+# the Mac, where a file has a file type and a creator.  This
+# associates the document with SpecTcl, giving it the proper icon.
+proc port_ownThisFile {filename} {
+    global tcl_platform
+    if {$tcl_platform(platform) == "macintosh"} {
+	catch {macfile "$filename" STui Spec}
+    }
+}
+proc port_wishOwnThisFile {filename} {
+    global tcl_platform P
+    if {$tcl_platform(platform) == "macintosh"} {
+	catch {macfile "$filename" TEXT WIsH}
+    }
+    if {$tcl_platform(platform) == "unix"} {
+	catch {
+	    if {[info exists P(unix-perm)] && [string comp $P(unix-perm) ""]} {
+		exec chmod $P(unix-perm) $filename
+	    }
+	}
+    }
+}
+proc port_ownPrefsFile {filename} {
+    global tcl_platform
+    if {$tcl_platform(platform) == "macintosh"} {
+	catch {macfile "$filename" STpr Spec}
+    }
+}
+
+# This function tries (not too hard currently) to figure out a 
+# good place for a home file is, and return the address.
+proc find_a_home {} {
+    global env P argv
+
+    if {[lsearch -exact $argv -java]        != -1} {
+	set basefile .SpecJavarc
+    } elseif {[lsearch -exact $argv -jdk11] != -1} {
+	set basefile .SpecJDK11rc
+    } elseif {[lsearch -exact $argv -html]  != -1} {
+	set basefile .SpecHTMLrc
+    } else {
+	set basefile .SpecTclrc
+    }
+    if {[info exists env(PREF_FOLDER)]} {
+	set rc [file join $env(PREF_FOLDER) $basefile]
+    } elseif {[info exists env(SPECTCL_RC)]} {
+	set rc $env(SPECTCL_RC)
+    } else {
+	set rc [file join $env(HOME) $basefile]
+    }
+
+    return $rc
+}
+
+proc find_common_rc {} {
+    global env P argv
+
+    set basefile .SpecCommonrc
+    if {[info exists env(PREF_FOLDER)]} {
+	set rc [file join $env(PREF_FOLDER) $basefile]
+    } elseif {[info exists env(SPECTCL_RC)]} {
+	set rc $env(SPECTCL_RC)
+    } else {
+	set rc [file join $env(HOME) $basefile]
+    }
+
+    return $rc
+}
+
+# This function is intended to allow us to try to get the 
+# proxy host and proxy port from the host system
+proc port_getproxy {} {
+    global env P tcl_platform Base_dir
+    set host {}
+    set port {}
+    set username {}
+    set useremail {}
+
+    # Bug reporting is no longer supported, so this is not necessary
+    #
+    return [list "" "" "" ""]
+
+    switch $tcl_platform(platform) {
+    macintosh {
+        if {![catch {resource open [file join $env(PREF_FOLDER) "Netscape \304" \
+                   "Netscape Preferences"]} msg]} {
+        set file $msg
+        set host [resource getSTR\# 2001 5]
+        set port [resource getSTR\# 2001 10]
+        set username [resource getSTR\# 2001 14]
+        set useremail [resource getSTR\# 2001 15]
+        return [list $host $port $username $useremail]
+        }
+    }
+    unix {
+        set orig [pwd]
+        if {![catch {cd [file join ~ .netscape]}]} {
+        if {![catch {open preferences r} msg]} {
+            set file $msg
+            if {![catch {read $file} msg]} {
+            if {[regexp "\nHTTP_PROXY:(\[^\n]*)" $msg dummy proxy]} {
+                regexp "(\[^\011]*):(\[0-9]*)" $proxy dummy host port
+            }
+            if {[regexp "\nREAL_NAME:(\[^\n]*)" $msg dummy username]} {
+                regexp "\011*(\[^\011]*)" $username dummy username
+            }
+            if {[regexp "\nEMAIL_ADDRESS:(\[^\n]*)" $msg dummy useremail]} {
+                regexp "\011*(\[^\011]*)" $useremail dummy useremail
+            }                        
+            close $file
+            cd $orig
+            return [list $host $port $username $useremail]
+            }
+            cd $orig
+            close $file
+        }
+        cd $orig
+        }
+    }
+    windows {
+        foreach q {username email proxy_port proxy_host} {
+        if {![info exists P($q)]} {
+            set P($q) {}
+        }
+        }
+        if {[file exists [file join $Base_dir reg.ini]]} {
+        source [file join $Base_dir reg.ini]
+        }
+        return {[list $P(proxy_host)] [list $P(proxy_port)] [list $P(username)] [list $P(useremail)]}
+    }
+    }
+    return {{} {} {} {}}
+}
+
+# If we're on a Macintosh, 'exit' needs to be redefined to do the same
+# thing that WM_DELETE_PROTOCOL does in bind.tk.  We have to get 
+# fancy because 'exit' is itself called from 'quit' and numerous
+# other places.  Oh what a wicked web we weave...
+
+global tcl_platform
+if {$tcl_platform(platform) == "macintosh"} {
+    rename exit exit_real
+    set exit_level 0
+    proc exit {args} {
+	global exit_level
+	incr exit_level
+	if {$exit_level < 2} {
+	    proc update {args} {}
+	    really_quit
+	    exit_real
+	} else {
+	    exit_real
+	}
+    }
+}
+
+# side-steps windows bug with unix style files on dos with ^Z's
+proc \x1a {args} {puts AARG}

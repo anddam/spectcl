@@ -1,0 +1,328 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# code to setup java mode - source this file from .SpecTclrc
+
+set _Message "Loading java code generator"
+update idletasks
+Source compile_jdk11.tk  ;# Java 1.1 code generator
+
+set file_select_types [linsert $file_select_types 0 {
+    "SpecJava Interfaces" {.jui} {TEXT STui}
+}]
+
+#bind $P(preferences_root).javap <FocusIn> {
+#      set Jhelp ""
+#      catch {set Jhelp $Javahelp([winfo name %W])}
+#}
+
+# Since we can't have multi-line widgets in Java, get rid of the binding
+# on the entry widget.
+bind fast <Return> {}
+
+# Tilo was here: action has been removed. See specific Listener-fields below
+# lappend P(other_items) action       ;# This is added to every widget
+lappend P(other_items) subclass ;# This is added to every widget
+
+set P(file_suffix)    "jui"       	;# user interface java file suffix
+set P(target_suffix)  "java"     	;# generated code file suffix
+set P(include_suffix) "include.java"    ;# source'd code file suffix
+
+# remove widgets we don't deal with (yet)
+
+array set Skip {
+    message 1
+    scale 1
+}
+
+# remove toolbar items that don't work
+catch {destroy .relief .borderwidth}
+
+# add help for java widgets
+
+array set Field_help {
+    .palette.f.button "Drag onto canvas to create a button"
+    .palette.f.canvas "Drag onto canvas to create a custom component"
+    .palette.f.checkbutton "Drag onto canvas to create a checkbox"
+    .palette.f.entry "Drag onto canvas to create a textfield"
+    .palette.f.frame "Drag onto canvas to create a container"
+    .palette.f.label "Drag onto canvas to create a label"
+    .palette.f.listbox "Drag onto canvas to create a listbox"
+    .palette.f.menubutton "Drag onto canvas to create a menu button"
+    .palette.f.radiobutton "Drag onto canvas to create a checkbox group element"
+    .palette.f.scrollbar "Drag onto canvas to create a scrollbar"
+    .palette.f.text "Drag onto canvas to create a text region"
+    .palette "This is the palette containing the componant choices"
+}
+
+
+set P(other_items:menubutton) items ;# this is added only to menubuttons
+set P(other_items:entry) editable
+set P(other_items:text) editable
+
+# Tilo was here: Add all the specific possibilities for Listeners to the appropriate Widgets
+set P(other_items:button) {ActionListener ActionCommand}
+set P(other_items:checkbutton) ItemListener
+set P(other_items:entry) {ActionListener ActionCommand TextListener}
+set P(other_items:listbox) {ActionListener ItemListener}
+set P(other_items:menubutton) ItemListener
+set P(other_items:radiobutton) ItemListener
+set P(other_items:scrollbar) AdjustmentListener
+set P(other_items:text) TextListener
+
+# Tilo was here: Changed Java to JDK1.1
+set P(title) "SpecTcl (JDK1.1 enabled) $Version"
+
+# options to remove from all widgets
+# this isn't completely filled out yet
+# Tilo was here: action is no longer a standard option
+array set Widget_data {
+    ignore:action 1
+    ignore:activebackground 1
+    ignore:activeforeground 1
+    ignore:activerelief 1
+    ignore:bitmap 1
+    ignore:image 1
+    ignore:borderwidth 1
+    ignore:command 1
+    ignore:disabledforeground 1
+    ignore:elementborderwidth 1
+    ignore:exportselection 1
+    ignore:highlightbackground 1
+    ignore:highlightcolor 1
+    ignore:highlightthickness 1
+    ignore:image 1
+    ignore:insertbackground 1
+    ignore:insertborderwidth 1
+    ignore:insertofftime 1
+    ignore:insertontime 1
+    ignore:insertwidth 1
+    ignore:jump 1
+    ignore:repeatdelay 1
+    ignore:repeatinterval 1
+    ignore:relief 1
+    ignore:selectbackground 1
+    ignore:selectborderwidth 1
+    ignore:selectcolor 1
+    ignore:selectforeground 1
+    ignore:selectimage 1
+    ignore:setgrid 1
+    ignore:spacing1 1
+    ignore:spacing2 1
+    ignore:spacing3 1
+    ignore:takefocus 1
+    ignore:textvariable 1
+    ignore:troughcolor 1
+    ignore:underline 1
+    ignore:wrap 1
+    ignore:wraplength 1
+    ignore:xscrollcommand 1
+    ignore:yscrollcommand 1
+    ignore:padx 1
+    ignore:pady 1
+    ignore:preferences 1
+}
+
+# remove options that can be set via direct manipulation
+array set Widget_data {
+    ignore:row 1
+    ignore:rowspan 1
+    ignore:column 1
+    ignore:columnspan 1
+    ignore:fill 1
+    ignore:justify 1
+    ignore:anchor 1
+    ignore:orient 1
+    ignore:background 1
+    ignore:foreground 1
+}
+
+# menu hook for starting java compiler
+
+proc test_java {name} {
+    global _Message Widgets Current P Jpid Jdefault env tcl_platform
+
+    if {[array size Widgets] == 0} {
+	set msg "Nothing to test"
+	tk_dialog .java Error  $msg error 0 OK
+	return
+    }
+
+    set_frame_level .can.f
+
+    set f(preferences) {}
+    foreach q {package arg implements imports extends init} {
+	if {![info exists P($q)]} {
+	    lappend f(preferences) $q [list $Jdefault($q)]
+	} else {
+	    lappend f(preferences) $q [list $P($q)]
+	}
+    }
+    if {$Current(dirty)>0 || ![file readable $name.$P(file_suffix)]} {
+	set msg "$Current(project) has not been saved"
+	if {$P(confirm-save-layout)>0} {
+	    switch [tk_dialog .sure "Testing $Current(project)"  $msg "questhead" \
+			0 "Cancel test" "Save $Current(project) first"] {
+			    0 {return 0}
+			    1 {save_project  [file join $P(project_dir) $Current(project).$P(file_suffix)] 1}
+			}
+	} else {
+	    save_project [file join $P(project_dir) $Current(project).$P(file_suffix)] 1
+	}
+    }
+
+    # compute frame stacking and tabbing order
+    
+    set _Message "Compiling $name.java ..."
+    update  idletasks
+    catch {exec kill $Jpid}
+    set msg ""
+    busy_on
+    update
+    
+    set deprecation {-deprecation}
+    # Since java's not smart enough to handle '/' in filenames, 
+    # we have to turn in forwards again...
+    if {$tcl_platform(platform) == "windows"} {
+	regsub / $name \\ name
+	set deprecation {-deprecation}
+    }
+    # Tilo was here: Added -deprecation option
+    if {[catch {exec javac $deprecation $name.java} msg]} {
+	if {[regsub -all \n $msg {} x] > 20} {
+	    set msg [string range $msg 0 250]\n....
+	}
+	append msg "\n\n** Java compilation failed **"
+	help_dialog .java $msg "Okay"
+	busy_off
+	return
+    }
+    set name [file tail $name]
+    set classname $name
+    if {[info exists P(package)]} {
+	if {![regexp $P(package) {^[    ]*$}]} {
+	    set classname $P(package).$name
+	}
+    }
+    update      ;# flushes any help messages
+    set java java
+    if {[file readable $name.html]} {
+	set java appletviewer
+	set classname $name.html
+    }
+    set _Message "Running $java $classname ..."
+    set msg ""
+    if {[info exists env(CLASSPATH)]} {
+	if {![regexp "$P(project_dir)" $env(CLASSPATH)]} {
+	    set env(CLASSPATH) "$env(CLASSPATH):$P(project_dir)"
+	}
+    } else {
+	set env(CLASSPATH) "$P(project_dir)"
+    }
+    if {[catch {exec $java [file tail $classname] &} msg]} {
+	append msg "\n\n** Java runtime failed **"
+	help_dialog .java $msg "Okay"
+    } else {
+	set Jpid $msg
+    }
+    busy_off
+}
+
+# do java preferences
+
+array set Javahelp {
+    entry#1 "The package for the GUI class"
+    entry#2 "The class to extend"
+    entry#3 "The interface to implement"
+    entry#4 "The type of the \"arg\" client data handle"
+    entry#6 "a white space separated list of import classes"
+}
+
+array set Jdefault {
+    package ""
+    extends     java.applet.Applet
+    imports ""
+    implements  ""
+    arg         Object
+    init            super.init();
+}
+
+# set/extract the preferences.
+# Use the "preferences" option on the main frame to store them
+
+proc Jpref {{reset ""}} {
+    global J Javahelp Jdefault f p
+    
+    if {$reset != ""} {
+	global p
+	array set p [array get Jdefault]
+	return
+    }
+    
+    if {![info exists f(preferences)]} {
+	set f(preferences) [array get Jdefault]
+    }
+    
+    #    Source pref_java.ui.tcl       ;# the preferences UI
+    #    frame $p(preferences_root).javap
+    #    pref_java_ui $p(preferences_root).javap
+    #    recipe_tab $p(preferences_root).c Java $p(preferences_root).javap
+    #    bind $p(preferences_root).javap <FocusIn> {
+    #   set Jhelp ""
+    #   catch {set Jhelp $Javahelp([winfo name %W])}
+    #    }
+    set Jhelp ""
+}
+
+proc set_f_preferences {} {
+    global p f Jdefault
+    if {[info exists f(preferences)]} {
+	set f(preferences) {}
+	foreach q {package arg implements imports extends init} {
+	    if {![info exists p($q)]} {
+		catch {lappend f(preferences) $q [list $Jdefault($q)]}
+	    } else {
+		lappend f(preferences) $q [list $p($q)]
+	    }
+	}
+    }
+}
+
+rename mainmenu_save    mainmenu_save_nonjava
+rename mainmenu_save_as mainmenu_save_as_nonjava
+
+proc mainmenu_save {} {
+    set_f_preferences
+    mainmenu_save_nonjava
+}
+
+proc mainmenu_save_as {} {
+    set_f_preferences
+    mainmenu_save_as_nonjava
+}
+
+# temporary procedure to edit code - use the file <name>.include.java
+
+proc edit_code {{name untitled}} {
+    catch "destroy .edit"
+    toplevel .edit
+    wm title .edit "$name Code"
+    catch {
+        global f
+        set fd [open "$name.include.java"]
+        set f(code) [read $fd]
+        close $fd
+    }
+    edit_ui .edit
+    bind .edit <Destroy> {
+        if {[catch {open "$Current(project).include.java" w} fd]} {
+            tk_dialog .java Error $fd error 0 OK
+            return
+        }
+        puts $fd $f(code)
+        close $fd
+    }
+}

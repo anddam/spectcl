@@ -1,0 +1,124 @@
+# html_setup.tcl --
+#
+#	This file initialized the HTML code generator.
+#
+# Copyright (c) 1997 Sun Microsystems, Inc. All rights reserved.
+#
+# SCCS: @(#) html_setup.tk 1.3 97/07/30 16:18:43
+
+set _Message "Loading html code generator"
+update idletasks
+Source compile_html.tk	;# Html code generator
+
+# Add the .hui file type to the file dialogs.
+set file_select_types \
+    [linsert $file_select_types 0 {"HTML Interfaces" {.hui} {TEXT STui}}]
+
+# Since we can't have multi-line widgets in HTML, get rid of the binding
+# on the entry widget.
+bind fast <Return> {}
+
+#lappend P(other_items) action		;# This is added to every widget
+#lappend P(other_items) subclass	;# This is added to every widget
+
+set P(file_suffix)	"hui"		;# user interface html file suffix
+set P(target_suffix)    "html"		;# generated code file suffix
+
+# remove widgets we don't deal with (yet)
+array set Skip {
+    canvas     1
+    menubutton 1
+    message    1
+    scale      1
+    scrollbar  1
+}
+
+# remove toolbar items that don't work
+catch {destroy .relief .borderwidth}
+
+# remove palette items that don't work
+catch {destroy .palette.f.message}
+catch {destroy .palette.f.scale}
+catch {destroy .palette.f.scrollbar}
+
+# add help for html inputs
+
+array set Field_help {
+    .palette.f.button      "Drag onto canvas to create a button"
+    .palette.f.checkbutton "Drag onto canvas to create a checkbox"
+    .palette.f.entry       "Drag onto canvas to create a textfield"
+    .palette.f.frame       "Drag onto canvas to create a container"
+    .palette.f.label       "Drag onto canvas to create a label"
+    .palette.f.listbox     "Drag onto canvas to create a listbox"
+    .palette.f.radiobutton "Drag onto canvas to create a checkbox group element"
+    .palette.f.text        "Drag onto canvas to create a text region"
+    .palette             "This is the palette containing the componant choices"
+}
+
+set P(other_items:button)      {htmltype}
+set P(other_items:checkbutton) {checked}
+set P(other_items:radiobutton) {checked}
+
+set P(title) "SpecTcl (HTML enabled) $Version"
+
+# options to remove from all widgets
+# this isn't completely filled out yet
+array set Widget_data {
+    ignore:activebackground 1
+    ignore:activeforeground 1
+    ignore:activerelief 1
+    ignore:bitmap 1
+    ignore:image 1
+    ignore:borderwidth 1
+    ignore:command 1
+    ignore:disabledforeground 1
+    ignore:elementborderwidth 1
+    ignore:exportselection 1
+    ignore:highlightbackground 1
+    ignore:highlightcolor 1
+    ignore:highlightthickness 1
+    ignore:image 1
+    ignore:insertbackground 1
+    ignore:insertborderwidth 1
+    ignore:insertofftime 1
+    ignore:insertontime 1
+    ignore:insertwidth 1
+    ignore:jump 1
+    ignore:repeatdelay 1
+    ignore:repeatinterval 1
+    ignore:relief 1
+    ignore:selectbackground 1
+    ignore:selectborderwidth 1
+    ignore:selectcolor 1
+    ignore:selectforeground 1
+    ignore:selectimage 1
+    ignore:setgrid 1
+    ignore:spacing1 1
+    ignore:spacing2 1
+    ignore:spacing3 1
+    ignore:takefocus 1
+    ignore:textvariable 1
+    ignore:troughcolor 1
+    ignore:underline 1
+    ignore:wrap 1
+    ignore:wraplength 1
+    ignore:xscrollcommand 1
+    ignore:yscrollcommand 1
+    ignore:padx 1
+    ignore:pady 1
+    ignore:preferences 1
+}
+
+# remove options that can be set via direct manipulation
+array set Widget_data {
+    ignore:row 1
+    ignore:rowspan 1
+    ignore:column 1
+    ignore:columnspan 1
+    ignore:fill 1
+    ignore:justify 1
+    ignore:anchor 1
+    ignore:orient 1
+    ignore:background 1
+    ignore:foreground 1
+}	

@@ -1,0 +1,95 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+
+# sticky add-on by Ken Corey
+
+#procedure to create sticky menu
+
+# test this stuff
+
+set Stickies {nw n ne new w c e ew sw s se sew nsw ns nse nsew} 
+set Stickymods {0 0 0 1 0 0 0 1 0 0 0 1 2 2 2 3}
+proc setup_sticky {win name {cmd puts}} {
+    global Stickies Current Stickymods
+
+    set framesize 16
+    set resizecols 0
+    set resizerows 0
+    set blocksize [expr int($framesize * 0.5)]
+    # create the top level (if needed)
+
+    catch "destroy $win"
+    toplevel $win -bd 2 -relief ridge  -cursor [cursor menu]
+    wm overrideredirect $win 1
+    set parent [winfo parent $win]
+    foreach i {rootx rooty height} {
+	set $i [winfo $i $parent]
+    }
+    wm geometry $win +$rootx+[expr $rooty + $height]
+
+    # if the current item is a frame, and no row and/or
+    # column is resizable, then alter the bindings so that
+    # things cannot be sticky so as to have conflicting restraints.
+
+    if {[regexp {.*frame\#[0-9]*} $Current(widget)]} {
+	upvar \#0 [winfo name $Current(widget)] data
+	regsub -all {[01]} $data(resize_column) {} resizec
+	regsub -all {[01]} $data(resize_row) {} resizer
+	set resizecols [expr [llength $resizec]>0?0:1]
+	set resizerows [expr [llength $resizer]>0?0:2]
+    }
+
+    # pack in existing alignments, set bindings
+
+    set index 0
+    foreach i $Stickies mod $Stickymods {
+	#	frame $win.$i -bd 2 -relief raised -cursor [cursor item]
+	frame $win.$i -bd 2 -relief raised -height $framesize -width $framesize
+	frame $win.$i.f -height $framesize -width $framesize
+	grid $win.$i.f -row 0 -column 0
+	if {(($resizecols & $mod) || ($resizerows & $mod))} {
+	    frame $win.$i.b -height $blocksize -width $blocksize -bg \#888
+	} else {
+	    frame $win.$i.b -height $blocksize -width $blocksize -bg blue
+	}
+	if {$i == "c"} {
+	    grid $win.$i.b -row 0 -column 0 -sticky {}
+	} else {
+	    grid $win.$i.b -row 0 -column 0 -sticky $i
+	}
+	#	grid $win.$i.l -row 0 -column 0
+	grid $win.$i -row [expr $index/4] -column [expr $index%4]
+	#		blt_table $win $win.$i $index/4,$index%4
+	incr index
+	#	bind $win.$i <ButtonRelease-1> "$cmd $i"
+	if {!(($resizecols & $mod) || ($resizerows & $mod))} {
+	    bind $win.$i <ButtonRelease-1> "$cmd $i"
+	    bind $win.$i.f <ButtonRelease-1> "$cmd $i"
+	    bind $win.$i.b <ButtonRelease-1> "$cmd $i"
+	    bind $win.$i <Enter> "%W configure -relief sunken"
+	    bind $win.$i <Leave> "%W configure -relief raised"
+	}
+    }
+    bind $win <ButtonRelease-1>  \
+	{catch {destroy [winfo toplevel %W]}}
+
+    catch {
+	tkwait visibility $win
+	grab $win
+    }
+}
+
+proc sticky_update {win} {
+    global P
+    if {$win == {}} {
+	.sticky.l config -image sticky_c.gif
+#	grid configure .sticky.b -sticky $P(default:sticky)
+    } else {
+	array set options [grid info $win]
+	if {$options(-sticky) == ""} {
+	    set options(-sticky) "c"
+	}
+	.sticky.l config -image sticky_$options(-sticky).gif
+#	grid configure .sticky.b -sticky $options(-sticky)
+    }
+}

@@ -1,0 +1,10 @@
+# add project specific data to option sheet
+
+# the java code generator will add a new method for all
+# elements of the list P(export)
+
+set P(export) "check"		;# list of attributes to export to ui
+
+# A new attribute, check, will be added to every entry field
+
+set P(other_items:entry) check	;# this is added only to entries
