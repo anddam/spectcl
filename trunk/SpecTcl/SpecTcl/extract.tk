@@ -197,6 +197,11 @@ proc widget_configure {array {root .can.f} {manage 1}} {
 	    }
 	}
     }
+    if {"$class" == "checkbutton"} {
+       # This is because Tk by default uses the widget name as the
+       # variable which will clash with the global array by that name
+       append config " -variable checkbuttondummy "
+    }
     if {$fillanchorkludge != {}} {
 	append geom " -sticky $fillanchorkludge"
     }
