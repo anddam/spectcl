@@ -549,3 +549,4 @@ editted and menu widgets can be copied.
 12/7/2001 (bug fix) Warning about unsaved changes now works correctly
 for menus.
 
+13/7/2001 (new feature) Row and column configuration can be done directly
