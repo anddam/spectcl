@@ -171,7 +171,6 @@ proc menueditor_ui {root args} {
 $base.view config -command {::menueditor::view}
 $base.new config -command {::menueditor::new}
 $base.remove config -command {::menueditor::remove}
-$base.rename config -command {::menueditor::rename}
 $base.copy config -command {::menueditor::copy}
 $base.add config -command {::menueditor::add}
 $base.insert config -command {::menueditor::insert}
@@ -195,14 +194,6 @@ bind $root <Key-Delete> "
    }
 "
 bind $root <Key-Escape> "$base.dismiss invoke"
-
-
-
-
-
-
-
-
 
 
 # end additional interface code
