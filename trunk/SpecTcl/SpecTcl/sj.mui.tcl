@@ -198,6 +198,10 @@ proc sj_mui {root args} {
 	-label {Widget Properties...}  -under 0
     bind all <Control-w> mainmenu_widget_options
 
+    $menupaths(menubutton#2).2m add command -state disabled \
+        -command mainmenu_rowcol_properties \
+	-label {Row & Column Properties...} -under 0
+
     $menupaths(menubutton#2).2m add cascade \
 	-label {Default Properties} \
 	-menu $menupaths(menubutton#2).2m.generic -under 0

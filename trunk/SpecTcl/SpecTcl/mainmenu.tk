@@ -212,6 +212,9 @@ proc mainmenu_edit_label {} {
 proc mainmenu_widget_options {} {
     menu_widget
 }
+proc mainmenu_rowcol_properties {} {
+    ::rowcol::OpenWindow
+}
 proc mainmenu_generic_options {} {
     menu_generic
 }

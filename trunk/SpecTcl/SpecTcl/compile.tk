@@ -282,12 +282,12 @@ proc compile_ui {file {out ""} {prefix ""}} {
 	# puts "widget:$name master:$master"
 	# parray data
 	foreach dim {row column} {
-	    set list [get_resize  $data(other,resize_$dim)]
+	    set list [get_resize  $data(other,resize_$dim) $data(other,weight_$dim)]
 	    if {[llength $list] > 0} {
 		set index 0
-		foreach w $list size $data(other,min_$dim) {
+		foreach w $list size $data(other,min_$dim) pad $data(other,pad_$dim) {
 		    compile_append script 1 \
-			"\tgrid ${dim}configure $master [incr index] -weight $w -minsize $size"
+			"\tgrid ${dim}configure $master [incr index] -weight $w -minsize $size -pad $pad"
 		}
 	    }
 	}	
@@ -325,15 +325,19 @@ proc compile_ui {file {out ""} {prefix ""}} {
 
 # figure out the resize behavior
 
-proc get_resize {list} {
+proc get_resize {list1 {list2 ""}} {
 	set index 0
 	set result ""
-	foreach i $list {
+	if {[llength $list2]==0} {
+	    foreach i $list1 {lappend list2 1}
+	}
+	foreach i $list1 {
 		if {$i > 1} {
-			lappend result 1
+			lappend result [lindex $list2 $index]
 		} else {
 			lappend result 0
 		}
+		incr index
 	}
 	return $result
 }

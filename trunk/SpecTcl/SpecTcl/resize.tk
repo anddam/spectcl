@@ -9,6 +9,8 @@
 # with the resize behavior is kept in a list, one element per row/col, 
 # kept in the frame's widget array in the options resize_row and
 # resize_column.
+# Since weight_row & weight_column were introduced this is really double
+# work. Preserved for backward compatibility. (MSJ July 2001)
 
 # Each element may have the following values:
 #	0  don't resize (the default)
@@ -24,9 +26,10 @@
 #   what:   row/column
 #   index:  Which row or column #
 
-proc resize_insert {table what index {resize 0} {min 0}} {
+proc resize_insert {table what index {resize 0} {min 0} {pad 0}} {
     global P
     upvar #0 [winfo name $table] data
+    set weight [expr {$resize>1}]
     set index [expr $index/2 -1]
     dputs $table $what $index
     if {$index < 0} return
@@ -34,7 +37,9 @@ proc resize_insert {table what index {resize 0} {min 0}} {
     if {[info exists data(resize_$what)]} {
 	dputs $data(resize_$what)
 	set data(resize_$what) [linsert $data(resize_$what) $index $resize]
+	set data(weight_$what) [linsert $data(weight_$what) $index $weight]
 	set data(min_$what) [linsert $data(min_$what) $index $min]
+	set data(pad_$what) [linsert $data(pad_$what) $index $pad]
 	set i 2
 	foreach qq $data(resize_$what) {
 	    if {$qq < 2} {
@@ -48,7 +53,14 @@ proc resize_insert {table what index {resize 0} {min 0}} {
 	arrow_shapeall .can $table $what
     } else {
 	set data(resize_$what) $resize
+	set data(weight_$what) $weight
 	set data(min_$what) $min
+	set data(pad_$what) $pad
+    }
+    set i 2
+    foreach pad $data(pad_$what) min $data(min_$what) {
+	grid ${what}configure $table $i -pad $pad -minsize $min
+	incr i 2
     }
     dputs $data(resize_$what) $data(min_$what)
 }
@@ -62,8 +74,16 @@ proc resize_delete {table what index} {
 	set index [expr $index/2 -1]
 	catch {
 		set data(resize_$what) [lreplace $data(resize_$what) $index $index]
+		set data(weight_$what) [lreplace $data(weight_$what) $index $index]
 		set data(min_$what) [lreplace $data(min_$what) $index $index]
+		set data(pad_$what) [lreplace $data(pad_$what) $index $index]
 		arrow_shapeall .can $table $what
+	}
+	# set shown row/column padding
+	set i 2
+	foreach pad $data(pad_$what) min $data(min_$what) {
+	    grid ${what}configure $table $i -pad $pad -minsize $min
+	    incr i 2
 	}
 }
 
@@ -74,7 +94,7 @@ proc resize_delete {table what index} {
 proc resize_init {table rows cols spacing} {
 	global P
 	upvar #0 [winfo name $table] data
-	dputs $table $rows $cols
+	dputs resize_init $table $rows $cols $spacing
 	while {[incr rows -1] >= 0} {
 		lappend row 0
 		lappend row2 $spacing
@@ -86,12 +106,24 @@ proc resize_init {table rows cols spacing} {
 	if {![info exists data(resize_column)]} {
 		dputs column $col
 		set data(resize_column) $col
+		set data(weight_column) $col
 		set data(min_column) $col2
+		set data(pad_column) $col
 	}
 	if {![info exists data(resize_row)]} {
 		set data(resize_row) $row
+		set data(weight_row) $row
 		set data(min_row) $row2
+		set data(pad_row) $row
 		dputs row $col
+	}
+	# Visualise row/column -pad & -minsize
+	foreach what {row column} {
+	    set i 2
+	    foreach pad $data(pad_$what) min $data(min_$what) {
+	        grid ${what}configure $table $i -pad $pad -minsize $min
+	        incr i 2
+	    }
 	}
 }
 
@@ -104,9 +136,17 @@ proc resize_set {table what index {value ""}} {
 	dputs $table $what $index <$data(resize_$what)>
 	set current [lindex $data(resize_$what) $index]
 	if {$value == ""} {
-		set value [expr {$current < 2 ? 3 : 1}]
+		set value [expr {$current<2 ? 3 : 1}]
+	}
+	if {$value<2} {
+	   set weight 0
+	} elseif {[lindex $data(weight_$what) $index]>0} {
+	   set weight [lindex $data(weight_$what) $index]
+	} else {
+	   set weight 1
 	}
 	set data(resize_$what) [lreplace $data(resize_$what) $index $index $value]
+	set data(weight_$what) [lreplace $data(weight_$what) $index $index $weight]
 	return $value
 }
 

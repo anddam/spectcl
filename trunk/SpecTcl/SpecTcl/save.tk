@@ -441,6 +441,18 @@ proc load_build_project {{master .can.f} {clean 1}} {
     foreach name [lsort -command sort_widgets2 [array names Widgets]] {
 	upvar #0 $name data
 
+        # The row & column padding & weight in frames if it doesn't exist
+	foreach dim {row column} {
+	    if {"$data(type)" == "frame" && (![info exists data(pad_$dim)] || [llength $data(pad_$dim)]!=[llength $data(min_$dim)])} {
+	        set data(pad_$dim) [list]
+	        catch {foreach item $data(min_$dim) {lappend data(pad_$dim) 0}}
+	    }
+	    if {"$data(type)" == "frame" && (![info exists data(weight_$dim)] || [llength $data(weight_$dim)]!=[llength $data(resize_$dim)])} {
+	        set data(weight_$dim) [list]
+	        catch {foreach item $data(resize_$dim) {lappend data(weight_$dim) [expr {$item>1}]}}
+	    }
+	}
+
 	if {$name == "f"} {
 	    if {$clean > 0} {
 		make_decorations $master
@@ -503,7 +515,7 @@ proc load_build_project {{master .can.f} {clean 1}} {
 	}
 
 	set done($name) 1
-    }
+    }    
     arrow_activate .can .can.f
     foreach i $do {
 	if {[catch $i]} {
