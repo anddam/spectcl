@@ -1,4 +1,4 @@
-WidGet file, version 1.2, created:  Wed Jul 11 20:50:35 CEST 2001
+WidGet file, version 1.2, created:  Fri Aug 10 11:14:59 CEST 2001
 Widget button#10
 	geometry column 2
 	other comments {}
@@ -194,7 +194,7 @@ bind $root <Key-Return> "$base.replace invoke"
 bind $root <Key-Insert> "$base.insert invoke"
 bind $root <Key-Delete> "
    if {\"\[focus\]\"!=\"$base.lbEntries\" &&
-       \"\[winfo type \[focus\]\]\"!=\"entry\"} {
+       \"\[winfo class \[focus\]\]\"!=\"Entry\"} {
       $base.delete invoke
    }
 "
@@ -215,7 +215,6 @@ bind $root <Key-Escape> "$base.dismiss invoke"
 		} radiobutton {
 		} scale {
 		} scrollbar {
-		} spinbox {
 		} text {
 		}
 	}
@@ -225,6 +224,8 @@ bind $root <Key-Escape> "$base.dismiss invoke"
 	other master {}
 	other min_column {30 30 30 30 30 30 30}
 	other min_row {30 30 30 30 30 30}
+	other pad_column {0 0 0 0 0 0 0}
+	other pad_row {0 0 0 0 0 0}
 	other panel {}
 	other pathname f
 	other resize_column {3 0 0 0 0 0 0}
@@ -232,6 +233,8 @@ bind $root <Key-Escape> "$base.dismiss invoke"
 	other tabbing {}
 	other tags {}
 	other type frame
+	other weight_column {1 0 0 0 0 0 0}
+	other weight_row {0 0 0 0 0 1}
 Widget frame#1
 	geometry column 4
 	geometry columnspan 2
@@ -243,6 +246,8 @@ Widget frame#1
 	other master {}
 	other min_column {30 30}
 	other min_row {30 30}
+	other pad_column {0 0}
+	other pad_row {0 0}
 	other panel {}
 	other pathname frame#1
 	other resize_column {0 0}
@@ -253,6 +258,8 @@ Widget frame#1
 	other tabbing {}
 	other tags {}
 	other type frame
+	other weight_column {0 0}
+	other weight_row {0 0}
 Widget frame#2
 	configure borderwidth 1
 	geometry column 3
@@ -264,6 +271,8 @@ Widget frame#2
 	other master {}
 	other min_column 30
 	other min_row 2
+	other pad_column 0
+	other pad_row 0
 	other panel {}
 	other pathname frame#2
 	configure relief sunken
@@ -276,6 +285,8 @@ Widget frame#2
 	other tags {}
 	other type frame
 	geometry pady 5
+	other weight_column 0
+	other weight_row 0
 	configure width 2
 Widget label#10
 	geometry column 4
