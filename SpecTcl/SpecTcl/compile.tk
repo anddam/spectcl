@@ -74,7 +74,7 @@ proc compile_ui {file {out ""} {prefix ""}} {
 	return 1
     }
 
-    if {$out != ""} {
+    if {"$out" != ""} {
 	if {[catch [list open $out w] out_fd]} {
 	    tk_dialog .open "Save Error"  $out_fd "error" 0 OK
 	    set _Message "can't write to $out"
@@ -308,11 +308,11 @@ proc compile_ui {file {out ""} {prefix ""}} {
     global Stand
     compile_append script 1 [format $Stand [list ${prefix}_ui]]
 
-    if {$out != ""} {
+    if {"$out" != ""} {
         puts -nonewline $out_fd $script
 	close $out_fd
         port_wishOwnThisFile [file join [pwd] $out]
-	set $script ""
+	set script ""
     }
     
     foreach i [info globals __X_*] {
@@ -372,8 +372,8 @@ proc frames_first {name1 name2} {
 	# children of menubuttons
 	if {$data1(other,type) == "menu"} {
 		if {$data2(other,type) == "menu"} { # both are menus
-			regsub {[^.]} $data1(other,pathname) {} str1
-			regsub {[^.]} $data2(other,pathname) {} str2
+			regsub {[^.]} $data1(other,item_name) {} str1
+			regsub {[^.]} $data2(other,item_name) {} str2
 			# Always put the one with most "."s last
 			return [expr [string length $str1]>[string length $str2]? 1: -1]
 		} else {
