@@ -1,0 +1,237 @@
+WidGet file, version 1.2, created:  Fri May 11 09:48:58 CEST 2001
+Widget menu#4
+	other type menu
+	other activeborderwidth 2
+	other disabledforeground #a3a3a3
+	other master {}
+	other takefocus 0
+	other pathname menu#4
+	other tearoffcommand {}
+	other tags {}
+	other font Helvetica,12,Bold
+	other level {}
+	other background #dcdcdc
+	other help {}
+	other title {}
+	other foreground #000000
+	other activebackground #dcdcdc
+	other postcommand {}
+	other comments {}
+	other borderwidth 2
+	other cursor arrow
+	other tabbing {}
+	other tearoff 1
+	other selectcolor #b03060
+	other relief raised
+	other item_name menubar.mEdit
+	other gadgets {command {-command {puts Copy} -label Copy -underline 0} command {-command {puts Cut} -label Cut -underline 1} command {-command {puts Paste} -label Paste -underline 0} separator {} checkbutton {-variable IsInsertMode -command {puts "Insert Mode"} -label {Insert mode} -underline 7}}
+	other activeforeground #000000
+Widget menu#5
+	other type menu
+	other activeborderwidth 2
+	other disabledforeground #a3a3a3
+	other master {}
+	other takefocus 0
+	other pathname menu#5
+	other tearoffcommand {}
+	other tags {}
+	other font Helvetica,12,Bold
+	other level {}
+	other background #dcdcdc
+	other help {}
+	other title {}
+	other foreground #000000
+	other activebackground #dcdcdc
+	other postcommand {}
+	other comments {}
+	other borderwidth 2
+	other cursor arrow
+	other tabbing {}
+	other tearoff 1
+	other selectcolor #b03060
+	other relief raised
+	other item_name menubar.mHelp
+	other gadgets {command {-command {puts About} -label About -underline 0}}
+	other activeforeground #000000
+Widget menu#1
+	other type menu
+	other activeborderwidth 2
+	other disabledforeground #a3a3a3
+	other master {}
+	other takefocus 0
+	other pathname menu#1
+	other tearoffcommand {}
+	other tags {}
+	other font Helvetica,12,Bold
+	other level {}
+	other background #dcdcdc
+	other help {}
+	other title {}
+	other foreground #000000
+	other activebackground #dcdcdc
+	other postcommand {}
+	other comments {}
+	other borderwidth 2
+	other cursor arrow
+	other tabbing {}
+	other tearoff 1
+	other selectcolor #b03060
+	other relief raised
+	other item_name mbFruits.fruitsMen
+	other gadgets {command {-command {puts Apple} -label Apple -underline 0} command {-command {puts Banana} -label Banana -underline 0} command {-command {puts Cucumber} -label Cucumber -underline 0} command {-command {puts Date} -label Date -underline 0}}
+	other activeforeground #000000
+Widget menubutton#1
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.menubutton#1,error,entry
+	other master {}
+	other pathname menubutton#1
+	configure menu fruitsMen
+	other tabbing {}
+	other item_name mbFruits
+	geometry row 2
+	other type menubutton
+	configure text Fruits
+	geometry column 2
+	other comments {}
+	configure relief raised
+Widget menu#6
+	other type menu
+	other activeborderwidth 2
+	other disabledforeground #a3a3a3
+	other master {}
+	other takefocus 0
+	other pathname menu#6
+	other tearoffcommand {}
+	other tags {}
+	other font Helvetica,12,Bold
+	other level {}
+	other background #dcdcdc
+	other help {}
+	other title {}
+	other foreground #000000
+	other activebackground #dcdcdc
+	other postcommand {}
+	other comments {}
+	other borderwidth 2
+	other cursor arrow
+	other tabbing {}
+	other tearoff 1
+	other selectcolor #b03060
+	other relief raised
+	other item_name mbOption.m
+	other gadgets {radiobutton {-variable mbOption_choice -label Artichoke -underline 0} radiobutton {-variable mbOption_choice -label {Brussel Sprout} -underline 0} radiobutton {-variable mbOption_choice -label Carrot -underline 0}}
+	other activeforeground #000000
+Widget menubutton#2
+	configure textvariable mbOption_choice
+	configure indicatoron 1
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname menubutton#2
+	configure menu m
+	other tabbing {}
+	other item_name mbOption
+	geometry row 2
+	other type menubutton
+	other comments {}
+	geometry column 1
+	configure relief raised
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} spinbox {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0}
+	other type frame
+	other code {$root config -menu $base.menubar
+
+uplevel #0 set mbOption_choice Carrot
+
+
+}
+	other min_row {30 30}
+	other master {}
+	other pathname f
+	other resize_column {0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {30 30}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #dcdcdc}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget menu#2
+	other type menu
+	other activeborderwidth 2
+	other disabledforeground #a3a3a3
+	other master {}
+	other takefocus 0
+	other pathname menu#2
+	other tearoffcommand {}
+	other tags {}
+	other font Helvetica,12,Bold
+	other level {}
+	other background #dcdcdc
+	other help {}
+	other title {}
+	other foreground #000000
+	other activebackground #dcdcdc
+	other postcommand {}
+	other comments {}
+	other borderwidth 2
+	other cursor arrow
+	other tabbing {}
+	other tearoff 1
+	other selectcolor #b03060
+	other relief raised
+	other item_name menubar
+	other gadgets {cascade {-menu mFile -label File -underline 0} cascade {-menu mEdit -label Edit -underline 0} cascade {-menu mHelp -label Help -underline 0}}
+	other activeforeground #000000
+Widget menu#3
+	other type menu
+	other activeborderwidth 2
+	other disabledforeground #a3a3a3
+	other master {}
+	other takefocus 0
+	other pathname menu#3
+	other tearoffcommand {}
+	other tags {}
+	other font Helvetica,12,Bold
+	other level {}
+	other background #dcdcdc
+	other help {}
+	other title {}
+	other foreground #000000
+	other activebackground #dcdcdc
+	other postcommand {}
+	other comments {}
+	other borderwidth 2
+	other cursor arrow
+	other tabbing {}
+	other tearoff 1
+	other selectcolor #b03060
+	other relief raised
+	other item_name menubar.mFile
+	other gadgets {command {-command exit -label Exit -underline 1}}
+	other activeforeground #000000
+
