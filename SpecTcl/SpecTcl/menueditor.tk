@@ -252,6 +252,7 @@ proc ::$l {args} {
    if {[regexp {^selection$} [lindex $args 0]] &&
        [regexp {^set$} [lindex $args 1]]} {
       ::menueditor::displaymenu $::menueditor::mbase [::menueditor::.l index [lindex $args 2]]
+      ::sync_all
    }
    uplevel ::menueditor::.l $args
 }
@@ -489,6 +490,14 @@ proc ::menueditor::displaymenu {mbase {number 0}} {
 }
 #***
 
+
+
+
+#****f* SpecTcl/menueditor::ClassFilter
+# DESCRIPTION
+#   Called from filters.tk
+# SOURCE
+#
 proc ::menueditor::ClassFilter {win opt var args} {
    puts ClassFilter
    upvar $var data
@@ -499,6 +508,8 @@ proc ::menueditor::ClassFilter {win opt var args} {
    }
    return 1
 }
+#***
+
 
 
 #****f* SpecTcl/menueditor::insert
