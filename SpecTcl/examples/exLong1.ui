@@ -1,0 +1,232 @@
+WidGet file, version 1.1, created:  Mon Jul 28 16:14:35 PDT 1997
+Widget button#1
+	geometry row 5
+	other error {}
+	other type button
+	other master {}
+	configure default disabled
+	configure text Add
+	other pathname button#1
+	other tags {}
+	other level {}
+	other help {}
+	configure borderwidth 4
+	geometry column 2
+	other comments {}
+	other item_name add
+	other tabbing {}
+	configure command {ShowButton %W}
+	geometry sticky ew
+Widget entry#3
+	geometry columnspan 2
+	geometry row 3
+	other error {}
+	other type entry
+	configure textvariable ecompany
+	other master {}
+	other pathname entry#3
+	other tags {}
+	other level {}
+	other help {}
+	configure borderwidth 4
+	other comments {}
+	configure cursor {}
+	geometry column 3
+	other item_name company
+	other tabbing {}
+	geometry sticky ew
+Widget label#1
+	geometry row 2
+	other error {}
+	other type label
+	configure anchor w
+	other master {}
+	configure text Name
+	other pathname label#1
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure borderwidth 2
+	geometry column 2
+	geometry sticky nesw
+	other item_name nameL
+	other tabbing {}
+Widget button#2
+	geometry row 5
+	other error {}
+	other type button
+	other master {}
+	configure default disabled
+	configure text Change
+	other pathname button#2
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure borderwidth 4
+	geometry column 3
+	other tabbing {}
+	other item_name change
+	configure command {ShowButton %W}
+	geometry sticky ew
+Widget entry#8
+	geometry columnspan 2
+	geometry row 2
+	other error {}
+	other type entry
+	configure textvariable ename
+	other master {}
+	other pathname entry#8
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 3
+	configure cursor {}
+	configure borderwidth 4
+	other comments {}
+	other tabbing {}
+	other item_name name
+	geometry sticky ew
+Widget label#2
+	geometry row 3
+	other error {}
+	other type label
+	configure anchor w
+	other master {}
+	configure text Company
+	other pathname label#2
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure borderwidth 2
+	geometry column 2
+	geometry sticky nesw
+	other item_name companyL
+	other tabbing {}
+Widget button#3
+	geometry row 5
+	other error {}
+	other type button
+	other master {}
+	configure default disabled
+	configure text Delete
+	other pathname button#3
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure borderwidth 4
+	geometry column 4
+	other item_name delete
+	other tabbing {}
+	configure command {ShowButton %W}
+	geometry sticky ew
+Widget label#3
+	geometry row 4
+	other error {}
+	other type label
+	configure anchor w
+	other master {}
+	configure text E-mail
+	other pathname label#3
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	configure borderwidth 2
+	geometry column 2
+	geometry sticky nesw
+	other item_name e_mailL
+	other tabbing {}
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0 0 0 0 0}
+	other type frame
+	other code {# The exLong1.ui example shows:
+# -- How to capture text from an entry widget 
+#    when the user presses the Return key.
+# -- How to use the Button command property to 
+#    call a proc.
+#
+
+# Bind Return-key event for entry widgets to proc
+bind .name <Key-Return> {ShowEntry %W}
+bind .company <Key-Return> {ShowEntry %W}
+bind .e_mail <Key-Return> {ShowEntry %W}
+
+proc ShowEntry {w} {
+  puts "You entered [$w get] in $w"
+}
+
+
+proc ShowButton {w} {
+  puts "You pushed $w"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+	other min_row {9 30 31 30 2 10}
+	other master {}
+	other pathname f
+	other resize_column {0 0 3 3 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {10 2 2 2 10}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget entry#5
+	geometry columnspan 2
+	geometry row 4
+	other error {}
+	other type entry
+	configure textvariable email
+	other master {}
+	other pathname entry#5
+	other tags {}
+	other level {}
+	other help {}
+	configure borderwidth 4
+	geometry column 3
+	other comments {}
+	other item_name e_mail
+	other tabbing {}
+	geometry sticky ew
+
