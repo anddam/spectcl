@@ -60,7 +60,7 @@ proc pref_java_ui {root args} {
 	label $base.label#5 \
 		-anchor e \
 		-borderwidth 1 \
-		-text {arg type}
+		-text {global variables list}
 
 	entry $base.entry#4 \
 		-borderwidth 1 \
@@ -78,6 +78,17 @@ proc pref_java_ui {root args} {
 		-cursor {} \
 		-highlightthickness 1 \
 		-textvariable p(init)
+                
+        label $base.label#8 \
+		-anchor e \
+		-borderwidth 1 \
+		-text {frame name}
+
+	entry $base.entry#8 \
+		-borderwidth 1 \
+		-cursor {} \
+		-highlightthickness 1 \
+		-textvariable p(frame_name)
 
 	checkbutton $base.checkbutton#1 \
 		-borderwidth 1 \
@@ -121,7 +132,12 @@ proc pref_java_ui {root args} {
 		-sticky e
 	grid $base.entry#7 -in $root	-row 6 -column 2  \
 		-sticky ew
-	grid $base.checkbutton#1 -in $root	-row 7 -column 1  \
+        grid $base.label#8 -in $root	-row 7 -column 1  \
+		-sticky e
+	grid $base.entry#8 -in $root	-row 7 -column 2  \
+		-sticky ew        
+                
+	grid $base.checkbutton#1 -in $root	-row 8 -column 1  \
 		-columnspan 2
 	grid $base.button#3 -in $base.frame#1	-row 1 -column 3  \
 		-sticky e

@@ -25,22 +25,17 @@ bind fast <Return> {}
 
 lappend P(other_items) action		;# This is added to every widget
 lappend P(other_items) subclass	;# This is added to every widget
+lappend P(other_items) componant_type	;# This is added to every widget
 
 set P(file_suffix)     "jui"		;# user interface java file suffix
 set P(target_suffix)   "java"		;# generated code file suffix
 set P(include_suffix)  "include.java"	;# source'd code file suffix
 
-# remove widgets we don't deal with (yet)
-
-array set Skip {
-	message 1
-	scale 1
-}
-
 # remove toolbar items that don't work
-catch {destroy .relief .borderwidth}
+#catch {destroy .relief .borderwidth}
 
 # add help for java widgets
+
 
 array set Field_help {
     .palette.f.button "Drag onto canvas to create a button"
@@ -48,8 +43,6 @@ array set Field_help {
     .palette.f.checkbutton "Drag onto canvas to create a checkbox"
     .palette.f.entry "Drag onto canvas to create a textfield"
     .palette.f.frame "Drag onto canvas to create a container"
-    .palette.f.message "Drag onto canvas to create a message box"
-    .palette.f.scale "Drag onto canvas to create a scale"
     .palette.f.label "Drag onto canvas to create a label"
     .palette.f.listbox "Drag onto canvas to create a listbox"
     .palette.f.menubutton "Drag onto canvas to create a menu button"
@@ -154,10 +147,10 @@ proc test_java {name} {
 	    switch [tk_dialog .sure "Testing $Current(project)"  $msg "questhead" \
 			0 "Cancel test" "Save $Current(project) first"] {
 			    0 {return 0}
-			    1 {save_project  [file join $P(project_dir) $Current(project).$P(file_suffix)] 1}
+			    1 {save_project  [file join $P(project_dir) $Current(project).$P(file_suffix)]}
 			}
 	} else {
-	    save_project [file join $P(project_dir) $Current(project).$P(file_suffix)] 1
+	    save_project [file join $P(project_dir) $Current(project).$P(file_suffix)]
 	}
     }
 
@@ -201,6 +194,7 @@ proc test_java {name} {
     if {[info exists env(CLASSPATH)]} {
 	if {![regexp "$P(project_dir)" $env(CLASSPATH)]} {
 	    set env(CLASSPATH) "$env(CLASSPATH):$P(project_dir)"
+	    
 	}
     } else {
 	set env(CLASSPATH) "$P(project_dir)"

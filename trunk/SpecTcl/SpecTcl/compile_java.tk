@@ -1,5 +1,6 @@
 # SpecTcl, by S. A. Uhler and Ken Corey
 # Copyright (c) 1994-1996 Sun Microsystems, Inc.
+# Daryl Moulder updated this file (c) 2000-2002
 #
 # See the file "license.txt" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -13,7 +14,7 @@
 
 set Boiler {
 public static void main(String[] args) {
-    JFrame f = new JFrame("%1$s Test");
+    JFrame f = new JFrame("%2$s");
     %1$s win = new %1$s();
     f.addWindowListener(
        new WindowAdapter()
@@ -53,6 +54,8 @@ array set Javamap {
 	text		JTextArea
 	button		JButton
 	scrollbar 	JScrollBar
+	scale		JSlider
+	message		JDialog
 	frame		JPanel
 	checkbutton	JCheckBox
 	radiobutton	JRadioButton
@@ -77,6 +80,7 @@ array set Javamap {
 	*.font			{$var.setFont([jfont $value]);}
 	*.state			{[do_state $var $value]}
 	*.help			{[do_help $var $value]}
+        *.tags			{[do_tags $var $value]}
 	*.foreground		{$var.setForeground([jcolor $value]);}
 	*.background		{$var.setBackground([jcolor $value]);}
 	*.editable		{[do_editable $var $value]}
@@ -255,16 +259,19 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 	puts $out_fd "public class $prefix extends $P(extends) $imp\{		\n"
 
 	# make a "client data" slot
-	puts $out_fd "// a slot to hold an arbitrary object pointer that can"
-	puts $out_fd "// be filled in by the app. and referenced in actions"
+	puts $out_fd "//some user defined global variables follow"
 
 	set arg Object
 	if {[info exists P(arg)]} {
-		if {![regexp $P(arg) {^[ 	]*$}]} {
-			set arg $P(arg)
-		}
+		#if {![regexp $P(arg) {^[ 	]*$}]} {
+		#	set arg $P(arg)
+		#}
+                set globals [split $P(arg) ,]
+                foreach global $globals {
+                    puts $out_fd "private $global"
+                }
 	}
-	puts $out_fd "private $arg arg;\n"
+	#puts $out_fd "private $arg arg;\n"
 
 	# Declare an instance variable for each widget:
 	foreach name $names {
@@ -410,6 +417,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 				puts $out_fd "\t$var = new JTextField($width);"
 			}
 			puts $out_fd "\t$var.addActionListener(this);"
+
 		} elseif {$type == "scrollbar"} {
 			set orient VERTICAL
 			catch {
@@ -418,13 +426,55 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 				}
 			}
 			puts $out_fd "\t$var = new JScrollBar(JScrollBar.$orient);"
+
+		} elseif {$type == "message"} {
+			puts $out_fd "\tJOptionPane.showMessageDialog(this,\"$data(configure,text)\");"
+
+		} elseif {$type == "scale"} {
+			set orient VERTICAL
+			catch {
+				if {[string match "h*" $data(configure,orient)]} {
+					set orient HORIZONTAL
+				}
+			}
+
+			if {![info exists data(configure,from)]} {
+				#set to default if not configured
+				set from 0
+			} else {
+				set from $data(configure,from)
+			}
+
+			if {![info exists data(configure,bigincrement)]} {
+				#set to default if not configured
+				set init_setting $from
+			} else {
+				set init_setting $data(configure,bigincrement)
+			}
 			
+			if {![info exists data(configure,to)]} {
+				#set to default if not configured
+				set to 100
+			} else {
+				set to $data(configure,to)
+			}
+			
+			puts $out_fd "\t$var = new JSlider(JSlider.$orient,(int)$from,(int)$to, (int)$init_setting);"
+			puts $out_fd "\t$var.setMajorTickSpacing(10);"
+			puts $out_fd "\t$var.setMinorTickSpacing(1);"
+			puts $out_fd "\t$var.setPaintTicks(true);"
+			puts $out_fd "\t$var.setPaintLabels(true);"
+			puts $out_fd "\t$var.setBorder(BorderFactory.createEmptyBorder(0,0,10,0));"			
 
 		} elseif {$type == "text"} {
 			set rows 5; set cols 20 ; set scroll "Scroller"
 			catch {set rows $data(configure,height)}
 			catch {set cols $data(configure,width)}
-			puts $out_fd "\t$var = new JTextArea($rows,$cols);"
+                        if {$data(other,componant_type) != ""} {
+                            puts $out_fd "\t$var = new $data(other,componant_type)();"
+                        } else {
+                            puts $out_fd "\t$var = new JTextArea($rows,$cols);"
+                        }
 			puts $out_fd "\tJScrollPane $var$scroll = new JScrollPane($var);" 
 		} elseif {$type == "listbox"} {
 			set rows 4; set multi false ; set scroll "Scroller"
@@ -433,6 +483,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 					$data(configure,selectmode) == "multiple" ? "true" : "false"}]}
 			if {$rows == 0} {set rows 4}
 			puts $out_fd "\t$var = new JList();"
+                        puts $out_fd "\t$var.setModel(new DefaultListModel());"
 			puts $out_fd "\t$var.setVisibleRowCount($rows);"
 			if {$multi == "true"} {
 				set multi "true"
@@ -619,7 +670,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		} elseif {$type == "menu"} {
 			puts $out_fd "\tsetJMenuBar($menubar);"
 			#puts $out_fd "	[Jreal_master $name]getContentPane().add($menubar);"								
-		} elseif {$type != "frame"} {
+		} elseif {$type != "frame" && $type != "message"} {
 			set orange 0
 			if {[Jreal_master $name]=="this."} {
 				puts $out_fd "	[Jreal_master $name]getContentPane().add($var);"		
@@ -652,10 +703,10 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		if {$name == "f" } continue
 
 		set type $data(other,type)
-		set var $data(other,item_name)
-		
-		#don't set the geometry for menus
-                if {$type == "menu"} continue
+		set var $data(other,item_name)		
+
+		#don't set the geometry for menus or messages
+                if {$type == "menu" || $type == "message"} continue
 		
 		puts  $out_fd "\treset(con);"
 		puts  $out_fd "\tcon.gridx = $data(geometry,column);"
@@ -698,13 +749,14 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		} else {
 			puts $out_fd "\t${uname}setLayout(${vname}grid);"
 		}
-		
-		puts $out_fd "\t//Set the Background Color"
-		if {${uname}=="this."} {
-			puts $out_fd "\t${uname}getContentPane().setBackground([jcolor $P(frame_bg)]);"		
-		} else {
+                if {$P(frame_bg) !="#e9e9e9"} {
+                    puts $out_fd "\t//Set the Background Color"
+                    if {${uname}=="this."} {
+                            puts $out_fd "\t${uname}getContentPane().setBackground([jcolor $P(frame_bg)]);"
+                    } else {
 			puts $out_fd "\t${uname}setBackground([jcolor $P(frame_bg)]);"
-		} 
+                    }
+                }
 		
 	}
 	
@@ -724,6 +776,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			puts $out_fd "\t\t\t}"
 			puts $out_fd "\t\t}"
 			puts $out_fd "\t);"
+
 		} elseif {$data(other,type)=="listbox"} {
 			#time for some JList event handling with an inner class
 			puts $out_fd "\t$data(other,item_name).addListSelectionListener("
@@ -737,7 +790,19 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			}
 			puts $out_fd "\t\t\t}"
 			puts $out_fd "\t\t}"
-			puts $out_fd "\t);"		
+			puts $out_fd "\t);"	
+                        
+                                #proc jfont {value} {
+                                #set font [split $value ,]
+                                #set family [lindex $font) 0]
+                                #set size [lindex $font 1]
+                                #set style "Font.PLAIN "
+                                #foreach i [lrange $font 2 end] {
+                                #        append style "+ Font.[string toupper $i] "
+                                #}
+                                #return "new Font(\"$family\",$style, $size)"
+                                #}
+                                        	
 		} elseif {$data(other,type)=="checkbutton" || $data(other,type)=="radiobutton"} {
 			puts $out_fd "\t$data(other,item_name).addItemListener("
 			puts $out_fd "\t\tnew ItemListener() {"
@@ -746,11 +811,36 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			puts $out_fd "\t\t\t\tif (e.getStateChange() == ItemEvent.SELECTED )"
 			puts $out_fd "\t\t\t\t{"
 			if {[info exists data(other,action)]} {
-				if {$data(other,action) != ""} {
-					puts $out_fd "\t\t\t\t\t$data(other,action)"
+                                set events [split $data(other,action) ,]
+                                
+				if {[lindex $events 0] != ""} {
+					puts $out_fd "\t\t\t\t\t[lindex $events 0]"
 				}
 			}
-			puts $out_fd "\t\t\t\t}"
+                        puts $out_fd "\t\t\t\t}"
+                        if {[lindex $events 1] != ""} {
+                            puts $out_fd "\t\t\t\telse"
+                            puts $out_fd "\t\t\t\t{"
+                            puts $out_fd "\t\t\t\t\t[lindex $events 1]"
+                            puts $out_fd "\t\t\t\t}"
+                            
+                        }
+			puts $out_fd "\t\t\t}"
+			puts $out_fd "\t\t}"
+			puts $out_fd "\t);"
+
+		} elseif {$data(other,type)=="scale"} {
+			puts $out_fd "\t$data(other,item_name).addChangeListener("
+			puts $out_fd "\t\tnew ChangeListener() {"
+			puts $out_fd "\t\t\tpublic void stateChanged( ChangeEvent e )"
+			puts $out_fd "\t\t\t{"
+			puts $out_fd "\t\t\t\tJSlider source = (JSlider)e.getSource();"
+			puts $out_fd "\t\t\t\tint sliderValue = (int)source.getValue();"
+			if {[info exists data(other,action)]} {
+				if {$data(other,action) != ""} {
+					puts $out_fd "\t\t\t\t$data(other,action)"
+				}
+			}
 			puts $out_fd "\t\t\t}"
 			puts $out_fd "\t\t}"
 			puts $out_fd "\t);"
@@ -831,7 +921,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 	# Put out final boilerplate to end the "init" function
 	# and the class:
 
-	puts $out_fd [format $Boiler $prefix]
+	puts $out_fd [format $Boiler $prefix $P(frame_name)]
 	puts $out_fd \}
 
 	# Close any opened file.
@@ -1072,6 +1162,14 @@ proc do_help {var value} {
 	}
 }
 
+proc do_tags {var value} {
+	if {$value == ""} {
+	    return {}
+	} else {
+	    return $var.setMnemonic('$value')\;
+	}
+}
+
 #if {$value == "question" || $value=="grey25" || $value=="grey50" || $value=="info{
 
 proc do_icon {var value} {
@@ -1080,7 +1178,7 @@ proc do_icon {var value} {
 	if {$value == ""} {
 	    return {}
 	} else {
-	    return $var.setIcon(new\ ImageIcon(".."+java.io.File.separator+"SpecTcl"+java.io.File.separator+"$value$image_type"))\;
+	    return $var.setIcon(new\ ImageIcon("/usr/share/SpecTcl/images/$value$image_type"))\;
 	}
 }
 
@@ -1088,7 +1186,7 @@ proc do_image_icon {var value} {
         if {$value == ""} {
             return {}
         } else {
-	    return $var.setIcon(new\ ImageIcon(".."+java.io.File.separator+"SpecTcl"+java.io.File.separator+"images"+java.io.File.separator+"$value"))\;
+	    return $var.setIcon(new\ ImageIcon("/usr/share/SpecTcl/images/$value"))\;
         }
 }
 
