@@ -1,0 +1,269 @@
+# maingui.tk
+#
+#	Creates the GUI in SpecTcl.
+#
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1997 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# SCCS: @(#) maingui.tk 1.95 97/07/30 16:23:35
+#
+# main program for SpecTcl UI builder (sau 12/94)
+# Updated ui using SpecTcl generated panel (10/95)
+# Same, but with new ui
+
+
+# setup_first --
+#
+#	These are the first things to be executed in this file
+#
+proc setup_first {} {
+    global argv P tcl_platform
+
+    uplevel #0 Source port.tk
+    uplevel #0 Source preferences.tk
+    uplevel #0 Source compile.tk
+
+    if {$tcl_platform(platform) == "macintosh" || $argv != ""} {
+	catch {console hide}
+    }
+
+    #
+    # Choose the target language. Muse do this before other parts of SpecTcl
+    # are initialized.
+    #
+
+    chooseLang
+    set_default_preferences
+    set P(command_line) $argv
+}
+
+# setup_visual --
+#
+#	Some visual settings, such as icon, background, etc
+#
+proc setup_visual {} {
+    global tcl_platform argv0 argv
+    # configure the background so that the highlightframes are the same color
+    # as the background.
+    if {[option get . background {}] != ""} {
+	option add *highlightBackground [option get . background {}] \
+	    widgetDefault
+    }
+    wm geometry . {}
+    wm minsize . 50 50
+    tk appname SpecTcl
+    port_seticon icon.xbm
+    port_loadimages
+
+    if {$tcl_platform(platform) == "unix"} {
+	wm group . .
+	wm command . [concat [list [info nameofexecutable] $argv0] $argv]
+    }
+}
+
+# setup_load_sources --
+#
+#	Read source files of SpecTcl
+#
+proc setup_load_sources {} {
+	uplevel #0 Source tkerror.tcl	;# error reporting facility
+	uplevel #0 Source http.tcl	;# http package from 8.0a1
+	uplevel #0 Source bug.ui.tcl	;# bug reporting ui
+
+	uplevel #0 Source trace.tcl	;# simple variable tracing facility
+	uplevel #0 Source init.tk	;# global variable initialization
+	uplevel #0 Source configure.tk	;# TK generic widget configuration
+					;# information
+	uplevel #0 Source forms.tk	;# option entry management
+	uplevel #0 Source filters.tk	;# data filters for option values
+	uplevel #0 Source extract.tk	;# widget option extraction and 
+					;# validation
+	uplevel #0 Source grid.tk	;# The grid manipulation stuff
+	uplevel #0 Source subs.tk	;# misc stuff that will end up 
+					;# elsewhere
+	uplevel #0 Source button_bind.tk;# generic button binding stuff
+	uplevel #0 Source button.tk	;# specific binding behavior
+	uplevel #0 Source highlight.tk	;# handle highlighting
+	uplevel #0 Source table_subs.tk	;# manage table info
+	uplevel #0 Source outline.tk	;# manage wxjed menu.tk
+	uplevel #0 Source arrow.tk	;# manage the row and column 
+					;# indicators "arrows"
+	uplevel #0 Source save.tk	;# save/load project from disk
+	uplevel #0 Source help.tk	;# preliminary help stuff
+	uplevel #0 Source sticky.tk     ;# stickiness of a widget
+	uplevel #0 Source colors.tk	;# color selection placeholder
+	uplevel #0 Source relief.tk	;# relief management
+	uplevel #0 Source toolbar.tk	;# toobar management routines
+	uplevel #0 Source resize.tk	;# row and column resize behavior
+	uplevel #0 Source undo.tk	;# The undo system (not operational)
+	uplevel #0 Source scroll.tk	;# auto scrollbar attachment code
+	uplevel #0 Source mainmenu.tk   ;# The code that the menus call upon 
+					;# invocation
+	uplevel #0 Source menu.tk	;# code to support menu bar
+	uplevel #0 Source html_lib.tcl	;# html help library
+	uplevel #0 Source html.tcl	;# html help library helpers
+	uplevel #0 Source about_xbm.tcl	;# About box bitmaps
+	uplevel #0 Source about.tk	;# About box animation
+	uplevel #0 Source composite.tk  ;# provide dumb support for comp 
+					;# widgets
+	uplevel #0 Source tab.tcl       ;# Code to help you create recipe 
+					;# boxes.
+	uplevel #0 Source project.tcl   ;# Code for project management.
+	uplevel #0 Source editor.tk     ;# Code to be the default editor.
+	uplevel #0 Source edit_api.tk   ;# A default external editor.
+	uplevel #0 Source script_api.tcl;# public script API for SpecTcl
+	uplevel #0 Source sj.mui.tcl
+
+	# These are generated automatically by SpecTcl
+
+	uplevel #0 Source spectcl.ui.tcl;# main ui
+	uplevel #0 Source edit.ui.tcl	;# "edit code" widget
+	uplevel #0 Source help.ui.tcl	;# html help system
+	uplevel #0 Source project.ui.tcl;# project screen
+}
+
+setup_first
+setup_load_sources
+setup_visual
+
+#
+# create the top-level interface
+#
+spectcl_ui .
+sj_mui .menu
+setup_mainmenu
+create_toolbar .toolbar
+
+#
+# Make the preference dialog.
+#
+create_preferences
+
+# The menu editor doesn't support this directly
+#[menubar_getmenuname .menu "Show grid"] entryconfigure "Show grid"
+#		-onvalue $P(grid_size)
+# Ugh...I want my entry to look like my listbox for help...
+
+if {[winfo exists .helpbox] && [winfo exists .message]} {
+    .helpbox config -font [.message cget -font]
+}
+
+test_help $P(help)		;# turn on simple field help
+
+#
+# Load the "rc" file, if any
+#
+pref_load_rc_file
+
+#
+# Perform initializations specific to the current target language
+#
+init_target_lang
+
+set Current(selected_widget_type) {}
+
+# build the widget scaffolding
+
+set parent .can.f		;# all widgets are children of this guy
+frame $parent -bg $P(frame_bg)	;# window to pack widgets into
+.can create window  0 0 -anchor nw -window $parent
+frame $parent.marker		;# stacking order marker - below all buttons
+set Current(frame) $parent
+set Current(project) $P(project)
+set Current(dirty) ""
+set_title $Current(project)
+
+# draw the grid lines, they go in ODD numbered rows and columns
+
+grid_create $parent $P(maxrows) $P(maxcols) $P(grid_size) $P(grid_color)
+
+# make the row and column arrows
+
+set Frames($parent) 1
+current_frame $parent 
+arrow_create .can_row row $parent all
+arrow_create .can_column column $parent all
+arrow_activate .can $parent $P(grid_color)
+
+# setup the generic and widget option forms
+
+build_option_form .widget
+
+# initialize the button binding dispatcher
+
+button_setup . palette_action palette $P(button) $P(gravity)
+button_setup . widget widget $P(button) $P(gravity)
+button_setup . resize resize $P(button) $P(gravity)
+button_setup . sub_widget widget $P(button) $P(gravity) {[winfo parent %W] %X %Y}
+
+#
+# build the widget palette  and sample widgets
+#
+FindWidgets		
+
+set row [InstallWidgets]
+
+grid rowconfigure .palette $row -weight 1
+
+# some more data setup
+
+configure_geometry_data Widget_data ._check_
+install_filters			;# associate data filters with widget items
+install_renames			;# rename some of the tk options
+install_advanced		;# these are the "advanced" options
+ignore_items			;# set "hidden" field names for forms
+scrollregion_update $parent
+update_table $parent Init
+
+# special case stuff for "top level" that is automatic for other frames
+widget_extract .can.f
+set_master .can.f .can.f
+set f(type) frame
+
+Source bind.tk			;# global bindings
+
+#
+# set default geometry for the future...
+#
+pref_set_default_geometry
+
+# Find out how tall a label/entry pair are so that we can accurately
+# set the yscrollincrement on the option sheet canvas.
+canvas .dummycan
+frame .dummycan.dummy
+label .dummycan.dummy.l
+entry .dummycan.dummy.e
+pack .dummycan.dummy.l -side left
+pack .dummycan.dummy.e -side right
+set item [.dummycan create window -1000 -1000 -window .dummycan.dummy]
+update
+foreach {dummy dummy width height} [.dummycan bbox $item] {}
+incr width 1000
+incr height 1000
+destroy .dummycan
+set P(canvas_yscrollincrement) $height
+
+mainmenu_save_options
+
+pref_check_email
+
+# see if project is specified on the command line
+
+busy_off
+set _Message {}
+if {$argc > 0} {
+    set project [lindex $argv end]
+    if {[regexp -- { -.+} $project]} return
+    if {![regexp -nocase ".*\\\.$P(file_suffix)" $project]} {
+	append project .$P(file_suffix)
+    }
+    if {[file exists $project]} {
+	load_project $project
+    } elseif {[file exists [file join $P(project_dir) $project]]} {
+	load_project [file join $P(project_dir) $project]
+    }
+}
+

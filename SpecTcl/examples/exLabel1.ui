@@ -1,0 +1,79 @@
+WidGet file, version 1.1, created:  Tue Jul 29 17:53:12 PDT 1997
+Widget label#1
+	geometry row 2
+	other error {}
+	other type label
+	configure anchor w
+	other master {}
+	configure text Name
+	other pathname label#1
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	geometry sticky nesw
+	other item_name label#1
+	other tabbing {}
+Widget entry#7
+	geometry row 2
+	other error {}
+	other type entry
+	configure textvariable ename
+	other master {}
+	other pathname entry#7
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	geometry column 3
+	other comments {}
+	configure borderwidth 4
+	other tabbing {}
+	other item_name entryName
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0 0}
+	other type frame
+	other code {# The exLabel1.ui example shows a label displaying text 
+# to identify another widget
+
+
+
+
+
+
+
+
+
+
+}
+	other min_row {9 30 10}
+	other master {}
+	other pathname f
+	other resize_column {0 0 0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {10 37 30 17}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+

@@ -1,0 +1,102 @@
+WidGet file, version 1.1, created:  Wed Jul 30 14:11:06 PDT 1997
+Widget button#1
+	geometry row 2
+	other error {}
+	other type button
+	configure anchor w
+	other master {}
+	configure text Save
+	configure default normal
+	configure justify left
+	other pathname button#1
+	other tags {}
+	configure font {interface user,14,Bold}
+	other level {}
+	other help {}
+	configure borderwidth 4
+	other comments {}
+	geometry column 2
+	geometry sticky ew
+	configure relief groove
+	other tabbing {}
+	other item_name button#1
+Widget button#2
+	geometry row 3
+	other error {}
+	other type button
+	configure anchor w
+	other master {}
+	configure text Cancel
+	configure default normal
+	configure justify left
+	other pathname button#2
+	other tags {}
+	configure font {interface user,14,Bold}
+	other level {}
+	other help {}
+	configure borderwidth 4
+	other comments {}
+	geometry column 2
+	geometry sticky ew
+	configure relief groove
+	other tabbing {}
+	other item_name button#2
+Widget button#3
+	geometry row 4
+	other error {}
+	other type button
+	configure anchor w
+	other master {}
+	configure text {Try Again}
+	configure default normal
+	configure justify left
+	other pathname button#3
+	other tags {}
+	configure font {interface user,14,Bold}
+	other level {}
+	other help {}
+	configure borderwidth 4
+	other comments {}
+	geometry column 2
+	geometry sticky ew
+	configure relief groove
+	other tabbing {}
+	other item_name button#3
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0 0 0 0}
+	other type frame
+	other code {# The exSize2.ui example has a sticky property of ew
+# so that the widgets are aligned. Contrast this with
+# exSize1.ui.
+
+}
+	other min_row {11 30 30 30 10}
+	other master {}
+	other pathname f
+	other resize_column {0 0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {37 32 10}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+
