@@ -1,8 +1,8 @@
 Welcome to release 1.2 of SpecTcl/SpecJava
 
 This is a source release of Spectcl 1.2.  This will run as provided
-under Windows 95, MacOS, various UNIX flavors, with Tcl 7.6 and Tk
-4.2 or greater (Tcl/Tk 8.0+ is required for widget extensions like BLT and for the WYSIWYG menu editor).
+under Windows 95, MacOS, various UNIX flavors, with Tcl/Tk 8.0 or
+greater.
 
 Under UNIX, if this distribution is unpacked into $SPECHOME, then the
 DIR variable in the scripts "specJava" and "specTcl" in the bin
@@ -21,9 +21,11 @@ release.
 Information about SpecTcl and SpecJava is available at:
 	http://spectcl.sourceforge.net/
 
-Send comments, suggestions, and bug reports to:
+Comments, suggestions, and bug reports should be submitted at:
+	http://sourceforge.net/forum/forum.php?forum_id=78704
+
+Only if you cannot access this page you can send a mail to
 	msj@users.sourceforge.net
-or post a message on the discussion groups at the home page.
 
 Current maintainer: Morten Skaarup Jensen
 
@@ -34,4 +36,4 @@ Ioi Lam
 Allan Pratt
 Special Thanks to: Stephen Uhler, Ken Corey
 
-April 20th 2001
+July 16th 2001
