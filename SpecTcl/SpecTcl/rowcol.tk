@@ -1,0 +1,169 @@
+#****h* SpecTcl/rowcol.tk
+# DESCRIPTION
+#   Extra code for the editing the row & column properties
+#
+# CREATION DATE
+#   12th July 2001
+#
+# COPYRIGHT
+#   Morten Skaarup Jensen 2001
+#***
+
+
+
+uplevel #0 {
+
+catch {namespace eval rowcol {}} ;# To activate the namespace
+catch {namespace eval rowcol::getname {}} ;# To activate the namespace
+
+#****v* SpecTcl/rowcol::root
+# DESCRIPTION
+#   The toplevel widget in the rowcol window
+# EXAMPLE
+#   $::rowcol::root config -menu $::rowcol::base.m
+# 
+# SOURCE
+#
+set ::rowcol::root .topRowCol
+#***
+
+
+
+#****v* SpecTcl/rowcol::base
+# DESCRIPTION
+#   The base of the widget path in the rowcol window
+# EXAMPLE
+#   $::rowcol::base.new config -bg blue
+# 
+# SOURCE
+#
+set ::rowcol::base {}
+#***
+
+
+
+#****v* SpecTcl/rowcol::itemdefaults
+# DESCRIPTION
+#   An array with a list of two item lists for each item type
+#   First item is -optionname
+#   Second item is the default value
+# EXAMPLE
+#   lappend ::rowcol::itemdefaults(separator) {-background {}}
+# 
+# SOURCE
+#
+array set ::rowcol::itemdefaults {
+   cascade {}
+   checkbutton {}
+   command {} 
+   radiobutton {}
+   separator {} 
+}
+#***
+
+
+
+#****f* SpecTcl/rowcol::init
+# DESCRIPTION
+#    Initialises the RowCol window
+# SOURCE
+#
+proc ::rowcol::init {root} {
+   # Create the variables $root, $base and $mbase
+   set ::rowcol::root $root
+   regsub {\.$} $root {} ::rowcol::base
+
+   # Create the $???defaults array
+   set f [frame $::rowcol::base.testframe]
+   foreach type {row column} {
+      foreach {opt val} [grid ${type}configure $f 0] {
+         set ::rowcol::${type}defaults($opt) $val
+      }
+   }
+   destroy $f
+   
+   # Put in widgets for row & column properties
+   foreach dim {row column} {
+      if {"$::Current($dim)" == ""} {continue}
+      set f $::rowcol::base.f[string toupper [string index $dim 0]][string range $dim 1 end]
+      foreach {opt val} [array get ::rowcol::${dim}defaults] {
+         set label [string toupper [string index $opt 1]][string range $opt 2 end]
+         
+         # Get initial values
+         regexp {([^.:]+)_([0-9]+)$} $::Current($dim) dummy master i
+         upvar #0 ::$master data
+         set pos [expr {$i/2-1}]
+         switch $label {
+            Minsize	{set val [lindex $data(min_$dim) $pos]}
+            Weight	{set val [lindex $data(weight_$dim) $pos]}
+            Pad		{set val [lindex $data(pad_$dim) $pos]}
+            default	{puts stderr "\a'$label' not implemented"; continue}
+         }
+         
+         # Put in widgets
+         set l $f.l$label
+         set e $f.e$label
+         label $l -text $label
+         entry $e
+         $e insert 0 $val
+         grid $l $e
+      }
+   }
+   
+   # Callback for the "Apply" button
+   $::rowcol::base.bApply config -command ::rowcol::Apply
+   
+   # Return focus to . when window is destroyed
+   bind $::rowcol::root <Destroy> "
+      grab release $::rowcol::root
+      focus .
+   "
+}
+#***
+
+
+
+#****f* SpecTcl/rowcol::OpenWindow
+# DESCRIPTION
+#   Opens the Row & Column editing window
+# SOURCE
+#
+proc ::rowcol::OpenWindow {} {
+   if {[catch {toplevel $::rowcol::root}]} {
+      return
+   }
+   grab $::rowcol::root
+   ::rowcol_ui $::rowcol::root
+   ::rowcol::init $::rowcol::root
+}
+#***
+
+
+
+#****f* SpecTcl/rowcol::Apply
+# DESCRIPTION
+#   Saves the data from the entry widgets in global arrays
+# SOURCE
+#
+proc ::rowcol::Apply {} {
+   foreach {dim Dim} {row Row column Column} {
+      if {"$::Current($dim)" == ""} {continue}
+      regexp {([^.:]+)_([0-9]+)$} $::Current($dim) dummy master i
+      upvar #0 ::$master data
+      set pos [expr {$i/2-1}]
+      foreach {key wpart} "min_$dim Minsize weight_$dim Weight pad_$dim Pad" {
+         set data($key) [lreplace $data($key) $pos $pos [$::rowcol::base.f$Dim.e$wpart get]]
+      }
+      set masterw .can.f[expr {"$master"=="f"? "": ".$master"}]
+      grid ${dim}configure $masterw $i -pad [lindex $data(pad_$dim) $pos] -minsize [lindex $data(min_$dim) $pos]
+      resize_set $masterw $dim $i [expr {[lindex $data(weight_$dim) $pos]? 3: 1}]
+      arrow_shape .can $masterw $dim $i [expr {([lindex $data(weight_$dim) $pos]>0)}]
+   }
+   update idletasks
+   arrow_update .can $masterw
+   set ::Current(dirty) 1
+}
+#***
+
+
+} ;# End uplevel

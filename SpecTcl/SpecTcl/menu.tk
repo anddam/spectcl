@@ -137,6 +137,10 @@ proc editmenu_active {} {
     foreach i {{Widget Properties...}} {
 	catch {[menubar_getmenuname .menu $i] entryconfigure $i -state $state}
     }
+    set state [expr {"$Current(row)" == "" && "$Current(column)" == "" ? "disabled" : "normal"}]
+    foreach i {{Row & Column Properties...}} {
+	catch {[menubar_getmenuname .menu $i] entryconfigure $i -state $state}
+    }
     set state [expr {"$Current(widget)" == "" ? "disabled" : "normal"}]
     foreach i {Cut Copy} {
 	catch {[menubar_getmenuname .menu $i] entryconfigure $i -state $state}

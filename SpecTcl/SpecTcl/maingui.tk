@@ -121,6 +121,8 @@ proc setup_load_sources {} {
 
 	uplevel #0 Source spectcl.ui.tcl;# main ui
 	uplevel #0 Source edit.ui.tcl	;# "edit code" widget
+	uplevel #0 Source rowcol.tk ;# Code for row & column configuration
+	uplevel #0 Source rowcol.ui.tcl;# Dialog for row & column configuration
 	uplevel #0 Source menueditor.tk ;# Code for edit menus dialog
 	uplevel #0 Source menueditor.ui.tcl;# edit menus dialog
 	uplevel #0 Source menueditorgetname.ui.tcl;# Dialog for getting the menu name
