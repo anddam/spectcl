@@ -172,6 +172,7 @@ proc commandmenu_active {} {
     }
     menu_setstate "Build" $state
     menu_setstate "Build and Test" $state
+    menu_setstate "Build and Test Java" $state
     menu_setstate "Build Application" $state
 
     set state disabled

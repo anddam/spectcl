@@ -150,6 +150,8 @@ proc ::menueditor::init {root} {
       foreach item [$::menueditor::mbase entryconfig last] {
          lappend ::menueditor::itemdefaults($type) [list [lindex $item 0] [lindex $item end]]
       }
+      #hack in progress
+      #lappend ::menueditor::itemdefaults($type) -item_name
    }
    destroy $::menueditor::mbase
    
@@ -277,6 +279,7 @@ proc ::menueditor::mbTypeCmd {type} {
    #!eval grid forget [winfo children $f]
    eval destroy [winfo children $f]
    # Map relevant children 
+   # Daryl this is what we need get what sets the itemdefaults($type)
    foreach item $::menueditor::itemdefaults($type) {
       set opt [lindex $item 0]
       set val [lindex $item 1]
