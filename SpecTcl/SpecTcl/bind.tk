@@ -1,0 +1,427 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1997 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# system wide bindings
+
+# palette bindings for "look" - the're almost buttons
+# bind palette <Enter> "%W configure -bg #ececec"
+# bind palette <Leave> "%W configure -bg #d9d9d9"
+# bind palette <ButtonRelease-1> "%W configure -relief ridge"
+
+# set binding to propagate geometry changes
+# There are far too many configure events, so this is too slow
+# Instead, I should go back to the *old way*, and kick off the updates
+# when I know they are needed
+
+bind widget <Configure>  {    
+    if {$Arrow_move} continue
+    if {$Down} continue
+    bind_widget_configure %W
+}
+
+proc bind_widget_configure {w} {
+    dputs "widget $w configure"
+    check_update $w
+}
+
+bind . <Configure> {
+    if {"%W" == "."} {
+	set P(geom) [wm geometry .]
+    }
+}
+
+proc bind_reunmap {W} {
+    global P
+    if {"$W" == "."} {
+	foreach q [array names P geom-*] {
+	    regexp {geom-(.*)} $q dummy win
+	    if {[winfo exists $win]} {
+		set P($q) [wm geom $win]
+		wm withdraw $win
+	    }
+	}
+    }
+}
+
+proc bind_remap {W} {
+    global P
+    if {"$W" == "."} {
+	foreach q [array names P geom-*] {
+	    regexp {geom-(.*)} $q dummy win
+	    if {[winfo exists $win]} {
+		wm geom $win $P(geom-$win)
+		if {![winfo ismapped $win]} {
+		    wm deiconify $win
+		    raise $win
+		} else {
+		    wm deiconify $win
+		}
+	    }
+	}
+    }
+}
+
+# Go through all the immediate children of . and hide them if
+# . goes away
+bind . <Unmap> {bind_reunmap %W}
+
+bind . <Map> {bind_remap %W}
+
+# All windows who want to behave as part of a unit call this
+# function when they want to "join".
+# This function also maps the window with 'wm deiconify $w'
+proc bind_map {w} {
+    global P
+    if {[info exists P(geom-${w}-orig)]} {
+	wm geom $w $P(geom-${w}-orig)
+    }
+    # this is so the main window controls this window.
+    set P(geom-$w) [wm geom $w]
+    # this is so this window controls the main window.
+    bind $w <Unmap> "if \{\"%W\" == \"$w\"\} \{wm iconify .\}"
+    bind $w <Configure> {
+	if {[info exists P(geom-%W)]} {
+	    set P(geom-%W) [wm geom %W]
+	}
+    }
+    if {![winfo ismapped $w]} {
+	wm deiconify $w
+	raise $w
+    } else {
+	wm deiconify $w
+    }
+
+}
+
+# All windows should tie this to unmap their toplevel, and 
+# remove it from the display group.
+proc  bind_unmap {w} {
+    global P
+    catch {unset P(geom-$w)}
+    if {[winfo exists $w]} {
+	bind $w <Unmap> {}
+	wm withdraw $w
+    }
+}
+# new palette behaviour - open option sheet only on double click
+
+bind palette <Double-$P(button)> {
+    activate_generic [%W cget -text] true
+}
+
+proc activate_generic {widget {raise false}} {
+    global _Message Geometry Current P
+
+    # The current widget has to be unselected, otherwise SpecTcl will
+    # be confused and think we are editing the widget option, not the
+    # generic option. The source of confusion is in proc check_field
+    unselect_widget
+
+    set _Message "fetching default $widget properties ..."
+    update idletasks
+    wm title .widget "Default $widget properties"
+    .widget.msg configure -text "- $widget configuration -" \
+	-textvariable sample_${widget}(error) -fg $P(grid_highlight)
+    widget_extract .sample_$widget sample_$widget
+
+    form_build .widget.form sample_$widget
+    if {![winfo ismapped .widget]} {
+	bind_map .widget
+	catch {wm geometry .widget $Geometry(generic)}
+    }
+    if {$raise} {
+	raise .widget
+    }
+    set Current(sample) .palette.f.$widget 
+    set _Message ""
+}
+
+# new option sheet behaviour - double click on a widget to bring up
+
+bind widget <Double-$P(button)> {
+    activate_option %W true
+    break
+}
+
+# activate_option --
+#
+#	Popup the "widget options" dialog box.
+#
+# Arguments:
+#	win:	The widget whose properties are to be edited with the dialog.
+#	raise:	True if the dialog needs to be raised.
+#
+# Result:
+#	None.
+
+proc activate_option {win {raise false}} {
+    global Current Geometry P
+    set class [winfo class $win]
+    set name  [winfo name $win]
+    upvar #0 $name data
+    
+    status_message "fetching $class $data(item_name) properties ..."
+    wm title .widget "$class $data(item_name) properties"
+    .widget.msg configure -text "- $class configuration -" \
+	-textvariable ${name}(error) -fg $P(grid_highlight)
+
+    form_build .widget.form $name
+
+    if {![winfo ismapped .widget]} {
+	catch {wm geometry .widget $Geometry(widget)}
+	bind_map .widget
+    }
+    if {$raise} {
+	raise .widget
+    }
+
+    set Current(form) $win
+}
+
+# If no palette type is on, then
+# "deselect" when button press outside active region,
+# else extend the palette and drop the widget in there.
+
+bind .can <$P(button)> { bind_can_button %x %y }
+
+proc bind_can_button {x y} {
+    global Current
+    if {$Current(selected_widget_type) != ""} {
+	grid_single_click .can.f $x $y
+    } else {
+	unselect_all
+	current_frame .can.f
+	sync_all
+    }
+}
+
+# select row&col when clicking in an empty grid
+
+bind .can.f <$P(button)>  {grid_single_click %W %x %y}
+
+proc grid_single_click {w x y} {
+    global Current P
+
+    if {[info exists Current(selected_widget_type)] &&
+	    $Current(selected_widget_type) != ""} {
+	global Type In_view Where Row Col
+
+	# translate to global coords
+	set Type [$Current(selected_widget_type) cget -text]
+	set gx $x
+	set gy $y
+
+	#Translate to global coords
+	incr x [winfo rootx $w]
+	incr y [winfo rooty $w]
+	if {[regexp {^.can.f.frame\#} $w] || $w == ".can.f"} {
+	    set enclosinggrid [find_grid $x $y]
+	    if {$enclosinggrid != $Current(frame)} {
+		current_frame $w
+	    }
+	    set In_view 1
+	    set Where [find_slot $Current(frame) $x $y Row Col]
+	    set tempframe $Current(frame)
+	    if {[set result [palette_end_sweep $Current(selected_widget_type) \
+		    $x $y]] == "occupied"} {
+		unselect_palette
+		unselect_widget
+		if {$w != ".can.f"} {
+		    select_widget $w
+		}
+	    } elseif {$result == "offtable"} {
+		unselect_all
+		current_frame $w
+		select_rowcol $gx $gy
+		grid_single_click $w $gx $gy
+	    } else {
+#		unselect_widget
+		current_frame $tempframe
+#		select_rowcol $gx $gy
+	    }
+	} else {
+	    if {$w != $Current(widget)} {
+		unselect_all
+		select_widget $w
+	    }
+	}
+	if {!$P(sticky-palette) ||
+		[string match *frame* $Current(selected_widget_type)]} {
+	    unselect_palette
+	}
+    } else {
+	if {($w == ".can.f" || [regexp {^.can.f.frame\#} $w])} {
+	    if {$w == ".can.f" || $w == $Current(widget)} {
+		current_frame $w
+		select_rowcol $x $y
+	    } else {
+		unselect_widget
+		select_widget $w
+	    }
+	} else {
+	    if {$w != $Current(widget)} {
+		unselect_widget
+		select_widget $w
+	    }
+	}
+    }
+    sync_all
+}
+
+# unselect everything.  Cuonts on being able to call unselect_whatever
+# even if one isn't selected.
+
+proc unselect_all {} {
+    foreach q [info comm unselect_*] {
+	if {$q != "unselect_all" && ![string match *_real $q]} {
+	    dputs "$q"
+	    catch {eval "$q"}
+	}
+    }
+    arrow_unhighlight row
+    arrow_unhighlight column
+}
+
+# given an x,y position on the current grid, select the row/column
+
+proc select_rowcol {x y} {
+    dputs $x $y
+    global Current P
+    unselect_widget
+    unselect_grid
+    arrow_unhighlight row
+    arrow_unhighlight column
+    foreach {col row} [grid location $Current(frame) $x $y] {}
+    arrow_highlight row $Current(frame) $row $P(grid_highlight)
+    arrow_highlight column $Current(frame) $col $P(grid_highlight)
+    if {$P(op-sheet-handling) > 2 && [winfo ismapped .widget]} {
+	catch {destroy .widget.form.can.f}
+    }
+}
+
+# This binding is superceeded by the menu binding.
+#bind . <Insert> {insert_selected}
+
+# highlight a grid line, for easier identification
+bind grid <Enter> { bind_grid_Enter %W}
+
+proc bind_grid_Enter {w} {
+    global P Save_grid_color
+    set Save_grid_color [$w cget -bg]
+    $w configure -bg $P(generic_over_color)
+}
+
+bind grid <Leave> {
+    bind_grid_Leave %W
+}
+
+proc bind_grid_Leave {w} {
+    global Save_grid_color
+    if {[info exists Save_grid_color]} {
+	$w configure -bg $Save_grid_color
+    }
+}
+
+bind grid <Double-1> {bind_grid_double1}
+
+proc bind_grid_double1 {} {
+    global Current
+    mainmenu_insert
+    set Current(startw) {}
+    set Current(parentw) {}
+}
+
+# when a frame background changes color, make sure its grid
+# changes too (This still needs work)
+
+bind frame <Configure> {
+    # if {$Arrow_move} continue
+    if {$Down} continue
+    bind_frame_configure %W
+}
+
+proc bind_frame_configure {w} {
+    global Current
+    dputs "frame $w configure"
+    set color [$w cget -bg]
+    if {"$w" == $Current(frame)} {
+	set color [Contrast_color $color]
+    } 
+    if {[grid_color $w $color]} {
+	# puts "need to change outline colors for $w"
+	outline_color $w
+    }
+}
+
+# short cut for repeating toolbar action for current widget
+# (moved to menu bar)
+
+# Short cut for selecting containing frame
+
+#bind . <KeyPress-Up> Key_up
+proc Key_up {} {
+    global Current
+    
+    if {[set widget $Current(widget)] != ""} {
+	upvar #0 [winfo name $widget] data
+	set master .can.f$data(master)
+	if {$master !=  ".can.f"} {
+	    unselect_widget
+	    select_widget $master
+	    sync_all
+	}
+    }
+}
+
+# short cut for going "inside of a frame" (gulp)
+
+#bind . <KeyPress-Down> Key_down
+proc Key_down {} {
+    global Current _Message Frames
+    
+    if {[info exists Frames($Current(widget))]} {
+	current_frame $Current(widget)
+	set _Message "Entering sub frame"
+
+	set widgets {}
+	foreach qq [grid slaves $Current(widget)] {
+	    if {![regexp {@} $qq] && ![string match *outline_highlight $qq] && ![string match *_outline $qq]} {
+		lappend widgets $qq
+	    }
+	}
+
+	if {[llength $widgets] > 0} {
+	    unselect_widget
+	    select_widget [lindex [lsort -command sort_widgets $widgets] 0]
+	    sync_all
+	}
+    }
+}
+
+# temporary short cut for inserting row or column onto the current frame
+
+proc grid_add {master what {index 2}} {
+	table_insert $master $what $index
+	grid_process $master $what 1
+	update_table $master "insert $what $index"
+}
+
+# short cut for option forms
+bind all <Alt-KeyPress> {
+    if {![access_field %A]} {
+	tkTraverseToMenu %W %A
+    }
+}
+
+wm protocol . WM_DELETE_WINDOW mainmenu_quit
+
+# because of the order of loading the files and the way bindtags 
+# works, ctrl-w on a widget clears out it's entry widget first, 
+# and *then* pulls up the option sheet.  This binding, though
+# it should really be able to be in bind.tk, fixes that.
+
+bind .entry <Control-w> {mainmenu_widget_options;break}
+bind .entry <Control-k> {mainmenu_kill_test;break}
