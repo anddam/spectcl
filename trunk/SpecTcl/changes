@@ -545,3 +545,7 @@ Especially useful under CVS.
 
 11/7/2001 (new feature) Properties of menu widgets can be directly
 editted and menu widgets can be copied.
+
+12/7/2001 (bug fix) Warning about unsaved changes now works correctly
+for menus.
+
