@@ -266,7 +266,7 @@ proc form_build_basic {win form option height} {
 	form_combo $win.can.f $win.can.f.${q}toplevel $contents
     }
     
-    for {set i 0} {$i<50} {incr i} {
+    for {set i 0} {$i<100} {incr i} {
 	set f $win.can.f
 	label $f.l$i -textvar formslabels($i)
 	frame $f.e$i

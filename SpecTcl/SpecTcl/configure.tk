@@ -1,4 +1,4 @@
-# SpecTcl, by S. A. Uhler and Ken Corey
+	# SpecTcl, by S. A. Uhler and Ken Corey
 # Copyright (c) 1994-1995 Sun Microsystems, Inc.
 #
 # See the file "license.txt" for information on usage and redistribution
@@ -17,7 +17,7 @@
 # [This is the *old* tK3.6 version]
 
 proc configure_widget_data {{var Widget_data} {check ._check_} {cmd ""}} {
-    global Skip P
+    global Skip P tcl_version
     upvar #0 $var data
     catch {destroy $check}
     
@@ -35,6 +35,30 @@ proc configure_widget_data {{var Widget_data} {check ._check_} {cmd ""}} {
     catch {set widgetsIknow $data(widgets)}
     set notSupplied [catch {set potential $P(widgets)}]
     if {$widgetsIknow == "" && $potential == ""} {
+        if {$tcl_version >= 8.0} {namespace eval :: {
+            if {[info exists ExtraWidgets]} {
+                foreach item [lsort [array names ExtraWidgets]] {
+                    if {[catch {package require $item} tmp]} {
+                       puts stderr $tmp
+                       continue
+                    }
+                    foreach tmp $ExtraWidgets($item) {
+#                        puts "$item\t\t$tmp"
+                        if {[catch {namespace import $tmp} tmp1]} {
+                           puts stderr $tmp1
+#                           continue
+                        }
+                        set tmp1 $tmp
+                        regexp {[^:]+$} $tmp tmp1
+                        if {[catch {$tmp1 .tmp;destroy .tmp} tmp2]} {
+                           puts stderr $tmp2
+                        } else {
+                           set P(proc:$tmp1) 1
+                        }
+                    }
+                }
+            }
+        }}
 	set potential [info commands]
     }
     foreach i $widgetsIknow {
