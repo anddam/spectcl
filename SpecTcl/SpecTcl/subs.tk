@@ -175,6 +175,11 @@ proc sync_form {field value} {
 	dputs "Setting [winfo name $win] $field <- $value"
     }
     
+    # If it is a menu widget update menu
+    if {"$data(type)"=="menu"} {
+       ::menueditor::ClassFilter $win $field data(field)
+    }
+    
     # update the entry form (if it exists)
     
     foreach q [array names formslabels] {
