@@ -146,101 +146,34 @@ proc menueditor_ui {root args} {
 # additional interface code
 source /home/msj/projects/SpecTcl/SpecTcl/menueditor.tk
 
-# Initialise listbox
-set ::menueditor::menulist [list]
-foreach item [uplevel #0 array names Widgets] {
-   upvar #0 $item wdata
-   if {"$wdata(type)"=="menu"} {
-      lappend ::menueditor::menulist [list $item $wdata(item_name)]
-      $base.lbEntries insert end $wdata(item_name)
-   }
-}
+# Initialise
+::menueditor::init $root
 
 # Menu for $base.mbType
 ::menueditor::CreateTheOptionmenu $base.mbType.m
 
-# The demo menu
-set mbase $base.demomenu
-
 # Callbacks for buttons
-$base.view config -command "
-   $mbase post 0 0
-   catch {$mbase activate 0}
-"
-$base.new config -command "
-      set tmp 1
-      while {\[info exists menu#\$tmp\]} {incr tmp}
-      set tmp menu#\$tmp
-      ::menueditor::newmenu \$tmp
-      $base.lbEntries insert end \$tmp
-"
-$base.remove config -command "
-   if {\"\[tk_messageBox -icon question -type yesno -parent $root -message \"Are you sure?\"\]\"==\"yes\"} {
-      set tmp \[$base.lbEntries curselection\]
-      if {\"\$tmp\"==\"\"} {break}
-      ::menueditor::removemenu \$tmp
-      $base.lbEntries delete \$tmp
-   }
-"
-$base.add config -command "
-   ::menueditor::additem
-"
-
-# Still needs work
-$base.replace config -command "
-   $mbase entryconfig \[$mbase index active\] -label \[$base.eLabel get\]
-"
-
-$base.cbTearoff config -command "$mbase config -tearoff \${cbTearoff.value}"
+$base.view config -command {::menueditor::view}
+$base.new config -command {::menueditor::new}
+$base.remove config -command {::menueditor::remove}
+$base.add config -command {::menueditor::add}
+$base.insert config -command {::menueditor::insert}
+$base.delete config -command {::menueditor::delete}
+$base.replace config -command {::menueditor::replace}
+$base.cbTearoff config -command {::menueditor::tearoff}
 
 # Bindings
-bind $root <Key-Up> "
-   catch {$mbase activate \[expr \[$mbase index active\]-1\]}
-"
-bind $root <Key-Down> "
-   catch {$mbase activate \[expr \[$mbase index active\]+1\]}
-"
-bind $root <Key-Left> "bell"
-bind $root <Key-Right> "
-   catch {$mbase postcascade \[$mbase index active\]}
-"
-# Arrow keys in entry widgets must override arrow keys in
-# $root except at the beginning or end of the input string
-foreach item {Label Command Variable Menu} {
-   set w $base.e$item
-   bind $w <Key-Left> "
-      if {\[$w index insert\]>0} {
-         $w icursor \[expr {\[$w index insert\]-1}\]
-         break  ;# So that $root binding is not executed
-      }
-   "
-   bind $w <Key-Right> "
-      if {\[$w index insert\]<\[$w index end\]} {
-         $w icursor \[expr {\[$w index insert\]+1}\]
-         break  ;# So that $root binding is not executed
-      }
-   "
-}
+bind $root <Key-Up> {::menueditor::keyup} ;# Should have been "$base.up invoke"
+bind $root <Key-Down> {::menueditor::keydown}
+bind $root <Key-Left> {::menueditor::keyleft}
+bind $root <Key-Right> {::menueditor::keyright}
+
 # Fast button invoking
 bind $root <Key-Return> "$base.add invoke"
 bind $root <Key-Insert> "$base.insert invoke"
 bind $root <Key-Delete> "$base.delete invoke"
 bind $root <Key-Escape> "$base.dismiss invoke"
 
-# Selection callback in listbox
-set l $base.lbEntries
-rename $l ::menueditor::.l
-proc $l {args} "
-   puts \$args
-   if {\[regexp {^selection\$} \[lindex \$args 0\]\] &&
-       \[regexp {^set\$} \[lindex \$args 1\]\]} {
-      ::menueditor::displaymenu $mbase \[::menueditor::.l index \[lindex \$args 2\]\]
-   }
-   uplevel ::menueditor::.l \$args
-"
-
-catch {$l selection set 0}
-catch {$mbase activate 0}
 
 
 
