@@ -827,6 +827,7 @@ proc load_project {file {master .can.f} {clean 1} {load_in_frame 0}} {
 
     set_title $Current(project)
     set Current(dirty) ""
+    set P(file_untitled) 0
     set lines [read $fd]
     close $fd
 
