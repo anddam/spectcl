@@ -18,8 +18,8 @@
 #	Extract configuration options and their default values for a
 #	given widget type.
 #
-# {,i}pad[xy] and friends are problematic because both widgets and blt_table
-# use the same name.
+# {,i}pad[xy] and friends are problematic because both widgets and the
+# grid command use the same name.
 
 proc widget_extract {widget {array ""}} {
     global P
@@ -72,7 +72,7 @@ proc widget_extract {widget {array ""}} {
 	}
     }
 
-    # extract geometry attributes (assume blt_table for now)
+    # extract geometry attributes (assume grid for now)
     # need to handle row, col separately
     if {[winfo manager $widget] == "grid"} {
 	regsub -all { -([^ ]+)} [grid info $widget] { \1} options
@@ -130,7 +130,7 @@ proc widget_update {widget} {
 		    append config " -$i [list $data($i)]"
 		}
 	    }
-	} elseif {[info exists Widget_data(default:table,$i)]} {
+	} elseif {[info exists Widget_data(default:GRID,$i)]} {
 	    append geom " -$i [list $data($i)]"
 	} elseif {$i == "anchor"  || $i == "fill"} {
 	    catch {
@@ -189,7 +189,7 @@ proc widget_configure {array {root .can.f} {manage 1}} {
 		    append config " -$i [list $data($i)]"
 		}
 	    }
-	} elseif {[info exists Widget_data(default:table,$i)]} {
+	} elseif {[info exists Widget_data(default:GRID,$i)]} {
 	    append geom " -$i [list $data($i)]"
 	} elseif {$i == "anchor"  || $i == "fill"} {
 	    catch {
@@ -293,7 +293,7 @@ proc validate_field {name item value} {
 	set cmd "set data($item) $value"
     } elseif {[info exists Widget_data(default:$class,$item)]} {
 	set cmd "$widget configure -$item \"[sub_bs $value 1]\""
-    } elseif {[info exists Widget_data(default:table,$item)]} {
+    } elseif {[info exists Widget_data(default:GRID,$item)]} {
 	set cmd [list grid configure $widget -$item $value]
 	regsub -all {(-i?)wad([xy])} $cmd {\1pad\2} cmd	;# padding botch
 	regsub -all align $cmd anchor cmd	;# padding botch
