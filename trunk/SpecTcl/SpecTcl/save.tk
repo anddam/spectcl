@@ -327,6 +327,18 @@ proc compile_project {} {
 	[file join $P(project_dir) $Current(project).$P(file_suffix)] \
 	[file join $P(project_dir) $Current(project).$P(target_suffix)]
 
+    if {$P(file_suffix) == "jui"} {
+	if {[catch {exec javac $Current(project).java} msg]} {
+		if {[regsub -all \n $msg {} x] > 20} {
+			set _Message [string range $msg 0 250]\n....  
+		}
+		append _Message "\n\n** Java compilation failed **"
+		help_dialog .java $msg "Okay"
+		busy_off
+		return
+	}
+	exec java $Current(project)
+    }
     return
 }
 #***

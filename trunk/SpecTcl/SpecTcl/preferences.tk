@@ -458,7 +458,7 @@ proc pref_lang_choice {root isstartup} {
     radiobutton $w.tcl   -variable specCommon(lang) -value tcl \
 	-text "Tcl" 
     radiobutton $w.java  -variable specCommon(lang) -value java \
-	-text "Java 1.0"
+	-text "Java 1.2 with Swing (Experimental)"
     radiobutton $w.jdk11 -variable specCommon(lang) -value jdk11 \
 	-text "Java 1.1 (Experimental)"
     radiobutton $w.html  -variable specCommon(lang) -value html \
