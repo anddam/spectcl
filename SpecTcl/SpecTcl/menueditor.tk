@@ -153,11 +153,6 @@ proc ::menueditor::init {root} {
    }
    destroy $::menueditor::mbase
    
-   # Set the flag indicating that something has been edited
-   # (a bit dirty to do it here, since one doesn't actually change
-   #  anything by just openning this window)
-   set ::Current(dirty) 1
-   
    # Hide the tearoff checkbutton
    grid forget $::menueditor::base.cbTearoff
 }
@@ -347,6 +342,9 @@ proc ::menueditor::getname::rename {name} {
    $::menueditor::base.lbEntries see active
    $::menueditor::base.lbEntries selection clear 0 end
    $::menueditor::base.lbEntries selection set active
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
 }
 #***
 
@@ -376,6 +374,10 @@ proc ::menueditor::getname::copy {name} {
    $::menueditor::base.lbEntries see active
    $::menueditor::base.lbEntries selection clear 0 end
    $::menueditor::base.lbEntries selection set active
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+
    return $ident
 }
 #***
@@ -402,6 +404,10 @@ proc ::menueditor::getname::new {name} {
    $::menueditor::base.lbEntries see active
    $::menueditor::base.lbEntries selection clear 0 end
    $::menueditor::base.lbEntries selection set active
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+
    return $ident
 }
 #***
@@ -429,6 +435,9 @@ proc ::menueditor::remove {} {
    set ::menueditor::menulist [lreplace $::menueditor::menulist $number $number]
    $::menueditor::base.lbEntries delete $number
    $::menueditor::base.lbEntries selection set active
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
 }
 #***
 
@@ -504,6 +513,9 @@ proc ::menueditor::insert {} {
    set demopos [expr $::menueditor::pos+[$::menueditor::mbase cget -tearoff]]
    $::menueditor::mbase insert $demopos command
    ::menueditor::setpos $::menueditor::pos
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
 }
 #***
 
@@ -520,6 +532,9 @@ proc ::menueditor::add {} {
    lappend Ident(gadgets) command {}
    $::menueditor::mbase add command
    ::menueditor::setpos [expr [llength $Ident(gadgets)]/2-1]
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
 }
 #***
 
@@ -554,6 +569,9 @@ proc ::menueditor::replace {} {
    eval $::menueditor::mbase entryconfigure $demopos $localopts
    set Ident(gadgets) [lreplace $Ident(gadgets) [expr $::menueditor::pos*2] [expr $::menueditor::pos*2+1] $type $opts]
    $::menueditor::mbase activate $demopos
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
 }
 #***
 
@@ -600,6 +618,9 @@ proc ::menueditor::delete {} {
       incr newpos -1
    }
    ::menueditor::setpos $newpos
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
 }
 #***
 
