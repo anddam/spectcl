@@ -38,7 +38,7 @@ proc about  {} {
     grid .about.c -column 0 -row 0 -sticky {nsew}
     set w [image width spec]
     set h [image height spec]
-    wm geometry .about [expr 2 * $w]x[expr 230 + $h]
+    wm geometry .about [expr 2 * $w + 50]x[expr 240 + $h]
     tkwait visibility .about
 
     # draw "spec"
@@ -85,13 +85,15 @@ proc about  {} {
     # now for the text
 
     set message "
-		SpecTcl Version $Version, p$P(patchlevel) by
+		SpecTcl Version 1.1, p$P(patchlevel) by
 		Ray Johnson - Project Manager
 		Ioi Lam, Allan Pratt
 		Special thanks to Stephen Uhler, Ken Corey
 		\xa9 Sun Microsystems Laboratories
 
 		Send bug reports to spectcl@tcl.Eng.Sun.COM
+		
+         Version $Version April 2001 by Morten Skaarup Jensen <msj@sourceforge.net>
 	"
 
     incr after 500
@@ -112,7 +114,7 @@ proc about  {} {
     button $c.b -text OK -bd 5  -fg blue -command "destroy .about" \
 	-highlightthickness 4 -highlightcolor red
     $c create window 20 $h -anchor nw -tag ok -window $c.b
-    $c move ok 0 240
+    $c move ok 0 260
     focus $c.b
 }
 

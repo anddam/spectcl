@@ -108,6 +108,7 @@ array set Field_help {
     .palette.f.text "Drag onto canvas to create a text"
     .palette.f.message "Drag onto canvas to create a message"
     .palette.f.scale "Drag onto canvas to create a scale"
+    .palette.f.spinbox "Drag onto canvas to create a spinbox"
 }
 
 # the preferences (incomplete)

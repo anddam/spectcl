@@ -14,7 +14,7 @@ proc set_default_preferences {} {
     set_preferences 1
 }
 
-set P(Version) 1.1
+set P(Version) 1.2
 set P(patchlevel) 0
 
 proc set_preferences {{restore 0}} {
@@ -573,7 +573,7 @@ proc pref_target_ui {root} {
 #    Read in the "rc" file, if any, during the startup of SpecTcl
 #
 proc pref_load_rc_file {} {
-    global P
+    global P Version
 
     set rc [find_a_home]
     if {[file readable $rc]} {
@@ -582,7 +582,7 @@ proc pref_load_rc_file {} {
 	close $f
 	set version 0.0
 	if {![info exists P(Version)]} {
-	    set P(Version) 1.1
+	    set P(Version) $Version
 	}
 	regexp "\nset P\\(Version\\) (\[^\n]*)" $lines match version
 	regsub "\n(set P\\(patchlevel\\) )(\[^\n]*)" $lines {} lines
@@ -594,7 +594,7 @@ proc pref_load_rc_file {} {
 been updated to run with
 this version of SpecTcl." info 0 OK
 	    eval $lines
-	    set P(Version) 1.1
+	    set P(Version) $Version
 	    save_preferences
 	} else {
 	    eval $lines
