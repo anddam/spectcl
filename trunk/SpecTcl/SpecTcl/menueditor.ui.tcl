@@ -161,9 +161,6 @@ foreach item [uplevel #0 array names Widgets] {
 
 # The demo menu
 set mbase $base.demomenu
-if {[catch {::menueditor::displaymenu $mbase} xxx]} {
-   tk_messageBox -message $xxx
-}
 
 # Callbacks for buttons
 $base.view config -command "
@@ -171,7 +168,9 @@ $base.view config -command "
    catch {$mbase activate 0}
 "
 $base.remove config -command "
-   catch {$base.lbEntries delete active}
+   if {\"\[tk_messageBox -icon question -type yesno -parent $root -message \"Are you sure?\"\]\"==\"yes\"} {
+      catch {$base.lbEntries delete \[$base.lbEntries curselection\]}
+   }
 "
 $base.add config -command "
    switch \${mbType.value} {
@@ -245,7 +244,8 @@ proc $l {args} "
    uplevel ::menueditor::.l \$args
 "
 
-#$l selection set 0
+catch {$l selection set 0}
+
 
 
 
