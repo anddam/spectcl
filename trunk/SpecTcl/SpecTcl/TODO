@@ -1,0 +1,60 @@
+^-K needs to have bindings in the test app window.
+When Option sheet is up, and user focuses on main window and hits delete
+  to delete the widget, the option sheet should go away/grey out.
+No insert key on Mac keyboard...Argh!
+The text entry widget should get smarter...such as when a 'textvariable' 
+  value is present becoming read-only so that it's obvious the user
+  cannot change it.
+Toolbars don't update forms when sample buttons' option sheets are shown.
+Clicking on the toolbar buttons with custom menus doesn't work quite like
+  menus.
+Attach scrollbars is very vague, and not iformative.
+Option sheets open too wide originally on Macs.
+Clicking on a sub-frame cell while row/col deletions are in progress causes
+  the whole frame to go away.
+Column heading highlight is not correct when moving a widget off the grid.
+Project management window.
+
+Megawidgets
+Can't change a frame's class
+Templates for new (mega)widgets (composite widgets)
+menueditor
+bindingeditor
+Provide a main and a skeleton (projects/IDE/Debugger?)
+Widget registry
+Support Placer, packer
+Read in visual basic forms, output tcl forms
+Debugger integrated
+Generate code for BLT *or* grid
+Add Tabbed Dialog boxes, combo boxes to SpecTcl as widget
+Add International templates (resource strings) ask wayne
+
+Multiple select
+
+premake homegrown menus, and don't recreate them unless absolutely 
+  necessary.
+stop button isn't highlighted corerctly under specjava.
+need balloon help (label placed in .)
+Make a row/column resizable when a frame is told to stick to its parent's
+  sides.
+On color selection dialog, tabbing between fields should highlight 
+  the fields, and the 'OK' button should be defaulted.
+
+Reported bugs:
+Panel functionality doesn't work.
+bugid: 265 - Couldn't open SPECTCL_DIR/help.ui under SpecPerl
+bugid: 331 - Wierd dragging of gridline in Linux
+bugid: 328 - Java inheritance no longer working right.
+bugid: 260, 306, 283, 279, 278,  - Insert bug with a bad window path name.
+bugid: 335 - Palette down bug on Windows with a can't read "data(row)"
+bugid: 330 - HPUX invalid command name ".prefs.f.appearance.grid_bg_color"
+bugid: 313 - button_drag error with a 'bad window path name ".label"'
+bugid: 314 - button_drag error with a 'window name "label" already exists'
+bugid: 290 - grid bug? 'expected integer but got "--396"'
+bugid: 284 - open file bug - 'can't set "data(rowspan)'
+bugid: 338 - cosmetic glitch
+bugid: 272 - arrow_update with a 'bad window path name "blah"'
+bugid: 271 - event->widget_up with a 'invalid command name ".can.f.frame#10"'
+bugid: 341 - errors during testing show up as SpecTcl errors, should be
+             trapped and reported to the user.
+bugid: 340 - hp-xterminal,dec osf/1, Tcl7.6, Tk4.2 geometry bug.

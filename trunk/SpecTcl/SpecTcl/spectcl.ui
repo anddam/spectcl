@@ -1,0 +1,337 @@
+WidGet file, version 1.0, created:  Thu Jan 30 16:58:04 PST 1997
+Widget frame#4
+	other focus .widget.form.can.f.frame#4,item_name,entry
+	other panel {}
+	geometry row 2
+	geometry columnspan 4
+	other keywords {}
+	other resize_row 0
+	other reqheight {}
+	other error {}
+	other type frame
+	other min_row 6
+	other master {}
+	other pathname frame#4
+	other resize_column 3
+	other tags {}
+	other level 1
+	other reqwidth {}
+	configure background #c0c0c0
+	other min_column 30
+	other help {}
+	geometry column 1
+	other comments {}
+	other tabbing {}
+	other item_name toolbar
+	geometry sticky ew
+Widget frame#5
+	configure highlightbackground #c0c0c0
+	other focus .widget.form.can.f.frame#5,wady,entry
+	other panel {}
+	geometry row 3
+	other keywords {}
+	other resize_row 3
+	other reqheight {}
+	other error {}
+	geometry rowspan 2
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#5
+	other tags {}
+	other resize_column 0
+	other level 1
+	other reqwidth {}
+	configure background #c0c0c0
+	other help {}
+	other min_column 30
+	geometry padx 2
+	geometry pady 2
+	other comments {}
+	geometry column 1
+	configure borderwidth 2
+	other tabbing {}
+	other item_name palette
+	configure relief ridge
+	geometry sticky ns
+Widget frame#6
+	other focus .widget.form.can.f.frame#6,item_name,entry
+	other panel {}
+	geometry row 6
+	geometry columnspan 4
+	other resize_row 0
+	other reqheight {}
+	other error {}
+	other type frame
+	other min_row 5
+	other master {}
+	other pathname frame#6
+	other resize_column 0
+	other tags {}
+	other reqwidth {}
+	other level 1
+	configure background #c0c0c0
+	other min_column 30
+	other help {}
+	geometry column 1
+	other comments {}
+	other item_name buttons
+	other tabbing {}
+	geometry sticky ew
+Widget frame#7
+	other panel {}
+	geometry row 4
+	other resize_row 3
+	other reqheight {}
+	other error {}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#7
+	other resize_column 3
+	other tags {}
+	configure background #c0c0c0
+	other reqwidth {}
+	other level 1
+	other help {}
+	other min_column 1
+	configure borderwidth 2
+	other comments {}
+	geometry column 4
+	configure relief sunken
+	other tabbing {}
+	other item_name frame#7
+	geometry sticky nesw
+Widget frame#8
+	other panel {}
+	geometry columnspan 4
+	geometry row 7
+	other resize_row 0
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#8
+	other resize_column {0 3 0 1 0}
+	other tags {}
+	configure background #c0c0c0
+	other level 1
+	other help {}
+	other min_column {3 197 3 187 2}
+	configure borderwidth 2
+	other comments {}
+	geometry column 1
+	configure relief raised
+	other tabbing {}
+	other item_name frame#8
+	geometry sticky ew
+Widget f
+	other keywords {}
+	other panel {}
+	other resize_row {0 0 0 2 0 0 0}
+	other type frame
+	other code {$root config -background #c0c0c0 -highlightbackground #c0c0c0
+
+
+
+}
+	other min_row {2 5 12 2 9 8 30}
+	other master {}
+	other pathname f
+	other tags {}
+	other resize_column {0 0 1 2}
+	other level 0
+	configure background #e9e9e9
+	other help {}
+	other min_column {30 6 12 364}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300 #c0c0c0}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget canvas#1
+	other keywords {}
+	other reqwidth {}
+	other error {}
+	configure highlightthickness 0
+	other tags {}
+	other level {}
+	other help {}
+	configure yscrollincrement 10
+	other focus .widget.form.can.f.canvas#1,tabbing,entry
+	configure height 0
+	other master {}
+	other pathname canvas#1
+	configure background white
+	configure borderwidth 2
+	geometry sticky nesw
+	other item_name can_row
+	other tabbing {}
+	geometry row 4
+	other reqheight {}
+	other type canvas
+	configure width 5
+	geometry column 3
+	other comments {}
+	configure relief ridge
+Widget scrollbar#1
+	other focus .widget.form.can.f.scrollbar#1,activerelief,entry
+	geometry row 4
+	other keywords {}
+	other reqheight {}
+	configure orient v
+	other error {}
+	other type scrollbar
+	configure highlightthickness 0
+	other master {}
+	other pathname scrollbar#1
+	other tags {}
+	other level {}
+	other reqwidth {}
+	configure background #c0c0c0
+	other help {}
+	other orientation v
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	configure command {can_view {.can .can_row} y}
+	other item_name can_yscroll
+	geometry sticky ns
+Widget canvas#2
+	other keywords {}
+	other reqwidth {}
+	other error {}
+	configure highlightthickness 0
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.canvas#2,xscrollincrement,entry
+	configure height 0
+	other master {}
+	configure xscrollincrement 10
+	other pathname canvas#2
+	configure background white
+	configure borderwidth 2
+	geometry sticky nesw
+	other item_name can_column
+	other tabbing {}
+	geometry row 3
+	other reqheight {}
+	other type canvas
+	configure width 0
+	geometry column 4
+	other comments {}
+	configure relief ridge
+Widget scrollbar#2
+	other focus .widget.form.can.f.scrollbar#2,activerelief,entry
+	geometry row 5
+	other keywords {}
+	other reqheight {}
+	configure orient h
+	other error {}
+	other type scrollbar
+	other master {}
+	other pathname scrollbar#2
+	other tags {}
+	other level {}
+	other reqwidth {}
+	configure background #c0c0c0
+	other help {}
+	other orientation h
+	geometry column 4
+	other comments {}
+	other tabbing {}
+	configure command {can_view {.can .can_column} x}
+	other item_name can_xscroll
+	geometry sticky ew
+Widget canvas#3
+	other keywords {}
+	configure xscrollcommand {scroll_set .can_xscroll}
+	other reqwidth {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure yscrollincrement 10
+	other focus .widget.form.can.f.canvas#3,tabbing,entry
+	configure height 0
+	other master .frame#7
+	configure xscrollincrement 10
+	other pathname canvas#3
+	configure background #c0c0c0
+	geometry sticky nesw
+	other item_name can
+	configure yscrollcommand {scroll_set .can_yscroll}
+	other tabbing {}
+	geometry row 1
+	configure highlightbackground #c0c0c0
+	other reqheight {}
+	other type canvas
+	configure width 0
+	geometry column 1
+	other comments {}
+Widget entry#1
+	configure highlightbackground #c0c0c0
+	other focus .widget.form.can.f.entry#1,font,entry
+	geometry row 1
+	other error {}
+	other type entry
+	other master .frame#8
+	other pathname entry#1
+	configure font Helvetica,12,Bold
+	other tags {}
+	configure background #c0c0c0
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name helpbox
+	geometry sticky ew
+Widget frame#1
+	other focus .widget.form.can.f.frame#1,borderwidth,entry
+	other panel {}
+	geometry row 1
+	geometry columnspan 4
+	other keywords {}
+	other resize_row 0
+	other reqheight {}
+	other error {}
+	other type frame
+	other min_row 2
+	other master {}
+	other pathname frame#1
+	other tags {}
+	other resize_column 3
+	other level 1
+	other reqwidth {}
+	configure background #c0c0c0
+	other help {}
+	other min_column 30
+	other comments {}
+	geometry column 1
+	configure borderwidth 2
+	other tabbing {}
+	other item_name menu
+	geometry sticky ew
+	configure relief raised
+Widget label#4
+	other focus .widget.form.can.f.label#4,anchor,entry
+	geometry row 1
+	other error {}
+	other type label
+	configure anchor w
+	configure textvariable _Message
+	other master .frame#8
+	configure text {saving label#4}
+	other pathname label#4
+	other tags {}
+	configure width 25
+	other level {}
+	configure background #c0c0c0
+	other help {}
+	other comments {}
+	geometry column 4
+	configure relief sunken
+	geometry sticky ew
+	other item_name message
+	other tabbing {}
+

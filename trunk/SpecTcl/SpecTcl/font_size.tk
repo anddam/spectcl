@@ -1,0 +1,23 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# procedure to create font_size menu
+# We don't make a *real* menu because downloading all of the
+# possible font styles is a performance pig (at least on Solaris)
+
+proc setup_fontsize {win name {command puts}} {
+    upvar #0 $name var
+    if {![info exists var]} {set var 12}
+    menubutton $win -menu $win.font -width 2 \
+	-textvariable $name -bd 2 -relief ridge -padx 1 -pady 1
+    menu $win.font
+    foreach item {8 10 12 14 16 18 20 24 28 36} {
+	$win.font add command -label $item  -command "
+				set $name $item
+				eval \"$command $item\"
+			"
+    }
+}
