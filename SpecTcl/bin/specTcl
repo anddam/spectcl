@@ -5,7 +5,6 @@
 # See the file "license.txt" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# SCCS: @(#) specTcl 1.9 97/06/26 10:06:06
 
 # Change DIR to the directory that contains the SpecTcl source files
 DIR=../SpecTcl
@@ -14,5 +13,5 @@ DIR=../SpecTcl
 WISH=`which wish`
 
 env SPECTCL_DIR=$DIR $WISH $DIR/main.tk $@ &
-echo "Starting SpecTcl 1.1"
+echo "Starting SpecTcl 1.2"
 exit 0
