@@ -1,0 +1,109 @@
+WidGet file, version 1.1, created:  Tue Jul 29 17:45:43 PDT 1997
+Widget label#6
+	geometry row 3
+	other error {}
+	other type label
+	other master {}
+	configure text label2
+	other pathname label#6
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	configure borderwidth 3
+	geometry sticky n
+	other item_name label#6
+	other tabbing {}
+	configure relief raised
+Widget label#7
+	geometry row 3
+	other error {}
+	other type label
+	other master {}
+	configure text label3
+	other pathname label#7
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 3
+	other comments {}
+	configure borderwidth 3
+	geometry sticky s
+	other item_name label#7
+	other tabbing {}
+	configure relief raised
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0 0 0}
+	other type frame
+	other code {# The exSticky.ui example shows the various positions
+# a widget takes in its grid cell with different
+# sticky properties
+
+
+
+}
+	other min_row {15 44 44 23}
+	other master {}
+	other pathname f
+	other resize_column {0 0 0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {30 75 75 75}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget label#8
+	geometry row 3
+	other error {}
+	other type label
+	other master {}
+	configure text label4
+	other pathname label#8
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 4
+	other comments {}
+	configure borderwidth 3
+	geometry sticky ew
+	other item_name label#8
+	other tabbing {}
+	configure relief raised
+Widget label#4
+	geometry row 2
+	other error {}
+	other type label
+	other master {}
+	configure text label1
+	other pathname label#4
+	other tags {}
+	other level {}
+	other help {}
+	configure foreground black
+	other comments {}
+	configure borderwidth 3
+	geometry column 3
+	configure relief raised
+	other tabbing {}
+	other item_name label#4
+

@@ -1,0 +1,258 @@
+WidGet file, version 1.1, created:  Tue Jul 29 18:36:12 PDT 1997
+Widget button#10
+	geometry row 2
+	other error {}
+	other type button
+	other master {}
+	configure text 23
+	configure default disabled
+	other pathname button#10
+	other tags {}
+	configure font {interface user,40}
+	other level {}
+	other help {}
+	geometry column 4
+	other comments {}
+	configure borderwidth 2
+	geometry sticky nesw
+	other item_name button#10
+	other tabbing {}
+Widget button#1
+	geometry row 1
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 2
+	configure default disabled
+	other pathname button#1
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	geometry column 1
+	other comments {}
+	configure pady 2
+	configure borderwidth 0
+	other item_name button#1
+	other tabbing {}
+	configure relief flat
+	geometry sticky nesw
+Widget button#2
+	geometry row 1
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 3
+	configure default disabled
+	other pathname button#2
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	configure borderwidth 0
+	configure pady 2
+	other comments {}
+	geometry column 2
+	geometry sticky nesw
+	configure relief flat
+	other tabbing {}
+	other item_name button#2
+Widget frame#3
+	other panel {}
+	geometry row 2
+	other resize_row {0 3 0}
+	other error {}
+	other type frame
+	other min_row {2 2 2}
+	other master {}
+	other pathname frame#3
+	other resize_column {0 3 0}
+	other tags {}
+	other level 1
+	other help {}
+	other min_column {2 2 2}
+	geometry column 2
+	other comments {}
+	geometry sticky nesw
+	other item_name frame#3
+	other tabbing {}
+Widget button#3
+	geometry row 1
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 5
+	configure default disabled
+	other pathname button#3
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	configure borderwidth 0
+	configure pady 2
+	other comments {}
+	geometry column 3
+	geometry sticky nesw
+	configure relief flat
+	other tabbing {}
+	other item_name button#3
+Widget button#4
+	geometry row 2
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 7
+	configure default disabled
+	other pathname button#4
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	configure borderwidth 0
+	configure pady 2
+	other comments {}
+	geometry column 1
+	geometry sticky nesw
+	configure relief flat
+	other tabbing {}
+	other item_name button#4
+Widget button#5
+	geometry row 2
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 11
+	configure default disabled
+	other pathname button#5
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	configure borderwidth 0
+	configure pady 2
+	other comments {}
+	geometry column 2
+	geometry sticky nesw
+	configure relief flat
+	other tabbing {}
+	other item_name button#5
+Widget button#6
+	geometry row 2
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 13
+	configure default disabled
+	other pathname button#6
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	configure borderwidth 0
+	configure pady 2
+	other comments {}
+	geometry column 3
+	geometry sticky nesw
+	configure relief flat
+	other tabbing {}
+	other item_name button#6
+Widget button#7
+	geometry row 3
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 17
+	configure default disabled
+	other pathname button#7
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	configure borderwidth 0
+	configure pady 2
+	other comments {}
+	geometry column 1
+	geometry sticky nesw
+	configure relief flat
+	other tabbing {}
+	other item_name button#7
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {activebackground #ececec activeforeground Black anchor center background #AE00B200C300 bitmap {} borderwidth 2 command {} comments {} cursor {} disabledforeground #a3a3a3 error {- checkbutton configuration -} font {interface user,12} foreground #000000000000 height 0 help {} highlightbackground #AE00B200C300 highlightcolor Black highlightthickness 1 image {} indicatoron 1 item_name sample_checkbutton justify center level {} master {} offvalue 0 onvalue 1 padx 1 pady 1 pathname sample_checkbutton relief flat selectcolor #b03060 selectimage {} state normal tabbing {} tags {} takefocus {} text checkbutton textvariable {} type checkbutton underline -1 variable example_checkbutton width 0 wraplength 0
+		} entry {background #AE00B200C300 borderwidth 2 comments {} cursor xterm error {- entry configuration -} exportselection 1 font {interface user,12} foreground #000000000000 help {} highlightbackground #AE00B200C300 highlightcolor Black highlightthickness 1 insertbackground Black insertborderwidth 0 insertofftime 300 insertontime 600 insertwidth 2 item_name sample_entry justify left level {} master {} pathname sample_entry relief sunken selectbackground #c3c3c3 selectborderwidth 1 selectforeground Black show {} state normal tabbing {} tags {} takefocus {} textvariable entry type entry width 20 xscrollcommand {}
+		} frame {
+		} label {anchor center background #AE00B200C300 bitmap {} borderwidth 2 comments {} cursor {} error {- label configuration -} font {interface user,12} foreground #000000000000 height 0 help {} highlightbackground #AE00B200C300 highlightcolor Black highlightthickness 0 image {} item_name sample_label justify center level {} master {} padx 1 pady 1 pathname sample_label relief flat tabbing {} tags {} takefocus 0 text label textvariable {} type label underline -1 width 0 wraplength 0
+		} listbox {background #AE00B200C300 borderwidth 2 comments {} cursor {} error {- listbox configuration -} exportselection 1 font {interface user,12} foreground #000000000000 height 10 help {} highlightbackground #AE00B200C300 highlightcolor Black highlightthickness 1 item_name sample_listbox level {} master {} pathname sample_listbox relief sunken selectbackground #c3c3c3 selectborderwidth 1 selectforeground Black selectmode browse setgrid 0 tabbing {} tags {} takefocus {} type listbox width 20 xscrollcommand {} yscrollcommand {}
+		} menubutton {activebackground #ececec activeforeground Black anchor center background #AE00B200C300 bitmap {} borderwidth 2 comments {} cursor {} direction below disabledforeground #a3a3a3 error {- menubutton configuration -} font {interface user,12} foreground #000000000000 height 0 help {} highlightbackground #AE00B200C300 highlightcolor Black highlightthickness 0 image {} indicatoron 0 item_name sample_menubutton justify center level {} master {} menu {} padx 5 pady 4 pathname sample_menubutton relief flat state normal tabbing {} tags {} takefocus 0 text menubutton textvariable {} type menubutton underline -1 width 0 wraplength 0
+		} message {anchor center aspect 150 background #AE00B200C300 borderwidth 2 comments {} cursor {} error {- message configuration -} font {interface user,12} foreground #000000000000 help {} highlightbackground #AE00B200C300 highlightcolor Black highlightthickness 0 item_name sample_message justify left level {} master {} padx 5 pady 2 pathname sample_message relief flat tabbing {} tags {} takefocus 0 text message textvariable {} type message width 0
+		} radiobutton {activebackground #ececec activeforeground Black anchor center background #AE00B200C300 bitmap {} borderwidth 2 command {} comments {} cursor {} disabledforeground #a3a3a3 error {- radiobutton configuration -} font {interface user,12} foreground #000000000000 height 0 help {} highlightbackground #AE00B200C300 highlightcolor Black highlightthickness 1 image {} indicatoron 1 item_name sample_radiobutton justify center level {} master {} padx 1 pady 1 pathname sample_radiobutton relief flat selectcolor #b03060 selectimage {} state normal tabbing {} tags {} takefocus {} text radiobutton textvariable {} type radiobutton underline -1 value {} variable example_radiobutton width 0 wraplength 0
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 3 0}
+	other type frame
+	other code {# The exFrame.ui example is used to show how to
+# select the frame and elements within the frame.
+# It also demonstrates how the frame can pass on
+# application-window space to its children, and how
+# this is under your control as design time.
+
+}
+	other min_row {10 30 10}
+	other master {}
+	other pathname f
+	other resize_column {0 3 0 0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {9 2 29 56 11}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget button#8
+	geometry row 3
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 19
+	configure default disabled
+	other pathname button#8
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	configure borderwidth 0
+	configure pady 2
+	other comments {}
+	geometry column 2
+	geometry sticky nesw
+	configure relief flat
+	other tabbing {}
+	other item_name button#8
+Widget button#9
+	geometry row 3
+	other error {}
+	other type button
+	other master .frame#3
+	configure text 23
+	configure default disabled
+	other pathname button#9
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 0
+	configure borderwidth 0
+	configure pady 2
+	other comments {}
+	geometry column 3
+	geometry sticky nesw
+	configure relief flat
+	other tabbing {}
+	other item_name button#9
+

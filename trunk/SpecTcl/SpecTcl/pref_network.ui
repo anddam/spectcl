@@ -1,0 +1,163 @@
+WidGet file, version 1.0, created:  Tue Jan 21 14:08:55 PST 1997
+Widget entry#4
+	geometry row 5
+	other error {}
+	other type entry
+	configure textvariable p(username)
+	other master {}
+	other pathname entry#4
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 3
+	configure cursor {}
+	geometry sticky ew
+	other tabbing {}
+	other item_name entry#4
+Widget label#6
+	geometry row 6
+	other type label
+	other master {}
+	configure text {Your Email Address}
+	other pathname label#6
+	other tags {}
+	configure background grey
+	other level {}
+	other help {}
+	configure borderwidth 2
+	geometry column 2
+	other comments {}
+	other item_name label#6
+	other tabbing {}
+	geometry sticky e
+Widget label#2
+	geometry row 4
+	other type label
+	other master {}
+	configure text {Http Proxy Port:}
+	other pathname label#2
+	other tags {}
+	configure background grey
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	geometry sticky e
+	other item_name label#2
+	other tabbing {}
+Widget entry#5
+	geometry row 6
+	other error {}
+	other type entry
+	configure textvariable p(email)
+	other master {}
+	other pathname entry#5
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	geometry column 3
+	other comments {}
+	geometry sticky ew
+	other item_name entry#5
+	other tabbing {}
+Widget label#7
+	geometry row 5
+	other type label
+	other master {}
+	configure text {Your Name}
+	other pathname label#7
+	other tags {}
+	configure background grey
+	other level {}
+	other help {}
+	configure borderwidth 2
+	geometry column 2
+	other comments {}
+	other item_name label#7
+	other tabbing {}
+	geometry sticky e
+Widget f
+	other panel {}
+	other resize_row {0 0 0 1 0 0 3}
+	other type frame
+	other min_row {7 9 5 5 2 5 2}
+	other master {}
+	other pathname f
+	other tags {}
+	other resize_column {0 0 0}
+	other level 0
+	configure background #e9e9e9
+	other help {}
+	other min_column {64 88 119}
+	other Colors {black white bisque grey red green blue magenta yellow #c0c0c0}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget entry#1
+	geometry row 3
+	other error {}
+	other type entry
+	configure textvariable p(proxy_host)
+	other master {}
+	other pathname entry#1
+	other tags {}
+	other level {}
+	other help {}
+	configure cursor {}
+	geometry column 3
+	other comments {}
+	geometry sticky ew
+	other item_name entry#1
+	other tabbing {}
+Widget label#3
+	geometry row 3
+	other type label
+	other master {}
+	configure text {Http ProxyHost:}
+	other pathname label#3
+	other tags {}
+	configure background grey
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	other tabbing {}
+	other item_name label#3
+	geometry sticky e
+Widget entry#2
+	geometry row 4
+	other error {}
+	other type entry
+	configure textvariable p(proxy_port)
+	other master {}
+	other pathname entry#2
+	other tags {}
+	other level {}
+	configure width 5
+	other help {}
+	configure cursor {}
+	geometry column 3
+	other comments {}
+	geometry sticky w
+	other item_name entry#2
+	other tabbing {}
+Widget label#4
+	geometry columnspan 3
+	geometry row 2
+	other error {- Label configuration -}
+	other type label
+	other master {}
+	configure text {Information required for Error Reporting:}
+	other pathname label#4
+	other tags {}
+	configure background grey
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	geometry sticky w
+	other tabbing {}
+	other item_name label#4
+
