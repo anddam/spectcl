@@ -1,0 +1,169 @@
+# main.tk
+#
+#	Starts up SpecTcl and handle start-up errors.
+#
+#	SpecTcl has a pretty good error handling subsystem. Most
+#	run-time errors will be detected and the user has the option
+#	to report the error to the SpecTcl development team. However,
+#	if an error occurs before the error handling subsystem has
+#	been set up, that causes problems on early versions of Tcl/Tk
+#	running on Windows and Mac -- wish just dies silently without
+#	telling the user why.
+#
+#	This file handles this worst-case scenario and reports to the
+#	user any start-up errors that are not handled by the SpecTcl
+#	error handling subsystem.
+#
+# Copyright (c) 1997 Sun Microsystems, Inc. All rights reserved.
+#
+# SCCS: @(#) main.tk 1.5 97/07/29 15:54:49
+
+catch {
+    # Sets up the spectcl name space under Tcl 8.0+.
+    #
+    namespace eval spectcl {}
+}
+
+# Source --
+#
+#	Loads the given SpecTcl source file from the installation
+#	directory.
+#
+# Arguments:
+#	name:	name of the file.
+#
+# Result:
+#	None.
+
+proc Source {name} {
+    global Base_dir errorInfo tcl_platform
+
+    if {$tcl_platform(platform) == "macintosh"} {
+	uplevel #0 source -rsrc $name
+    } else {
+	uplevel #0 source [list [file join $Base_dir $name]]
+    }
+}
+
+# spectcl::startUp --
+#
+#	Starts up SpecTcl and reports any start-up errors to the user.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	None.
+
+proc spectcl::startUp {} {
+    global env Base_dir
+
+    spectcl::checkTkVersion
+
+    if {[info exists env(SPECTCL_DIR)]} {
+	set Base_dir $env(SPECTCL_DIR)
+    } else {
+	set Base_dir [file dir [file join [pwd] [info script]]]
+	if {$Base_dir == "." || $Base_dir == "" || [info script] == ""} {
+	    set Base_dir [file join [file dir [info nameofexecutable]] SpecTcl]
+	}
+    }
+
+    wm withdraw .
+    Source maingui.tk
+    wm deiconify .
+}
+
+proc spectcl::checkTkVersion {} {
+    global tk_version
+    # Let's make sure we're playing with a "proper" version of SpecTcl now.
+
+    if {$tk_version < 4.2} {
+	error "SpecTcl requires Tcl7.6 and Tk4.2 or later, both available from http://www.sunlabs.com/research/tcl"
+    }
+
+    # Also, make sure they have a library.
+
+    catch {tk_optionMenu}
+    if {[info command tk_optionMenu] == {}} {
+	error "Couldn't find Tk libraries.  SpecTcl exiting."
+    }
+
+    # check for proper versions of TK
+
+    if {[catch {info nameofexecutable}]} {
+	error "Wrong version of TK, use TK4.2 greater"
+    }
+}
+
+# spectcl::reportInitError --
+#
+# 	Reports any start-up errors to the user.
+#
+# Arguments:
+#	errMsg:	The error message reported by Tcl.
+#
+# Result:
+#	None.
+
+proc spectcl::reportInitError {errMsg} {
+    global errorInfo
+
+    wm withdraw .
+
+    set msg "SpecTcl start-up error: $errMsg"
+
+    set notOK [catch {
+	bgerror $msg
+	tkwait window .bgerrorTrace
+	exit -1
+    }]
+
+    if $notOK {
+	set notOK [catch {
+	   tk_messageBox -icon error -type ok -message $msg
+	}]
+    }
+
+    if $notOK {
+	set notOK [catch {
+	    tk_dialog .startup_err "SpecTcl Error" $msg error 0 {ok}
+	}]
+    }
+
+    if $notOK {
+	global done
+	
+	catch {
+	    destroy .err
+	}
+	catch {
+	    unset done
+	}
+	toplevel .err
+	label .err.l -text $msg
+	button .err.b -text OK -command "set done 1; destroy .err"
+	pack .err.l -expand yes -fill both
+	pack .err.b -padx 10 -pady 5
+
+	global done
+	tkwait variable done
+    }
+}
+
+# main --
+#
+#	"main" routine for SpecTcl. This is the first procedure to be
+#	executed in SpecTcl
+
+proc main {} {
+    if [catch {
+	spectcl::startUp
+    } errMsg] {
+	spectcl::reportInitError $errMsg
+
+	exit -1
+    }
+}
+
+main

@@ -1,0 +1,17 @@
+#!/bin/sh
+# SpecTcl
+# Copyright (c) 1994-1997 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+
+# Change DIR to the directory that contains the SpecTcl source files
+DIR=../SpecTcl
+
+# Change WISH to the pathname of your tk4.1a2 (or >) wish binary
+WISH=`which wish`
+
+env SPECTCL_DIR=$DIR $WISH $DIR/main.tk $@ &
+echo "Starting SpecTcl 1.2"
+exit 0

@@ -1,0 +1,686 @@
+#****h* SpecTcl/menueditor.tk
+# DESCRIPTION
+#   Extra code for the menueditor
+#
+# CREATION DATE
+#   3rd May 2001
+#
+# COPYRIGHT
+#   Morten Skaarup Jensen 2001
+#***
+
+
+
+uplevel #0 {
+
+catch {namespace eval menueditor {}} ;# To activate the namespace
+catch {namespace eval menueditor::getname {}} ;# To activate the namespace
+
+#****v* SpecTcl/menueditor::root
+# DESCRIPTION
+#   The toplevel widget in the menueditor window
+# EXAMPLE
+#   $::menueditor::root config -menu $::menueditor::base.m
+# 
+# SOURCE
+#
+set ::menueditor::root .
+#***
+
+
+
+#****v* SpecTcl/menueditor::base
+# DESCRIPTION
+#   The base of the widget path in the menueditor window
+# EXAMPLE
+#   $::menueditor::base.new config -bg blue
+# 
+# SOURCE
+#
+set ::menueditor::base {}
+#***
+
+
+
+
+
+#****v* SpecTcl/menueditor::mbase
+# DESCRIPTION
+#   The base of the widget path in the demo menu
+# EXAMPLE
+#   $::menueditor::mbase add command -label "Say Hello"
+# 
+# SOURCE
+#
+set ::menueditor::mbase {}
+#***
+
+
+
+
+#****v* SpecTcl/menueditor::menulist
+# DESCRIPTION
+#   A list of menus (internal name and given name)
+# EXAMPLE
+#   lappend ::menueditor::menulist {menu#2 menubutton.m}
+# 
+# SOURCE
+#
+set ::menueditor::menulist [list]
+#***
+
+
+
+
+#****v* SpecTcl/menueditor::itemdefaults
+# DESCRIPTION
+#   An array with a list of two item lists for each item type
+#   First item is -optionname
+#   Second item is the default value
+# EXAMPLE
+#   lappend ::menueditor::itemdefaults(separator) {-background {}}
+# 
+# SOURCE
+#
+array set ::menueditor::itemdefaults {
+   cascade {}
+   checkbutton {}
+   command {} 
+   radiobutton {}
+   separator {} 
+}
+#***
+
+
+
+
+#****v* SpecTcl/menueditor::currentmenu
+# DESCRIPTION
+#   Array with details about the menu currently being edited
+# 
+# SOURCE
+#
+array set ::menueditor::currentmenu {number -1 ident menu#? item_name m?.m?}
+#***
+
+
+
+#****v* SpecTcl/menueditor::pos
+# DESCRIPTION
+#    The current position in the current menu
+#    Position 0 is the first non-tearoff item
+#    (i.e. the tearoff item doesn't count)
+# SOURCE
+#
+set ::menueditor::pos 0
+#***
+
+
+
+#****f* SpecTcl/menueditor::init
+# DESCRIPTION
+#    Initialises the Menueditor window
+# SOURCE
+#
+proc ::menueditor::init {root} {
+   # Create the variables $root, $base and $mbase
+   set ::menueditor::root $root
+   regsub {\.$} $root {} ::menueditor::base
+   set ::menueditor::mbase $::menueditor::base.demomenu
+
+   # Create the $menulist variable
+   set ::menueditor::menulist [list]
+   foreach item [uplevel #0 array names Widgets] {
+      upvar #0 $item wdata
+      if {"$wdata(type)"=="menu"} {
+         lappend ::menueditor::menulist [list $item $wdata(item_name)]
+      }
+   }
+   set ::menueditor::menulist [lsort $::menueditor::menulist]
+   # Fill up the listbox widget
+   foreach item $::menueditor::menulist {
+      $::menueditor::base.lbEntries insert end [lindex $item 1]
+   }
+
+   # Create the $itemdefaults array
+   menu $::menueditor::mbase
+   foreach type {cascade checkbutton command radiobutton separator} {
+      $::menueditor::mbase add $type
+      set ::menueditor::itemdefaults($type) [list]
+      foreach item [$::menueditor::mbase entryconfig last] {
+         lappend ::menueditor::itemdefaults($type) [list [lindex $item 0] [lindex $item end]]
+      }
+   }
+   destroy $::menueditor::mbase
+   
+   # Hide the tearoff checkbutton
+   grid forget $::menueditor::base.cbTearoff
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::nameexists
+# DESCRIPTION
+#   Determines whether or not a menu already exists
+# SOURCE
+#
+proc ::menueditor::nameexists {name} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   if {![info exists Ident(item_name)]} {
+      set Ident(item_name) $::menueditor::currentmenu(ident)
+   }
+   return [::have_name $name $Ident(item_name)]
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::view
+# DESCRIPTION
+#   Displays the demomenu for the menueditor window
+# SOURCE
+#
+proc ::menueditor::view {} {
+   $::menueditor::mbase post 0 0
+   ::menueditor::setpos 0
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::setpos
+# DESCRIPTION
+#   Changes the position in the current menu to $newpos
+# SOURCE
+#
+proc ::menueditor::setpos {newpos} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   set lastpos [expr [llength $Ident(gadgets)]/2-1]
+   if {$newpos>$lastpos} {
+      ::menueditor::add
+      return
+   } else {
+      if {$newpos<0} {
+         set newpos 0
+      }
+      set ::menueditor::pos $newpos
+      set demopos [expr $newpos+[$::menueditor::mbase cget -tearoff]]
+      $::menueditor::mbase activate $demopos
+   }
+   global mbType.value
+   set mbType.value [lindex $Ident(gadgets) [expr 2*$::menueditor::pos]]
+   for {set i 0} {$i<10} {incr i} {
+      if {"[$::menueditor::base.mbType.m entrycget $i -label]" == "${mbType.value}"} {
+         $::menueditor::base.mbType.m invoke $i
+         break
+      }
+   }
+   foreach {opt val} [lindex $Ident(gadgets) [expr 2*$::menueditor::pos+1]] {
+      set opt [string toupper [string index $opt 1]][string range $opt 2 end]
+      $::menueditor::base.fr.e$opt delete 0 end
+      $::menueditor::base.fr.e$opt insert 0 $val
+   }
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::CreateTheOptionmenu
+# DESCRIPTION
+# Creates the menu for the option menu in the menueditor window
+# SOURCE
+#
+proc ::menueditor::CreateTheOptionmenu {menu} {
+   menu $menu -tearoff 0
+   set root [winfo toplevel [winfo parent $menu]]
+   regsub {\.$} $root {} base
+
+   foreach type {command cascade separator checkbutton radiobutton} {
+      $menu add radio -label $type \
+         -value $type \
+         -variable mbType.value \
+         -command "::menueditor::mbTypeCmd $type"
+   }
+   $menu invoke 0
+
+# Selection callback in listbox
+bind $::menueditor::base.lbEntries <Double-1> {menu_widget}
+set l $::menueditor::base.lbEntries
+::rename $l ::menueditor::.l
+proc ::$l {args} {
+   if {[regexp {^selection$} [lindex $args 0]] &&
+       [regexp {^set$} [lindex $args 1]]} {
+      ::menueditor::displaymenu $::menueditor::mbase [::menueditor::.l index [lindex $args 2]]
+      ::sync_all
+   }
+   uplevel ::menueditor::.l $args
+}
+
+catch {$l selection set 0}
+catch {$::menueditor::mbase activate 0}
+}
+#***
+
+
+
+
+
+
+#****f* SpecTcl/menueditor::mbTypeCmd
+# DESCRIPTION
+# SOURCE
+#
+proc ::menueditor::mbTypeCmd {type} {
+   set f $::menueditor::base.fr
+   # Unmap all children
+   #!eval grid forget [winfo children $f]
+   eval destroy [winfo children $f]
+   # Map relevant children 
+   foreach item $::menueditor::itemdefaults($type) {
+      set opt [lindex $item 0]
+      set val [lindex $item 1]
+      set Opt [string toupper [string index $opt 1]][string range $opt 2 end]
+      label $f.l$Opt -text $Opt
+      entry $f.e$Opt -bg #F6F6F6
+      bind $f.e$Opt <Key-Left> "
+         if {\[$f.e$Opt index insert\]>0} {
+            $f.e$Opt icursor \[expr {\[$f.e$Opt index insert\]-1}\]
+            break  ;# So that \$root binding is not executed
+         }
+      "
+      bind $f.e$Opt <Key-Right> "
+         if {\[$f.e$Opt index insert\]<\[$f.e$Opt index end\]} {
+            $f.e$Opt icursor \[expr {\[$f.e$Opt index insert\]+1}\]
+            break  ;# So that \$root binding is not executed
+         }
+      "
+      #!$f.e$Opt delete 0 end
+      $f.e$Opt insert 0 $val
+      grid $f.l$Opt $f.e$Opt
+   }
+}
+#***
+
+
+
+proc ::menueditor::new {} {
+   set top $::menueditor::base.toplevel
+   toplevel $top
+   ::menueditorgetname_ui $top new
+}
+
+proc ::menueditor::rename {} {
+   set top $::menueditor::base.toplevel
+   toplevel $top
+   ::menueditorgetname_ui $top rename
+}
+
+proc ::menueditor::copy {} {
+   set top $::menueditor::base.toplevel
+   toplevel $top
+   ::menueditorgetname_ui $top copy
+}
+
+
+
+#****f* SpecTcl/menueditor::getname::rename
+# DESCRIPTION
+#   Renames a menu
+# SOURCE
+#
+proc ::menueditor::getname::rename {name} {
+   set tmp $::menueditor::currentmenu(number)   
+   set ident [lindex [lindex $::menueditor::menulist $tmp] 0]
+   global $ident
+   array set $ident [list item_name $name]
+   set ::menueditor::menulist \
+      [lreplace $::menueditor::menulist $tmp $tmp [list $ident $name]]
+   $::menueditor::base.lbEntries delete $tmp
+   $::menueditor::base.lbEntries insert $tmp $name
+   $::menueditor::base.lbEntries activate $tmp
+   $::menueditor::base.lbEntries see active
+   $::menueditor::base.lbEntries selection clear 0 end
+   $::menueditor::base.lbEntries selection set active
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::copy
+# DESCRIPTION
+#   Creates a copy of the currently selected menu
+# SOURCE
+#
+proc ::menueditor::getname::copy {name} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   set tmp 1
+   while {[info exists ::menu#$tmp]} {incr tmp}
+   set ident menu#$tmp
+   global Widgets $ident
+   menu .can.f.$ident
+   foreach opt [array names Ident] {
+      catch {.can.f.$ident config -$opt $Ident($opt)}
+   }
+   set Widgets($ident) 1
+   array set $ident [array get Ident]
+   array set $ident [list pathname $ident item_name $name]
+   lappend ::menueditor::menulist [list $ident $name]
+   $::menueditor::base.lbEntries insert end $name
+   $::menueditor::base.lbEntries activate end
+   $::menueditor::base.lbEntries see active
+   $::menueditor::base.lbEntries selection clear 0 end
+   $::menueditor::base.lbEntries selection set active
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+
+   return $ident
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::new
+# DESCRIPTION
+#   Creates a new menu
+# SOURCE
+#
+proc ::menueditor::getname::new {name} {
+   set tmp 1
+   while {[info exists ::menu#$tmp]} {incr tmp}
+   set ident menu#$tmp
+   global Widgets $ident
+   menu .can.f.$ident
+   widget_extract .can.f.$ident
+   set Widgets($ident) 1
+   array set $ident [list type menu item_name $name gadgets {}]
+   lappend ::menueditor::menulist [list $ident $name]
+   $::menueditor::base.lbEntries insert end $name
+   $::menueditor::base.lbEntries activate end
+   $::menueditor::base.lbEntries see active
+   $::menueditor::base.lbEntries selection clear 0 end
+   $::menueditor::base.lbEntries selection set active
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+
+   return $ident
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::remove
+# DESCRIPTION
+#   Removes an entire menu permanently
+# SOURCE
+#
+proc ::menueditor::remove {} {
+   if {"[tk_messageBox -icon question -type yesno -parent $::menueditor::root -message "Are you sure?"]"!="yes"} {
+      return
+   }
+   set number [$::menueditor::base.lbEntries curselection]
+   if {"$number"==""} {
+      return
+   }
+   set ident [lindex [lindex $::menueditor::menulist $number] 0]
+   global Widgets $ident
+   destroy .can.f.$ident
+   unset Widgets($ident)
+   unset $ident
+   set ::menueditor::menulist [lreplace $::menueditor::menulist $number $number]
+   $::menueditor::base.lbEntries delete $number
+   $::menueditor::base.lbEntries selection set active
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::displaymenu
+# DESCRIPTION
+#   Create a new menu widget named $mbase and display menu number
+#   $number from the menulist in it.
+# SOURCE
+#
+proc ::menueditor::displaymenu {mbase {number 0}} {
+   set ident [lindex [lindex [set ::menueditor::menulist] $number] 0]
+   upvar #0 $ident Ident
+   array set ::menueditor::currentmenu [list number $number ident $ident item_name $Ident(item_name)]
+   
+   # Start a fresh
+   catch {destroy $mbase} out 
+   
+   # Create menu
+   menu $mbase
+   foreach opt [array names Ident] {
+      catch {$mbase config -$opt $Ident($opt)}
+   }
+   $mbase config -tearoffcommand ::menueditor::tearoffcmd
+   foreach {item opts} $Ident(gadgets) {
+      $mbase add $item
+      foreach {opt val} $opts {
+         switch -- $opt {
+            -command -
+            -menu -
+            -variable {}
+            default {
+              $mbase entryconfig last $opt $val
+            }
+         }
+      }
+   }
+   $mbase post 0 0
+   ::menueditor::setpos 0
+   # Widget properties
+   catch {unselect_widget} ::_Message
+   set ::Current(widget) .can.f.$ident
+   set ::Current(text) {}
+   if {[winfo ismapped .widget]} {
+      menu_widget
+      #activate_option .can.f.$ident true
+      focus $::menueditor::root
+   }
+}
+#***
+
+
+
+
+#****f* SpecTcl/menueditor::ClassFilter
+# DESCRIPTION
+#   Called from filters.tk
+# SOURCE
+#
+proc ::menueditor::ClassFilter {win opt var args} {
+   puts ClassFilter
+   upvar $var data
+   if {"$opt" == "item_name"} {
+      ::menueditor::getname::rename $data
+   } elseif {![regexp command $opt]} {
+      catch {$::menueditor::mbase config -$opt $data}
+   }
+   return 1
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::insert
+# DESCRIPTION
+#   Inserts a blank item into the current menu at the current position
+# SOURCE
+#
+proc ::menueditor::insert {} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   set Ident(gadgets) [linsert $Ident(gadgets) [expr $::menueditor::pos*2] command {}]
+   set demopos [expr $::menueditor::pos+[$::menueditor::mbase cget -tearoff]]
+   $::menueditor::mbase insert $demopos command
+   ::menueditor::setpos $::menueditor::pos
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::add
+# DESCRIPTION
+#   Add new blank item to the end of the current menu
+#
+# SOURCE
+#
+proc ::menueditor::add {} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   lappend Ident(gadgets) command {}
+   $::menueditor::mbase add command
+   ::menueditor::setpos [expr [llength $Ident(gadgets)]/2-1]
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::replace
+# DESCRIPTION
+#   Change the currently selected item to the newly input values
+#
+# SOURCE
+#
+proc ::menueditor::replace {} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   set type ${::mbType.value}
+   set demopos [expr $::menueditor::pos+[$::menueditor::mbase cget -tearoff]]
+   $::menueditor::mbase delete $demopos
+   $::menueditor::mbase insert $demopos $type
+   set opts {} ;# To be saved
+   set localopts {} ;# For the demo menu
+   foreach w [winfo children $::menueditor::base.fr] {
+      set wnam [winfo name $w]
+      if {![regexp {^e[A-Z][a-z]*$} $wnam]} {continue}
+      set opt -[string tolower [string index $wnam 1]][string range $wnam 2 end]
+      set optpos [lsearch -glob $::menueditor::itemdefaults($type) "$opt *"]
+      if {"[lindex [lindex $::menueditor::itemdefaults($type) $optpos] 1]" != "[$w get]"} {
+         lappend opts $opt [$w get]
+      }
+      if {[lsearch -exact {-command -variable -menu} $opt]<0} {
+         lappend localopts $opt [$w get]
+      }
+   }
+   eval $::menueditor::mbase entryconfigure $demopos $localopts
+   set Ident(gadgets) [lreplace $Ident(gadgets) [expr $::menueditor::pos*2] [expr $::menueditor::pos*2+1] $type $opts]
+   $::menueditor::mbase activate $demopos
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::tearoff
+# DESCRIPTION
+#
+# SOURCE
+#
+proc ::menueditor::tearoff {} {
+   $::menueditor::mbase config -tearoff ${::cbTearoff.value}
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::tearoffcmd
+# DESCRIPTION
+#   Called if the demomenu is torn off (this is not allowed)
+# SOURCE
+#
+proc ::menueditor::tearoffcmd {args} {
+   destroy [lindex $args 1] ;# Destroy the torn off menu
+   tk_messageBox -icon error -parent $::menueditor::root \
+      -message "Don't tearoff the demo menu!" 
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::delete
+# DESCRIPTION
+#   Delete the currently selected item from the currently selected menu
+# SOURCE
+#
+proc ::menueditor::delete {} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   set Ident(gadgets) [lreplace $Ident(gadgets) [expr $::menueditor::pos*2] [expr $::menueditor::pos*2+1]]
+   set demopos [expr $::menueditor::pos+[$::menueditor::mbase cget -tearoff]]
+   $::menueditor::mbase delete $demopos
+   set newpos $::menueditor::pos
+   if {$newpos >= [llength $Ident(gadgets)]/2} { # deleting the last item
+      incr newpos -1
+   }
+   ::menueditor::setpos $newpos
+   
+   # Set the flag indicating that something has been edited
+   set ::Current(dirty) 1
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::keyup
+# DESCRIPTION
+#   Callback for the <Key-Up> event
+# SOURCE
+#
+proc ::menueditor::keyup {} {
+   if {"[focus]"=="$::menueditor::base.lbEntries"} {return}
+   ::menueditor::setpos [expr $::menueditor::pos-1]
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::keydown
+# DESCRIPTION
+#   Callback for the <Key-Down> event
+# SOURCE
+#
+proc ::menueditor::keydown {} {
+   if {"[focus]"=="$::menueditor::base.lbEntries"} {return}
+   ::menueditor::setpos [expr $::menueditor::pos+1]
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::keyleft
+# DESCRIPTION
+#   Callback for the <Key-Left> event
+# SOURCE
+#
+proc ::menueditor::keyleft {} {
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::keyright
+# DESCRIPTION
+#   Callback for the <Key-Right> event
+# SOURCE
+#
+proc ::menueditor::keyright {} {
+}
+#***
+
+
+} ;# End uplevel

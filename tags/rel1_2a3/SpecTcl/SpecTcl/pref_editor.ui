@@ -1,0 +1,106 @@
+WidGet file, version 1.1, created:  Tue Jul 29 11:29:31 PDT 1997
+Widget label#1
+	geometry columnspan 2
+	geometry row 4
+	other error {}
+	other type label
+	other master {}
+	configure justify left
+	other pathname label#1
+	other tags {}
+	other level {}
+	other help {}
+	configure foreground black
+	geometry column 2
+	other comments {}
+	geometry sticky nesw
+	other item_name explainer
+	other tabbing {}
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0 0 0 3}
+	other type frame
+	other code {global tcl_platform
+if {$tcl_platform(platform) == "windows"} {
+    $base.explainer config -text "Under Windows, you must either
+use forward slashes '/' to divide
+the path, or use four 
+backslashes '\' for each path.
+Environment variables EDITOR and VISUAL
+are respected.
+Examples:
+c:/windows/notepad.exe
+c:\\\\windows\\\\notepad.exe"
+} elseif {$tcl_platform(platform) == "unix"} {
+    $base.explainer config -text "If the external editor box is
+checked, but no command is given,
+the EDITOR and VISUAL environment 
+are used to figure out what command
+to use, in that order."
+} else {
+    $base.explainer config -text "This doesn't work on this platform
+yet, sorry."
+}}
+	other min_row {5 30 30 30 5}
+	other master {}
+	other pathname f
+	other resize_column {0 0 3 0}
+	other tags {}
+	other level 0
+	other min_column {5 30 30 5}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #d9d9d9}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget entry#1
+	geometry row 3
+	other error {}
+	other type entry
+	configure textvariable p(external-editor-command)
+	other master {}
+	other pathname entry#1
+	other tags {}
+	configure font Helvetica,12
+	other level {}
+	other help {}
+	configure foreground black
+	geometry column 3
+	other comments {}
+	geometry sticky ew
+	other item_name entry#1
+	other tabbing {}
+Widget checkbutton#1
+	geometry columnspan 2
+	configure variable p(use-external-editor)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname checkbutton#1
+	configure font Helvetica,12,Bold
+	geometry sticky w
+	other tabbing {}
+	other item_name checkbutton#1
+	geometry row 2
+	other type checkbutton
+	configure text {Use an external editor}
+	other comments {}
+	geometry column 2
+

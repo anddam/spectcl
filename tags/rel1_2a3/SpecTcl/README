@@ -1,0 +1,39 @@
+Welcome to release 1.2 of SpecTcl/SpecJava
+
+This is a source release of Spectcl 1.2.  This will run as provided
+under Windows 95, MacOS, various UNIX flavors, with Tcl/Tk 8.0 or
+greater.
+
+Under UNIX, if this distribution is unpacked into $SPECHOME, then the
+DIR variable in the scripts "specJava" and "specTcl" in the bin
+subdirectory of $SPECHOME need to be editted to point the
+$SPECHOME. See comments in these two scripts for details.
+
+Under Windows, use bin/specTcl.bat 
+
+Under Macintosh it should hopefully be simple as well.
+
+See license.terms for the SpecTcl licensing terms.
+
+See the file: "changes" for a list of changes made since the previous
+release.
+
+Information about SpecTcl and SpecJava is available at:
+	http://spectcl.sourceforge.net/
+
+Comments, suggestions, and bug reports should be submitted at:
+	http://sourceforge.net/forum/forum.php?forum_id=78704
+
+Only if you cannot access this page you can send a mail to
+	msj@users.sourceforge.net
+
+Current maintainer: Morten Skaarup Jensen
+
+Original authors:
+
+Raymond Johnson - Project Manager
+Ioi Lam
+Allan Pratt
+Special Thanks to: Stephen Uhler, Ken Corey
+
+July 16th 2001

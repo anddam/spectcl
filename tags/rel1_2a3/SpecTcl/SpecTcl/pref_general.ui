@@ -1,0 +1,598 @@
+WidGet file, version 1.1, created:  Tue Jul 29 11:39:49 PDT 1997
+Widget button#1
+	geometry padx 2
+	geometry pady 2
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure command FindWidgets
+	other focus .widget.form.can.f.button#1,command,entry
+	other master {}
+	other pathname button#1
+	other action {}
+	other item_name button#1
+	other tabbing {}
+	geometry row 11
+	other subclass {}
+	other type button
+	configure text {Find Widgets}
+	geometry column 2
+	other comments {}
+Widget frame#2
+	other subclass {}
+	other panel {}
+	geometry columnspan 5
+	geometry row 12
+	other resize_row 0
+	other error {}
+	other type frame
+	other min_row -29
+	other master {}
+	other pathname frame#2
+	other resize_column {0 3}
+	other tags {}
+	other level 1
+	other help {}
+	other min_column {30 30}
+	configure borderwidth 4
+	other action {}
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name frame#2
+	geometry sticky ew
+Widget label#5
+	other subclass {}
+	geometry row 3
+	other type label
+	other master .frame#1
+	configure text {Scroll Delay}
+	other pathname label#5
+	other tags {}
+	other level {}
+	other help {}
+	other action {}
+	geometry column 1
+	other comments {}
+	other item_name label#5
+	other tabbing {}
+	geometry sticky e
+Widget entry#3
+	other subclass {}
+	other focus .widget.form.can.f.entry#3,width,entry
+	geometry row 2
+	other error {}
+	other type entry
+	configure textvariable p(button)
+	other master .frame#1
+	other pathname entry#3
+	other tags {}
+	other level {}
+	configure width 4
+	other help {}
+	other action {}
+	other comments {}
+	configure cursor {}
+	geometry column 2
+	other tabbing {}
+	other item_name entry#3
+	geometry sticky w
+Widget frame#3
+	other subclass {}
+	other panel {}
+	geometry columnspan 3
+	geometry row 8
+	other resize_row {0 0}
+	other type frame
+	other min_row {-17 -26}
+	other master {}
+	other pathname frame#3
+	other resize_column {0 2}
+	other tags {}
+	other level 1
+	other min_column {30 30}
+	other help {}
+	other action {}
+	geometry column 4
+	other comments {}
+	configure borderwidth 2
+	geometry sticky nesw
+	other item_name frame#3
+	other tabbing {}
+	configure relief groove
+Widget label#6
+	other subclass {}
+	geometry row 4
+	other type label
+	other master .frame#1
+	configure text {Scroll Size}
+	other pathname label#6
+	other tags {}
+	other level {}
+	other help {}
+	other action {}
+	geometry column 1
+	other comments {}
+	other item_name label#6
+	other tabbing {}
+	geometry sticky e
+Widget entry#4
+	other subclass {}
+	other focus .widget.form.can.f.entry#4,width,entry
+	geometry row 3
+	other error {}
+	other type entry
+	configure textvariable p(scroll_delay)
+	other master .frame#1
+	other pathname entry#4
+	other tags {}
+	other level {}
+	configure width 4
+	other help {}
+	other action {}
+	other comments {}
+	geometry column 2
+	configure cursor {}
+	geometry sticky w
+	other item_name entry#4
+	other tabbing {}
+Widget frame#4
+	other subclass {}
+	other panel {}
+	geometry columnspan 3
+	geometry row 10
+	other resize_row {0 0}
+	geometry rowspan 2
+	other type frame
+	other min_row {-5 -12}
+	other master {}
+	other pathname frame#4
+	other resize_column {0 0}
+	other tags {}
+	other level 1
+	other min_column {30 30}
+	other help {}
+	other action {}
+	geometry column 4
+	other comments {}
+	configure borderwidth 2
+	geometry sticky ew
+	other item_name frame#4
+	other tabbing {}
+	configure relief groove
+Widget label#7
+	other subclass {}
+	geometry row 2
+	other type label
+	other master .frame#3
+	configure text Delay:
+	other pathname label#7
+	other tags {}
+	other level {}
+	other help {}
+	other action {}
+	geometry column 1
+	other comments {}
+	other tabbing {}
+	geometry sticky e
+	other item_name label#7
+Widget entry#5
+	other subclass {}
+	other focus .widget.form.can.f.entry#5,width,entry
+	geometry row 4
+	other error {}
+	other type entry
+	configure textvariable p(incr)
+	other master .frame#1
+	other pathname entry#5
+	other tags {}
+	other level {}
+	configure width 4
+	other help {}
+	other action {}
+	other comments {}
+	geometry column 2
+	configure cursor {}
+	geometry sticky w
+	other item_name entry#5
+	other tabbing {}
+Widget frame#5
+	other subclass {}
+	other panel {}
+	geometry row 2
+	other resize_row {0 0 0 0 0 0 0}
+	geometry rowspan 9
+	other type frame
+	other min_row {-12 -15 -10 -13 -20 -12 -80}
+	other master {}
+	other pathname frame#5
+	other resize_column 0
+	other tags {}
+	other level 1
+	other help {}
+	other min_column 30
+	other action {}
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name frame#5
+	geometry sticky nesw
+Widget label#8
+	other subclass {}
+	geometry row 2
+	other type label
+	other master .frame#4
+	configure text Length:
+	other pathname label#8
+	other tags {}
+	other level {}
+	other help {}
+	other action {}
+	geometry column 1
+	other comments {}
+	other tabbing {}
+	geometry sticky e
+	other item_name label#8
+Widget checkbutton#10
+	configure variable p(confirm-autosave-on-quit)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#10,variable,entry
+	other master .frame#5
+	other pathname checkbutton#10
+	other action {}
+	other item_name checkbutton#10
+	other tabbing {}
+	geometry sticky w
+	other subclass {}
+	geometry row 6
+	other type checkbutton
+	configure text {Autosave on quit?}
+	geometry column 1
+	other comments {}
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other subclass {}
+	other panel {}
+	other resize_row {0 0 0 0 0 0 0 0 0 0 1 0 3}
+	other type frame
+	other code {}
+	other min_row {5 12 9 12 11 35 1 -89 2 -9 -36 -4 8}
+	other master {}
+	other pathname f
+	other resize_column {0 0 0 0 3 0 1}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {4 -134 3 30 30 30 6}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #d9d9d9}
+	other action {}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget checkbutton#11
+	geometry columnspan 2
+	configure variable p(help)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#11,variable,entry
+	other master .frame#3
+	other pathname checkbutton#11
+	other action {}
+	other item_name checkbutton#11
+	other tabbing {}
+	geometry sticky w
+	other subclass {}
+	geometry row 1
+	other type checkbutton
+	configure text {Display field help?}
+	other comments {}
+	geometry column 1
+Widget checkbutton#3
+	configure variable p(fast)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#3,variable,entry
+	other master .frame#5
+	other pathname checkbutton#3
+	other action {}
+	geometry sticky w
+	other tabbing {}
+	other item_name checkbutton#3
+	other subclass {}
+	geometry row 1
+	other type checkbutton
+	configure text {Fast machine mode}
+	other comments {}
+	geometry column 1
+Widget checkbutton#12
+	geometry columnspan 2
+	configure variable p(balloonhelpforget)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#12,variable,entry
+	other master .frame#4
+	other pathname checkbutton#12
+	other action {}
+	other item_name checkbutton#12
+	other tabbing {}
+	geometry sticky w
+	other subclass {}
+	geometry row 1
+	other type checkbutton
+	configure text {Erase help?}
+	other comments {}
+	geometry column 1
+Widget checkbutton#14
+	configure variable p(apply-defaults-widgets)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#14,variable,entry
+	other master .frame#5
+	other pathname checkbutton#14
+	other action {}
+	geometry sticky w
+	other tabbing {}
+	other item_name checkbutton#14
+	other subclass {}
+	geometry row 8
+	other type checkbutton
+	configure text {Apply Defaults to new widgets?}
+	other comments {}
+	geometry column 1
+Widget checkbutton#5
+	configure variable p(insert_on_gridline)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#5,variable,entry
+	other master .frame#5
+	other pathname checkbutton#5
+	other action {}
+	geometry sticky w
+	other tabbing {}
+	other item_name checkbutton#5
+	other subclass {}
+	geometry row 2
+	other type checkbutton
+	configure text {Insert on widget drop on gridline}
+	other comments {}
+	geometry column 1
+Widget checkbutton#6
+	configure variable p(center)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#6,variable,entry
+	other master .frame#5
+	other pathname checkbutton#6
+	other action {}
+	geometry sticky w
+	other tabbing {}
+	other item_name checkbutton#6
+	other subclass {}
+	geometry row 3
+	other type checkbutton
+	configure text {Center canvas in frame}
+	other comments {}
+	geometry column 1
+Widget checkbutton#7
+	configure variable p(confirm-delete-item)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#7,variable,entry
+	other master .frame#5
+	other pathname checkbutton#7
+	other action {}
+	other item_name checkbutton#7
+	other tabbing {}
+	geometry sticky w
+	other subclass {}
+	geometry row 5
+	other type checkbutton
+	configure text {Delete key deletes widgets?}
+	other comments {}
+	geometry column 1
+Widget scale#1
+	configure orient h
+	configure to 1000.0
+	configure showvalue 0
+	configure variable p(balloondelay)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.scale#1,length,entry
+	configure length 75
+	other master .frame#3
+	other pathname scale#1
+	other action {}
+	other tabbing {}
+	other item_name scale#1
+	geometry sticky ew
+	other subclass {}
+	geometry row 2
+	other type scale
+	other comments {}
+	geometry column 2
+Widget label#2
+	other subclass {}
+	geometry row 1
+	other type label
+	other master .frame#2
+	configure text {Extra widget options}
+	other pathname label#2
+	other tags {}
+	other level {}
+	other help {}
+	other action {}
+	geometry column 1
+	other comments {}
+	other item_name label#2
+	other tabbing {}
+	geometry sticky e
+Widget checkbutton#8
+	configure variable p(confirm-save-layout)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.checkbutton#8,variable,entry
+	other master .frame#5
+	other pathname checkbutton#8
+	other action {}
+	other item_name checkbutton#8
+	other tabbing {}
+	geometry sticky w
+	other subclass {}
+	geometry row 4
+	other type checkbutton
+	configure text {Confirm saves during compile?}
+	other comments {}
+	geometry column 1
+Widget label#3
+	other subclass {}
+	geometry row 1
+	other type label
+	other master .frame#1
+	configure text {Mouse gravity}
+	other pathname label#3
+	other tags {}
+	other level {}
+	other help {}
+	other action {}
+	geometry column 1
+	other comments {}
+	other item_name label#3
+	other tabbing {}
+	geometry sticky e
+Widget entry#1
+	other subclass {}
+	other focus .widget.form.can.f.entry#1,textvariable,entry
+	geometry row 1
+	other error {}
+	other type entry
+	configure textvariable p(other_items)
+	other master .frame#2
+	other pathname entry#1
+	other tags {}
+	other level {}
+	other help {}
+	other action {}
+	other comments {}
+	configure cursor {}
+	geometry column 2
+	geometry sticky ew
+	other item_name entry#1
+	other tabbing {}
+Widget scale#3
+	configure orient h
+	configure to 4000.0
+	configure showvalue 0
+	configure variable p(balloonlength)
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.scale#3,length,entry
+	configure length 75
+	other master .frame#4
+	other pathname scale#3
+	other action {}
+	other tabbing {}
+	other item_name scale#3
+	geometry sticky ew
+	other subclass {}
+	geometry row 2
+	other type scale
+	geometry column 2
+	other comments {}
+Widget label#4
+	other subclass {}
+	geometry row 2
+	other type label
+	other master .frame#1
+	configure text {Mouse Button}
+	other pathname label#4
+	other tags {}
+	other level {}
+	other help {}
+	other action {}
+	geometry column 1
+	other comments {}
+	other item_name label#4
+	other tabbing {}
+	geometry sticky e
+Widget entry#2
+	other subclass {}
+	other focus .widget.form.can.f.entry#2,width,entry
+	geometry row 1
+	other error {}
+	other type entry
+	configure textvariable p(gravity)
+	other master .frame#1
+	other pathname entry#2
+	other tags {}
+	other level {}
+	configure width 4
+	other help {}
+	other action {}
+	other comments {}
+	geometry column 2
+	configure cursor {}
+	geometry sticky w
+	other item_name entry#2
+	other tabbing {}
+Widget frame#1
+	other subclass {}
+	other panel {}
+	geometry columnspan 3
+	geometry row 2
+	other resize_row {0 0 0 0}
+	geometry rowspan 5
+	other type frame
+	other min_row {-3 -8 -13 -3}
+	other master {}
+	other pathname frame#1
+	other resize_column {0 0}
+	other tags {}
+	other level 1
+	other help {}
+	other min_column {30 30}
+	other action {}
+	other comments {}
+	geometry column 4
+	other tabbing {}
+	other item_name frame#1
+	geometry sticky nesw
+

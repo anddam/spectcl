@@ -1,0 +1,81 @@
+<Html>
+<Head>
+<Title>Glossary of terms</Title>
+<!-- Author: kcorey -->
+</Head>
+<Body>
+
+
+<dl>
+<dt><a name=canvas><!-- SpecTcl, by S. A. Uhler --
+ -- Copyright (c) 1994-1995 Sun Microsystems, Inc. --
+ -- See the file "license.txt" for information on usage and redistribution
+ -- of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ -->canvas
+<dd>The scrollable grid in the main window. The widgets are dragged
+into <strong>cells</strong> of the grid.</a>  Not to be confused with
+the 'canvas' widget. <a name=cell>
+<dt>cell 
+<dd>A cell is the intersection of a single row or column.</a> <a name=cavity>
+<dt>cavity 
+<dd>A cavity is one or more cells, in a rectangular region. Only one
+widget may occupy a cavity, and unless the widget has been configured
+to fill its cavity, much of it will appear empty. Grid lines will not
+pass through a cavity, only around its edges.</a> <a name=column> 
+<dt>column 
+<dd>A column is the space between vertical grid lines. In the context
+of a widget, its column represents the left most column in its cavity.
+Columns are numbered starting at one (1).</a> <a name=column-span>
+<dt>column-span 
+<dd>A column-span is the number of columns occupied by a widget.</a>
+<a name=option> 
+<dt>option sheet 
+<dd>Each widget has a list of name/value pairs that specify all the
+needed to specify the properties of that widget. This list of name/value
+pairs is called a property sheet, which is accessed by double-clicking
+on the widget.</a> <a name=grid> 
+<dt>grid 
+<dd>The grid demarcates the set of rows and columns for the interface,
+dividing it into cells into which widgets may be placed.</a> 
+<dt>item_name 
+<dd>This is the name the application uses to access a widget. If the
+widget's procedure is instantiated by <code>project_ui $frame</code>,
+then the full name of the widget is <code>$frame.<i>item_name</i></code>
+<a name=palette> 
+<dt>palette 
+<dd>The palette is the column of buttons on the left side of the user
+interface that indicated the widgets. Widgets are created by clicking
+on a palette item, and dragging it onto the desired location on the
+canvas.</a> <a name=panel> 
+<dt>panel 
+<dd>A panel consists of all the widgets created together on the canvas
+at one time. Panels are saved as a single <code>ui</code> file, and
+are instantiated by calling the panel's procedure with the name of
+the frame (or toplevel) it is to be rendered in. A typical application
+consists of one or more panels.</a> <a name=row> 
+<dt>row 
+<dd>A row is the space between horizontal grid lines. In the context
+of a widget, its horizontal represents the top most column in its cavity.
+Rows are numbered starting at one (1).</a> <a name=row-span> 
+<dt>row-span 
+<dd>A Row-span is the number of rows occupied by a widget.</a> <a name=tool-bar>
+<dt>tool-bar 
+<dd>The tool-bar is the row of icons and menus along the top of the
+user interface, just under the menu bar, that provides a short cut
+for setting common properties for the selected widget.</a> <a name=sub-grid>
+<dt>sub-grid 
+<dd>A sub-grid is a table of rows and columns that occupies a cavity
+either in the main grid, or in another sub-grid. Sub-grids, which are
+created by dragging <em>frames</em> onto the existing grid, are used
+when the programmer needs to give some widgets a different resize behavior.</a>
+<a name=widget> 
+<dt>widget 
+<dd>A widget is an atomic user interface element, such as a <em>button</em>
+or <em>scrollbar</em>. All of the available widgets are presented on
+the palette.</a> 
+</dl>
+<hr>
+
+</Body>
+</Html>
+

@@ -1,0 +1,555 @@
+Changes from 0.2
+ - removed errant parray from bind.tk
+ - fixed typos in java.rc (renamed to java_init.tk)
+ - removed "image" from option sheets
+ - don't try to test "blank" anything
+ - added save option to java test dialog box
+ - don't generate error if hr font in html_lib isn't found
+ - don't die if ui file contains invalid font reference
+ - changes sort_widgets2 to eliminate '.' in front of master name problem
+ - fixed "dismiss" on help
+ - prevent rediculously long error messages from java
+ - don't print Sorry no help for... messages
+ - remove geom: arrays upon "New"
+ - fixed anchor bug
+ - changed name from 0.2 to 0.3
+ - changed "exec date" to "clock", and wrapped "catch" around all exec's
+ - fixed tkwait in colors.tk to prevent window flashing
+ - added dialog boxes for failure to open project files for writing
+ - changed reliefs of palette to make items NOT look like buttons
+ - changed open/close dialogs to limit height to 10 entries
+ - changed startup to use "-java" on command line to turn on java mode
+ - Added platform dependent stuff to preferences.tk
+ - added dialog box for bad startup file
+ - "Alt-F4" always terminates java applications. (except on W'95 -
+    java's broken)
+ - fixed bug in save-dialog whith empty directory
+ - Fixed lost-button bug on WIN'95 (Lost undefined)
+ - build & test uses a slave interpreter, and almost works
+   (needs patch to b3)
+ - don't emit package statement for "empty" package
+ - fixed pad->wad conversion when reading ui files
+ - moved all global variable initialization to init.tk
+ - removed dead code
+ - added "busy" indicator to prevent re-entrancy problems (message -> red)
+ - save always generates target file, test doesn't
+ - different languages use different file suffixes [INCOMPATIBILITY]
+   .ui for tcl, .jui for java
+ - "testing" under tcl doesn't use a special temporary file anymore
+ - fixed font problem with CDE
+ - remove "relief" and "borderwidth" tools from java mode
+ - added java specific help to palette entries
+ - compile_java doesn't die if there are no widgets
+ - "edit code" in java now looks at the <project>.include.java file, 
+   and keeps a "spare" copy in the .jui file (only if ^ isn't writable)
+ - renamed compileg.tk to grid_init.tk so "grid" mode may be
+   enabled with a "-grid" command line flag.
+ - remove non-implemented menu entries for command menu, fix
+   menu.tk code to not die on missing menu items
+ - changed -option code to only include an option 1ce
+ - loading in a project tries to read in a project specific "rc" file
+ - minor patches around windows bugs
+ - fixed bug in P(export) for non-default names (twice)
+ - added url address to about box
+ - added brent's directory browser
+ - added sample perl code generator - UNSUPPORTED
+RELEASED 0.3
+ - fixed sorting routine in save.tk so frames are always created before
+   their children
+ - added support for Netscape <body> tag to configure help colors
+ - added check for action_override in java code generator to permit
+   customization of code generation (see testing_init.tk for an example)
+ - Fixed down-arrow from going into empty subframe
+ - changed button.tk to prevent frames from being copied or moved within
+   themselves (or their decendants) under some circumstances.
+ - changed version from 0.3 -> 0.3a
+
+----------------------------------------------------------------------
+BEGIN -- formerly in SpecTcl/changes
+
+* fixed generic option forms
+* fixed geometry validation on forms
+* fixed span behavior when copying/moving widgets
+* fixed error when building empty app
+* added completion message to save
+* fix compile to work when sub-frames have no members
+* allow items to be renamed to default values
+* double-clicks now bring up option sheets
+* better error messages in spots
+* changed geometry "anchor" option to "align" to avoid name conflict, so both
+  anchoring and alignment work
+* added tabbing control
+* made sure frames get created in the proper order
+* Clear is fixed (but overkill)
+* Fixed arrow_update bug by updating arrows at every arrow_activate call
+* changed build+run to try $argv0
+* rechanged build+run to use info nameofexecutable
+* Fixed bug that caused widget to be moved to the top-left if THE
+  mouse is moving too fast
+* Added dirty bit in Current(dirty).
+* pop-up dialog boxes for clearing, quiting, or loading with a dirty project
+* re-wrote toolbar widgets as children of .
+* added file menu: new, save, save as, and open
+* Changed arrow highlighting to use cursor instead of line width 
+* Changed "New" dialog box to add a "save" option
+* There were 2 *different* sort_widget procs - renamed one sort_widgets2
+* added help for grid lines and resize handles
+* make resize handles a bit bigger
+* fixed keyboard traversal of open dialog box
+* Added new row, new column, repeat toolbar to main menu
+* Added color editor for adding new colors to palette
+* Changed "boat" cursor to a better shape
+* Changed compile.tk to put a "catch" around font configure options
+* compile.tk no longer generates pre- and post- hooks (they aren't used)
+* Can specify project (or file) name on the command line
+* Modified quit dialog to support quit, save&quit, cancel
+* catch WM_DELETE_WINDOW message to permit saving before an exit
+* fixed cut and copy menu items to place widget on clipboard
+* palette puttons depress on Push instead of Sweep
+* disallow '@' and '#' in user chosen widget names (actually only [a-zA-Z0-9_])
+* re-wrote arrow widget traversal behavior
+* fixed help to prevent spurious messages, added more help messages
+* Fixed bug in color editor restoring the wrong color on "cancel"
+* Added *delete* option to edit menu
+* Added "kill test" to command menu"
+* Added postcommands to disable N/A menu items on "command" and "edit"
+  menus
+* Changes "fg" toolbar item to set activeforeground too
+* Fixed resize behavior of option forms
+* fixed wm geometry of option forms
+* changed find_slot algorithm to eliminage missing widget bug
+* build&test uses a temp name instead of the "real" project name
+  "save" also invokes the compiler
+* Changed item selection to permit selection a cell by clicking on it.
+* added "paste" to paste widget into selection spot, either widget or cell
+* Added html help facility based on html_library-0.3, with the
+  form support removed
+* Added SpecTcl icon bitmap.  Display icon and project name when iconified
+* removed "add row" and "Add column" from menu, replacing them with
+  navigate, which invokes up, down, left, and right
+* added HELP binding to bring up "quick-tips" help
+* Removed redundant "Orientation" and "level" options on option sheet
+* Fixed double click binding on list boxes to prevent binding errors
+* Fixed "back" option in help, and added better error daignostics
+  for missing pages
+* fixed bug in row/column reshape when canvas was scrolled
+* added "src" option to lists in html system to permit graphical
+  list symbols, added gif transarency support
+* added checks in main.tk for proper versions of TK and blt_table
+* Added a version stamp to generated files
+* Added animated "about" box
+* added copyright notices to all files
+* finished the tutorial help section
+- released 0.1
+* delete_selected_arrow was broken if only 1 row or column was left
+* The font input filter didn't handle font families with spaces or * as font sizes
+* added Brent's error reporting tkerror
+* the -menu option on menu buttons aotomatically prefixes the name of the
+  parent menu
+* Fixed class -> widget name conversion to work for Tix widgets
+* added "catch" to sync_all to allow blt widgets to (sort of) work
+* added menu_add and button_add to allow app specific customization
+  of spectcl
+* spectcl only looks at the "last" element of argv as the project name 
+---
+KAC 9 Aug 96
+* Changed grid lines to be selectable, and then the insert key inserts
+  columns and/or rows.
+* Delete works on grid lines.
+* the geom: array is gone, along with the table_setup function.
+* arrows are now real-time.
+* grid lines can be drug to widen/shrink the grid.
+* grid sweeps cannot be done below 0, as grid doesn't handle that.
+* grid2 reports slaves in a different order than grid1, so the 
+  code has to be order independent.
+* made sure that the code works a well using wish4.1 as wish4.2.
+* dialog boxes for location were replaced using Ioi lam's dialog boxes.
+* sweeping of outlines happens more intuitively.
+* The separate fill/anchor widgets have been replaced with a single
+  'sticky' widget.
+* changed the scrollbars to look "normal", so they don't depress as you move 
+  the cursor over them.
+* made a preferences dialog, and moved the preferences over there.
+* provided a mechanism to put "fake" widgets in the toolbar, as a precursor
+  to having composite widgets, and java mega-widgets.
+* provided balloon-help for menu items.
+* provied for early quitting of the about box, (though maybe the "early"
+  stuff should just slam all the widgets in place so that people can shortcut
+  to the end...?)
+* The kill test menu didn't work as advertised in menubar.menu, the code
+  had been manually changed in menubar.menu.tcl.  Updated mainmenu.tk
+  to reflect the change.
+* changed the widget search mechnism to be more robust.
+********************************************************************
+* KAC - Changed java_setup.tk to bind {} to the <Return> event for
+  the .entry so that widgets don't get multi-line labels.
+* KAC - Changed button highlighting when dragging so that there's 
+  red border around the button when depressed.
+* KAC - Changed the relief of the preferences.
+* KAC - Changed the expr's in grid and save.tk so they now work
+  under the compiler.
+* KAC - Set the toolbar up so that it also tracks the state of the
+  template widgets represented by the palette.
+* KAC - Make the column/row geometry propagate down when rows/columns
+        are deleted.
+* KAC - Put evalstats in the list of commands not to try...(it's a 
+        compiler procedure.
+* KAC - Put a "get rid of" button on the Java tk_dialog box.
+* KAC - Changed SpecTcl to remember what the initial size is, and
+        save that as its minimum size.
+* KAC - Color lists are now saved with projects.  Projects that don't
+        have color lists get the last one made.
+* KAC - Improved handling of wierdness passed in via the -path blah option.
+* KAC - Fixed menus so that when a palette item is selected, ^-W does
+        the option sheet thing.
+* KAC - Changed options so that there's a concept of a 'global' option,
+        so that if you're changing the 'variable' option on one widget,
+        and pull the option sheet up on another widget, it'll be on
+        the 'variable' entry.  If that fails, it looks at the last
+        focused item for this type of widget.
+* KAC - Changed option sheets so that when the scrollbar is released,
+        the topmost item is focused so that when the mouse is moved 
+        outside the toplevel, and back in forms_focus_in doesn't 
+        move you to another part of the form.
+* KAC - Fixed sync_relief so that it's correct again.
+* KAC - Added combo boxes to many of the items in an option sheet.
+* KAC - Added several short cut keys, changed arrow key movement
+* KAC - Fixed changing the font style on a widget changes it's bg.
+* KAC - Fixed a bug with Load project into a frame.
+* KAC - Fixed a bug where moving between widgets using the keyboard
+        accelerators now does a sync_all
+* KAC - when going between widgets with the pineed option sheets
+        the last property selected will now show up.
+* KAC - Fixed a bug with orientation introduced when double-clicking
+        the palette was introduced.
+* KAC - Made sure that Delete and Insert didn't get through the option
+        sheet
+* KAC - Used Base_dir to find images.
+* KAC - Fixed a bug where the faux widgets made when comboboxes were
+        created weren't being destroyed.
+---------------putback 9-12-96------------------------------------
+* KAC - Fixed file name on the command line to work again with
+        $P(project_dir)
+* KAC - Fixed bug where if choosing a color for the preferences, and
+        'cancel' chosen, the interface was broken after that.
+* KAC - Fixed MacScrollbars to work.
+* KAC - Bound cut/copy/paste to virtual events.
+* KAC - Set preferences to only auto-raise when creating.
+* KAC - Set the comboboxes to be toplevels.
+* KAC - Set the shrinking problem with the buttons for comboboxes.
+* KAC - Changed the "Okay" button on option sheets back to "dismiss"
+* KAC - Got rid of debugging output while pasting frames.
+* KAC - Fixed Reapply
+* KAC - Justify and Style now update the form properly.
+* KAC - Allowed clicking outside the grid to insert widgets
+* KAC - Fixed toggling of palette items so that if a palette
+        item is selected, clicking it again turns it off.
+* KAC - Bound <Escape> on . to unselect_all.
+* KAC - Fixed a bug whereby gridline sweeping didn't update the correct
+        arrowheads.
+* KAC - When in click-to-insert mode, and a widget is clicked, the 
+        new widget is selected.  (but you stay in click to insert mode...
+        is this a problem?)
+* KAC - Fixed the bug that happened when you added the same color twice
+* KAC - Ugh...combobox bindings were complex.  Fixed a bug where you
+        couldn't use the scrollbar to scan down the listbox.
+* KAC - Added a default button to the bottom of option sheets.
+* KAC - Fixed how the project_dir was being prepended on the filename at save time.
+-----------------------------putback 9-13-96---------------------------
+* KAC - Fixed a bug that caused filenames with hyphens in them to fail.
+* KAC - Fixed the problem where focus wasn't being set back to the entry
+        widget after widget_end_sweep
+* KAC - Fixed a focus bug that made the sticky option sheets hard to use.
+* KAC - updated the preferences dialog.
+* SAH - Fixed help to run on Macs.
+* KAC - Fixed the bug where the 'revert' button brought up the message 
+        'dummy already exists'.
+* KAC - The relief wasn't setting it's reapply command properly causing
+        a crash.
+* KAC - Fixed a bug where subframes changed the dragging bindings, 
+        causing grid_sweep to crash if the last sub-frame instantiated 
+        was deleted.
+* KAC - Fixed a bug where if the user resized a cell to be smaller than
+        the largest widget, and then dragged a gridline, the dragging
+	was off by the difference.
+* KAC - Added the ctrl-. binding again.  Geez.
+* KAC - Fixed a bug where the grid size wasn't applied to both rows and
+        columns.
+* KAC - In file selector box, set the default pathname to [pwd] 
+        instead of {.}.  This gets around (sorta) a bug in the file
+        dialogs where if given the leading path of '.', the file dialog
+        repeats it.
+* KAC - Fixed a bug where a copied widget got the same row/col span that
+        the original did.
+* KAC - Fixed a bug where the last grid line in a subframe was selected 
+        and the user pressed 'delete'.  This caused subtle problems with
+        the internal data structures.  Removed.
+* KAC - Removed the common file dialogs form the source directory, so
+        that the users *must* have wish4.2b1 or later to run.
+* KAC - Fixed a spurious bug where 'Save_grid_color' wasn't set yet, but
+        the user got a Leave event on a grid, which caused a crash.
+* KAC - Minimum size of the main sheet is handled much better now.
+* KAC - Fixed a bug where help wasn't seen on the Mac.
+----------------------------------------------------------------
+* SAH - fixed '-fill' being in text widgets.
+* KAC - changed bindings: reapply the toolbar is ctrl-r, got rid
+        of ctrl-e (edit code) and ctrl-a (save as...)
+* KAC - Fixed a bug where pulling up the option sheet with a ctrl-w
+        caused the entry widget to be erased.
+* KAC - Added an extra ')' to the help that's displayed via balloonhelp.
+* KAC - Added protection to frames so that they can't stick to opposite
+        sides of an enclosing cell without one row/column being 
+        resizeable.
+* KAC - Fixed a bug in code that was written in 'edit code', in that
+        the carriage returns where being eaten, and that messed things
+        up.
+* KAC - Fixed a bug in 'Save As', where the name of the Current(project)
+        wasn't being set, so it would try to overwrite the old .tcl file.
+* KAC - Made SpecTcl and SpecJava have two different preferences files 
+        because they were just too different to fix.
+* KAC - Added updating information when dragging a gridline
+* KAC - Set the windows up so that they all iconify and open as a group
+        using the bind_map and bind_unmap functions.
+-----------------------------------------------------------------
+* KAC - Fixed the extra cells not getting chopped off as necessary when
+        a small interface was put in a large grid.
+* KAC - Got rid of pre-setting the directory.
+* KAC - Changed InFilter_font so that it didn't munge font family
+        names so that SpecTcl works on CDE systems.
+* KAC - Fixed overrideredirect characteristics of the comboboxes
+------------------------------------------------------------------
+--------------Beta1-----------------------------------------------
+* KAC - Fixed font and color problems with CDE.
+* KAC - Fixed resize bug that happened upon insertion/deletion.
+* KAC - Fixed bug that was caused by font not being provided by CDE.
+        Didn't add post command because figuring out if the 4 types 
+        of styles exist for a given face at given size would take a
+        long time, and make the interface slower.
+* KAC - Fixed font options for single style fonts (eg 7x14)
+* KAC - rewrote option sheets for speed.
+* KAC - allowed external editors
+* KAC - rewrote saving functions to get around foreach/split compiler
+        bug
+* KAC - rewrote menus in the new menu editor to work on tk4.2/tk8
+* KAC - Fixed type bug.
+* KAC - Captured java compiler output in a text widget.
+* KAC - Rewrote toolbar to use new icons.
+* KAC - Went through help.  Need another pass.
+* KAC - Made the tabbed dialog 3d.
+* KAC - Made the source platform-independant, putting the platform
+        dependant stuff into port.tk
+* KAC - Allowed double-clicking on a UI document on the Mac to start
+        up SpecTcl.
+* KAC - Made the Mac change the font type/creator, so that UI files
+        are owned by SpecTcl, .tcl files are owned by wish.
+* KAC - fixed bleed-through ctrl-w bug with editor.
+* SAU - Added error reporting
+* KAC - Made SpecTcl get error reporting info from netscape if present
+------------------------------------------------------------------
+--------------1.0-------------------------------------------------
+* KAC - fixed bug with deletion.
+* KAC - fixed error reporting bug.
+* KAC - Updated to handle versioning better.
+----------------------------------------
+* KAC - Fixed the bug where people could delete more rows than they
+	were supposed to.
+
+--------- patchlevel 1
+* KAC - Attempt to fix the weight bug.
+--------- patchlevel 2
+* KAC - Fixed the weight bug correctly, and fixed the fact that patchlevels
+        had been saved in .SpecTclrc files, so didn't update properly.  Ugh.
+--------- patchlevel 3
+* KAC - Added tcl and tk to error reports
+--------- patchlevel 4
+* KAC - Added patchlevel to about window so customers can see it.
+* KAC - (sent in by Kai Morich) Fixed a bug added capabilities to
+         invoking an external editor.
+* KAC - Added version check so that you can't run SpecTcl with < 
+        tcl 7.5 tk4.1.
+--------- patchlevel 5
+* KAC - Added code to main.tk that tries to determine if the libraries
+        are accessible by catching a bogus loading of tk_optionMenu.
+        If that doesn't work, we bail.
+--------- patchlevel 6 (unix only release, though it won't hurt on windows
+        or mac machines.)
+* KAC - *sigh* Changed the version check so that it fails for versions < 4.1
+        mostly because we don't want to maintain the common dialogs for 4.1.
+        Got rid of the files clrpick.tcl comdlg.tcl  msgbox.tcl  tkfbox.tcl 
+--------- patchlevel 7 (unix only release)
+* KAC - a couple of directional gifs were missing in SpecTcl sew and nse.
+--------- patchlevel 8 (all platform release)
+* KAC - On windows, if the registry worked, but the registry entry 
+        was bad, SpecTcl couldn't handle it.
+--------- patchlevel 9 (windows only release)
+* KAC - Shucks. the Registry.dll file caused too many troubles and crashes.
+        Found an alternative way.  Not as slick, but it'll work for now.
+--------- patchlevel 10 (windows only release)
+* KAC - Fixed proper raising mechanism for option sheets.
+* KAC - Fixed broken help menu messages.
+* KAC - Fixed 10a.gif missing for tutorial.
+* KAC - Fixed unique_filei problem in subs.tk
+* KAC - Fixed 'selecting' message wierdness
+* KAC - Fixed a bug where when a directory name is typed into
+        tk_getOpenFile.
+* KAC - Fixed external editor support on Windows, and gave more meaningful
+        description of what the entry widget means on the editor
+        preferences tab.
+* KAC - Fixed the color highlighting of widgets in the properties sheet.
+* KAC - Fixed how pasted widgets could end up with the same item_name, 
+        Thoroughly hosing the resultant .tcl file.
+* KAC - Fixed a bug about the style possibly not getting assigned.
+* KAC - Fixed combo boxes so that they trigger on button release over
+        the listbox.
+* KAC - Fixed a really gross bug where when pushed the 'additional options' 
+        button brought up the wrong option sheet.
+--------- patchlevel 11
+* KAC - Left a debugging statement in for the combobox pulldowns.  *sigh*
+* KAC - Fixed a recursion problem with delete_selected where frames wouldn't
+        delete their children.  Nasty.
+* KAC - Fixed a bug where the insert cursor wasn't turned off for help.
+* KAC - Fixed a bug where the numbers in some comboboxes on the option
+        sheets weren't sorted in numerical order.
+* KAC - Fixed the bug that allowed people to try to save projects
+        as 'foo.ui.tcl', confusing the heck out of Spectcl.
+* KAC - Fixed the bug where editted code stays in the text widget after
+        the interface has a 'new' done on it.
+--------- patchlevel 12
+* KAC - Fixed untitled saving wierdness, and basically made SpecTcl ask
+        when overwriting files, or saving them for the first time.
+* KAC - Made "Delete key *doesn't* delete widgets" the default.
+* KAC - Fixed a bug where the name of the option sheet was never changed
+        to be that of the widget's item_name.
+* KAC - Fixed option sheets so that if they are modified, the dirty bit is set.
+* KAC - Took another shot at "fixing" the html rendering problem when a
+        window is destroyed.
+* KAC - Set the help message for the java helpfiles to point to http://www.javasoft.com:80/products/jdk/1.1/docs/api/packages.html
+* KAC - Fixed an up/down bug where the _outline and _outline_highlight
+        things were being passed to routines that expected only widgets.
+
+END -- formerly in SpecTcl/changes
+
+---------------------- Release 1.0, 1/14/97 -------------------------
+
+5/14/97 (bug fix) "File->Save" menu asked for "file exists,
+overwrite?" confirmation while it shouldn't (IL).
+
+5/14/97 (bug fix) "File->Save As" menu asked for "file exists,
+overwrite?" confirmation twice (IL).
+
+5/14/97 (bug fix) "File->Save As" menu asked for "file exists,
+overwrite?" confirmation twice (IL).
+
+5/15/97 (misfeature correction) The handling of WM_DELETE_WINDOW
+event. If there is unsaved changes, the user can choose "Cancel",
+which will cancel the close window action. This is consistent with
+Windows/Motif GUI standards. (IL)
+
+5/15/97 (bug fix) Fixed bug where hitting the delete key inside an
+entry will kill the currently selected widget (IL).
+
+5/16/97 (new feature) New command line switch -html to generate output
+in HTML-form format (IL).
+
+5/21/97 (misfeature correction) Changed "File" menu commands (New,
+Open, Save, Save As, Quit) and "Build" and "Build and Test" commands
+so that they adhere to common design rules on Windows and Mac. The
+behavior of the commands under the "File" menu should be exactly the
+same as the Windows Notepad program. (IL)
+
+5/21/97 (new feature) New initialization file startup.tcl that catches
+initialization errors and reports them to the user. Use this file,
+instead of main.tk, to start up SpecTcl. (IL)
+
+5/22/97 (new feature) The "Build and Test" command no longer
+recompiles the .tcl file if there has been no changes in the UI since
+the last time the test was run. (IL)
+
+5/22/97 (bug fix) Fixed bug where menubar_getmenuname didn't work
+under native menus on Tk 8.0. (IL)
+
+6/9/97 (new feature) A backup file <name>.ui.bak is always saved when
+the .ui file is about to be written into. (IL)
+
+6/9/97 (misfeature correction) When a widget is selected, the user
+must click on the "Label:" entry in order to edit the label of this
+widget. This simplifies the event handling in SpecTcl. E.g., the
+meaning of the <Delete> key is now well-defined. (IL)
+
+6/18/97 (misfeature correction) The "Label:" entry in the toolbar is
+renamed to "Text:" to better indicate that this applies to the -text
+option of widgets. The "Edit Label" menu command is also changed to
+"Edit Widget Text". (IL)
+
+6/18/97 (feature change) The bug reporting dialog has been removed
+because SpecTcl is no longer a supported product. (IL)
+
+6/18/97 (new feature) Popup menu added to the widget palette for
+choosing auto-drop mode and generic options. (IL)
+
+6/18/97 (feature change) Generic options has been moved into a cascade
+menu with entries corresponding to the generic options of each widget
+type. (IL)
+
+6/18/97 (misfeature correction) Names of menu items are changed
+so that each important word (i.e., except prepositions) is
+capitalized. (IL)
+
+9/17/97 (bug fix) Added checking code to avoid undefined variable
+errors or unknown window errors, in the following files: button.tk,
+forms.tk, grid.tk, java_setup.tk, jdk11_setup.tk, subs.tk, and
+toolbar.tk.
+
+9/17/97 (misfeature correction) If you selected a color after choosing
+the "more .." button in the color menu, the color wouldn't be
+propagated to the widget.
+
+9/17/97 (bug fix) The proc "OutFilter_font" in filters.tk would dump
+stack if given "bad" font size, e.g.. like "fixed,08"; or if there were
+space chars inside the font name like "fixed, 8 , bold"
+
+9/17/97 (bug fix) "auto save on exit" option in the pref dialog had no
+effect
+
+9/17/97 (bug fix) confirm save on compile" option in the pref dialog
+had no effect
+
+9/17/97 (bug fix) "sticky" and some other options sometimes did not
+show on properties dialog.
+
+9/22/97 (feature change) Changed license for SpecTcl and SpecTcl
+source to be free. See the file license.terms.  (RJ)
+
+---------------------------
+April 2001 taken over by Morten Skaarup Jensen
+
+Works for Tcl/Tk 8.4a2 widgets (i.e. spinbox)
+Other widget sets like BLT, Tix etc can be used
+WYSIWYG menu editor and code generation
+
+---------------------------
+European date system used from now on
+
+11/6/2001 (bug fix) No longer prompts for a filename when saving a
+project that was specified on the command line.
+
+11/6/2001 (bug fix) Cut, Copy & Paste between different frames now
+should work.
+
+11/6/2001 (bug fix) Correct menuname displayed when editing the menu
+name.
+
+11/6/2001 (improvement) Widgets & properties are now saved in the
+same sequence every time so that 'diff' clearly shows the changes.
+Especially useful under CVS.
+
+11/7/2001 (new feature) Properties of menu widgets can be directly
+editted and menu widgets can be copied.
+
+12/7/2001 (bug fix) Warning about unsaved changes now works correctly
+for menus.
+
+13/7/2001 (new feature) Row and column configuration can be done directly
+
+16/7/2001 (bug fix) Menu widget properties are now consistent with the
+toolbar.

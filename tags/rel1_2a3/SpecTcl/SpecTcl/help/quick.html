@@ -1,0 +1,237 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (X11; I; Linux 2.2.14 i586) [Netscape]">
+   <title>SpecTcl quick tips</title>
+</head>
+<body>
+<!-- Author: kcorey -->
+<center>
+<h1>
+<!-- SpecTcl, by S. A. Uhler --
+ -- Copyright (c) 1994-1995 Sun Microsystems, Inc. --
+ -- See the file "license.txt" for information on usage and redistribution
+ -- of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ --><!-- Author: kcorey -->Quick
+Tips</h1></center>
+
+<ul>
+<center><a href="#W">Widgets</a> | <a href="#L">Layout</a> | <a href="#U">Using
+the user interface</a> | <a href="#N">Navigation</a> | <a href="help.html">main
+help</a></center>
+</ul>
+
+<hr>
+<h2>
+<a NAME="W"></a><a NAME="W" HREF="#quick"></a><a href="#quick" name="W">Widgets</a></h2>
+
+<ul compact>
+<li>
+To <b>create</b> a widget, drag it from the palette onto the grid, or select
+a palette widget, and click on the grid. If you click or drag off the grid
+new cells will be added as necessary. Frames can only be clicked onto the
+grid once.</li>
+
+<li>
+To <b>select</b> a widget, click on it (or use the shift arrow keys).</li>
+
+<li>
+To <b>configure</b> a widget, select it, then:</li>
+
+<ul compact>
+<li>
+Use the tool-bar</li>
+
+<li>
+Use the option sheet - Double-click on the widget (or key <tt>control-w</tt>).</li>
+
+<li>
+Repeat the last change - key <tt>control-r</tt></li>
+</ul>
+
+<li>
+To <b>move</b> a widget, drag it to another location.</li>
+
+<li>
+To <b>copy</b> a widget, Shift-drag it to another location.</li>
+
+<li>
+To <b>Delete</b> a widget, select it, then hit the <tt>delete</tt> key,
+or press the delete button.</li>
+
+<li>
+To <b>change</b> a widget's <b>size</b>, make the widget stick to the sides
+of its cell, and then change the size of the cell by Dragging its
+<tt>row</tt>
+or <tt>column</tt> handle (at the left or top of the canvas) or the <tt>row</tt>
+or <tt>column</tt> gridline</li>
+
+<li>
+To <b>change</b> the <b>span</b> of a widget - select it, and drag its
+resize handles.</li>
+</ul>
+
+<h2>
+<a NAME="W"></a><a NAME="W" HREF="#quick"></a><a href="#quick" name="W">Menu
+Widgets</a></h2>
+
+<ul compact>
+<li>
+To do anything, first select the <b>"Edit Menus"</b> item from the "Edit"
+menu in the menubar in the main window.</li>
+
+<li>
+For more help, refer to the <a href="menueditor.html">menu editor</a> page</li>
+</ul>
+
+<h2>
+<a NAME="L"></a><a NAME="L" HREF="#quick"></a><a href="#quick" name="L">Layout</a></h2>
+
+<ul compact>
+<li>
+To <b>add</b> a new <b>row</b> or <b>column</b> - click on a grid line
+to select it, and press the insert key, or the insert button. To add <b>both</b>,
+click in a grid square to select both the row and column, and press the
+insert key.</li>
+
+<li>
+To <b>select</b> a <b>row</b> or <b>column</b></li>
+
+<ul compact>
+<li>
+<b>Click</b> on the row or column <b>handle</b> (it will turn the selection
+color as set in the Preferences, on the Appear tab).</li>
+
+<li>
+<b>Click</b> on an <b>empty cell</b>.</li>
+</ul>
+
+<li>
+To <b>delete</b> a row or column - select it and press the <tt>delete</tt>
+key or press the delete button.</li>
+
+<li>
+To <b>configure</b> a row or column - select it and select <b>"Row &amp;
+Column Properties..."</b> from the "Edit" menu in the menubar.</li>
+
+<li>
+To change row or column <b>resizeability</b> - select it and click on it.
+The <b>arrow shape</b> reflects its resizability.</li>
+
+<li>
+To make a <b>sub-grid</b>, create a <tt>frame</tt> widget.</li>
+
+<ul compact>
+<li>
+Use sub-grids when widgets don't align on rows and columns</li>
+</ul>
+</ul>
+
+<h2>
+<a NAME="U"></a><a NAME="U" HREF="#quick"></a><a href="#quick" name="U">Using
+the user interface</a></h2>
+
+<ul compact>
+<li>
+To <b>test</b> the interface, key <tt>control-t</tt>.</li>
+
+<li>
+To stop the test, key <tt>control-k</tt>.</li>
+
+<li>
+For a project named&nbsp;<color value=orange><i>foo</color></i></li>
+
+<ul compact>
+<li>
+The project is saved in the file&nbsp;<color value=orange><i>foo</color></i>.ui</li>
+
+<li>
+The <b>tcl</b> code is saved in the file&nbsp;<color value=orange><i>foo</color></i>.ui.tcl</li>
+
+<li>
+The <b>procedure</b> is called&nbsp;<color value=orange><i>foo_ui</color></i>,
+and
+is called with the name of the frame or toplevel it should be instantiated
+in.</li>
+
+<li>
+If the <b>application code</b> is in a file called&nbsp;<color value=orange><i>foo</color></i>.tcl,
+The application code will be run as part of <b>testing</b> the interface,
+and <u>must</u> call&nbsp;<color value=orange><i><tt>foo_ui</color></tt></i>.
+<b>MAC
+NOTE: </b>interfaces built on the Macintosh will have a type and creator
+of 'STui/Spec'. The resulting tcl file will have a type and creator of
+'TEXT/WIsH'.</li>
+</ul>
+
+<li>
+All widgets in an interface are <b>siblings</b> in the widget hierarchy,
+and named with the <b>item_name</b> option.</li>
+
+<li>
+For the <b>widget options</b> in the command property, The following substitutions
+are made:</li>
+
+<dl compact>
+<dt>
+%B</dt>
+
+<dd>
+The <b>base</b> portion of the widget name (e.g. the part of the name preceding
+the final ".").</dd>
+
+<dt>
+%R</dt>
+
+<dd>
+The parent of all of the widgets</dd>
+
+<dt>
+%M</dt>
+
+<dd>
+The geometry master for this widget</dd>
+
+<dt>
+%W</dt>
+
+<dd>
+The complete pathname of the widget</dd>
+</dl>
+
+<li>
+Additional Tcl code can be inserted into the user interface procedure after
+all of the widgets have been created using the <b>edit code</b> option
+of the edit menu.</li>
+</ul>
+
+<h2>
+<a NAME="N"></a><a NAME="N" HREF="#quick"></a><a href="#quick" name="N">Navigation</a></h2>
+
+<ul compact>
+<li>
+To <b>select</b> a widget, click on it.</li>
+
+<li>
+To <b>select</b> a row or column, click on its handle, or click in the
+empty cell.</li>
+
+<li>
+To <b>select</b> a row or column gridline click on it.</li>
+
+<li>
+To <b>select</b> the <b>next</b>widget, key <tt>Shift-right-arrow</tt>.</li>
+
+<li>
+To <b>select</b> the <b>previous</b> widget, key <tt>Shift-left-arrow</tt>.</li>
+
+<li>
+To <b>enter</b> a sub-frame, key <tt>down-arrow</tt>.</li>
+
+<li>
+To <b>enter</b> a parent frame, key <tt>up-arrow</tt>.</li>
+</ul>
+
+</body>
+</html>

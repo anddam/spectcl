@@ -1,0 +1,11 @@
+This directory contains three whimpy demos created with SpecJava.  Contributions
+are welcome.
+
+Demo1.jui
+	Simple use of parent class
+Demo2.jui
+    Simple database app.
+CupDemo.jui
+    Demonstrates applet embedding, needs to run as an applet.
+
+Stephen Uhler

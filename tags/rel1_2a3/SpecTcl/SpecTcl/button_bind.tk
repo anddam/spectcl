@@ -1,0 +1,198 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# generic procedures for managing button sweeping
+
+# setup the bindings for a button
+#  tag:		The window or tag to bind to this button
+#  button	The button number to bind to
+#  prefix	The function prefix for the binding procedures
+#    <prefix>_down:  The button went down
+#    <prefix>_start_sweep	We started a sweep
+#    <prefix>_sweep			We are sweeping
+#	 <prefix>_end_sweep		We ended the sweep (button up)
+#	 <prefix>_up			button up - no sweep
+#    each proc gets "%W %X %Y" by default
+#  gravity	The amount of sweeping needed to cause a "sweep"
+#  args		The arguments passed to the button functions
+#
+#  Calling sequences:
+#	 down -> up
+#    down -> start_sweep -> [sweep] -> end_sweep
+
+proc button_setup {win tag prefix {button 1} {gravity 3} {params {%W %X %Y}}} {
+    # set the bindings
+
+    bind $tag <Button-$button> "
+    	set Down $button
+    	set Lost 0
+    	set Root_x \[winfo rootx .\]
+    	set Root_y \[winfo rooty .\]
+    	set Shift \[expr %s&1\]
+    	set Alt \[expr (%s&64) > 0\]
+    	set Control \[expr (%s&4) > 0\]
+    	set New_hit $button
+    	set X0 %X; set Y0 %Y
+    	${prefix}_down $params
+    	update idletasks
+    	break
+    "
+    bind $tag <B${button}-Motion> "
+    	if {\$Lost == 1} {
+    		do_lost $tag $button %W %X %Y
+    		set Lost 0
+    		}
+    	button_drag $prefix %X %Y $gravity $params
+    	update idletasks
+    	break
+    "
+    bind $tag <ButtonRelease-${button}> "
+        set Down 0
+    	if {\$Lost} break
+    	set Lost 1
+    	# grab release \[grab current %W\]
+    	if {\$New_hit} {
+    		${prefix}_up $params
+    	} else {
+    		${prefix}_end_sweep $params
+    	}
+    	update idletasks
+    	break;
+    "
+
+#   bind $tag <3> {button_popupmenu %W %X %Y}
+}
+
+# Sometimes a button-down gets lost!.  If we see a button-motion,
+# simulate the button down.  We also need to manage the grab ourselves,
+# as X won't do it for us if the Button press is lost.
+# Since grabs are flakey too, use <bind all> instead
+# (It would probably be OK to ignore everything until the nect button push)
+
+proc do_lost {tag button win x y} {
+    global Shift _Message
+
+    # simulate a button down
+
+    set prefix [expr {$Shift ? "Shift-" : ""} ]
+    set _Message "Slow down, I'm having a hard time catching up!"
+    grab $win
+    set expr [bind_subst [bind $tag <$prefix$button>] "W $win" "X $x" "Y $y"]
+    set code [catch {uplevel #0 $expr} result]
+    if {$code == 1} {
+	return -code error $result
+    }
+}
+
+# whimpy version of do_lost
+
+proc do_lost {tag button win x y} {
+    #puts "lost button for $tag"
+    return -code break
+}
+
+# substitute bindings by hand (no error checking)
+# expr: expression to substitute
+# args: list of name value pairs
+
+proc bind_subst {expr args} {
+    set weird !~!	;# a string unlikely to appear
+    regsub -all  %%  $expr $weird expr	;# handle %%'s
+    foreach sub $args {
+	regsub -all %[lindex $sub 0] $expr [lindex $sub 1] expr
+    }
+    regsub -all $weird $expr % expr	;# put %'s back
+    return $expr
+}
+
+# undo the button bindings (for "run" mode) [obsolete]
+
+proc button_undo {tag {button 1}} {
+    bind $tag <Button-$button> {}
+    bind $tag <B${button}-Motion> {}
+    bind $tag <ButtonRelease-${button}> {}
+}
+
+# handle sweeping gets called during button motion
+
+proc button_drag {prefix x y gravity args} {
+    global New_hit X Y
+    if {$New_hit} {
+	if {[button_gravity $x $y $gravity]} {
+	    return
+	}
+	set New_hit 0
+	eval "${prefix}_start_sweep $args"
+    } else {
+	eval "${prefix}_sweep $args"
+    }
+}
+
+# return true if gravity is still on
+# X0 and Y0 (globals) containing the gravitational center
+
+proc button_gravity {x y gravity} {
+    global X0 Y0
+    return [expr abs($x-$X0) + abs($y-$Y0) < $gravity]
+}
+
+# button_popupmenu --
+#
+#	Popup a context menu.
+#
+# Arguments:
+#	w:	The widget in which the mouse button is pressed.
+#
+# Results:
+#	None.
+
+proc button_popupmenu {w X Y} {
+    global Current palette_check P
+
+    set menu .contextMenu
+
+    if ![winfo exists $menu] {
+	menu $menu -tearoff 0
+    } else {
+	$menu delete 0 end
+    }
+
+    if {"[winfo parent $w]" == ".palette.f"} {
+	#
+	# Popup menu for the widget classes
+	#
+	set class [winfo name $w]
+
+	$menu add command -label "Generic Options ..." \
+	    -command "select_palette $w; activate_generic $class true"
+
+	set palette_check [expr {$Current(selected_widget_type) == $w}]
+
+	$menu add checkbutton -label "Auto-drop $class" \
+	    -command "palette_autodrop $w $palette_check" \
+	    -variable palette_check -onvalue 1 -offvalue 0
+    } else {
+	#
+	# Popup menu for the widget instance -- not implemented
+	#
+	return
+    }
+
+    tk_popup $menu $X $Y
+}
+
+proc palette_autodrop {w wasAutoDrop} {
+    global Current P
+
+    if {$wasAutoDrop} {
+	unselect_palette
+    } else {
+	select_palette $w
+	if {$P(op-sheet-handling) > 1 && [winfo ismapped .widget]} {
+	    activate_generic [winfo name $w] true
+	}
+    }
+}

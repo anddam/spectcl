@@ -1,0 +1,76 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (X11; I; Linux 2.2.14 i586) [Netscape]">
+</head>
+<body>
+
+<h1>
+The Menueditor</h1>
+The menueditor is opened by selecting "Edit" in the main menubar and hereafter
+selecting the "Edit Menus..." item. It is still under development, so you
+might like to see the list of <a href="bugs.html">known bugs and shortcomings</a>.
+<p>The left part of the window is for managing the menus as a whole, while
+the right side is for managing the individual items in each menu.
+<p>A demo of the menu is shown in the top left corner of your screen. Do
+not click on this menu as it is only for visual demonstration. Use the
+arrow keys in the menueditor window to select different items in the menu.
+<h2>
+Managing Menus</h2>
+The left part of the window is for managing the menus as whole entities.
+The listbox shows the widget names of all existing menus. The one selected
+here will be shown in the top left hand corner of the screen and can be
+editted in the right hand side of the menu editor window. It is up to the
+user to name the menus so that they comply with correct Tcl/Tk syntax.
+The file <b>demo/newmenudemo.ui</b> is a good example of how to do this.
+<ul>
+<li>
+New menus are added with the <i>New</i> button</li>
+
+<li>
+Copy a menu (non-recursively) with the <i>Copy</i> button</li>
+
+<li>
+Delete a menu with the <i>Remove</i> button</li>
+
+<li>
+If for some reason the demo menu gets hidden, it can be redisplayed with
+the <i>View/Post</i> button</li>
+</ul>
+
+<h2>
+Menu Properties</h2>
+The overall properties of a menu can be edited with the same tools as used
+for other widgets (but only when the menueditor window is open). The window
+for editting widget properties is obtained either by pressing Ctrl-w or
+by selecting the "Widget Properties..." item in the "Edit" menu in the
+main window. Common properties such as font and background color can be
+changed quickly from the toolbar in the main window.
+<h2>
+Managing Items</h2>
+The right part of the menueditor window shows the available properties
+for the selected item in the selected menu. These can be changed by editing
+the values and pressing the <i>Update</i> button or the <i>Return</i> key
+on your keyboard. The type should always be set first as it resets all
+the other values. Other things that one can do are:
+<ul>
+<li>
+Add a new menu-item to the end of the menu with the <i>Add</i> button or
+by pressing the down arrow key when the last item is selected.</li>
+
+<li>
+Insert a new menu-item just before the selected item by pressing the <i>Insert</i>
+button or the <i>Insert</i> button on your keyboard.</li>
+
+<li>
+Select another item by using the arrow keys on your keyboard.</li>
+
+<li>
+Delete an item by pressing the <i>Delete</i> button. When the focus is
+not in an entry, the <i>Delete</i> button on the keyboard also does this.</li>
+</ul>
+
+<br>&nbsp;
+</body>
+</html>

@@ -1,0 +1,124 @@
+# README --
+#
+# SCCS: @(#) README 1.2 97/07/30 14:45:44
+
+# Each "paragraph" describes an example application
+# most of which are explained in detail in the
+# SpecTcl User's Guide. Some are interesting in 
+# themselves; others are only meant to complement
+# the explanation in the gude.
+
+# After you build the exAssemS.ui assembly, you should
+# run it's partner: exAssemM.ui. The exAssemM.ui
+# example loads exAssemS.ui twice to show the
+# widget name qualification that enables this to
+# work.
+
+# The exAssemM.ui example demonstrates how you
+# can develop some interfaces as subassemblies
+# and then load them at run-time into frames. 
+# First you must do a build of exAssemS.ui so you
+# have the Tcl file exAssemS.ui.tcl. Then run 
+# build and run exAssemM.ui.
+# The main point is that the scale assembly
+# exAssemS.ui.tcl is loaded twice. To see the name
+# qualification that makes this work, look at
+# the code generated for exAssemM.ui.tcl. And 
+# note how the statements below load exAssemS_ui 
+# into frames.
+
+
+# The exButton.ui example demonstrates that a button
+# can display an image file instead of text.
+
+# The exCheckbutton.ui example demonstrates the
+# way a script determines which checkbutton was clicked.
+
+# The exEntry.ui example shows how to bind an
+# individual entry widget to a Key-Return event
+# and how to use a bindtag (Entry) that bind
+# all entry widgets to a Key-Return event.
+
+# The exFrame.ui example is used to show how to
+# select the frame and elements within the frame.
+# It also demonstrates how the frame can pass on
+# application-window space to its children, and how
+# this is under your control as design time.
+
+# The exHello.ui example shows how to call a proc from 
+# a button's command property
+
+# The exLabel1.ui example shows a label displaying text 
+# to identify another widget
+
+# The exLabel2.ui example toggles between showing a
+# long and short strings to show how the interface
+# adjusts.
+
+# The exListbox.ui example demonstrates the working
+# of a listbox. After, displaying four items in the
+# listbox, the script displays text and an image when
+# any of the listbox items is clicked.
+
+# The exLong1.ui example shows:
+# -- How to capture text from an entry widget 
+#    when the user presses the Return key.
+# -- How to use the Button command property to 
+#    call a proc.
+#
+
+# The exMenubutton.ui example shows how a script
+# builds menus and how menubuttons communicate with
+# the script.
+
+# The exMessage.ui example demos the message widget. 
+# When you enter a long string of text in the entry widget
+# and press the Return key, the message widget adds
+# newline characters and displays the message. When you 
+# click on a button, you change the aspect property of 
+# the message widget.
+
+# The exRadiobutton.ui example shows the way
+# a script can determine which radiobutton 
+# was "pushed".
+
+# The exRadiobutton2.ui example demonstrates the way
+# labels can resize themselves to accommodate the text
+# or image that they are currently displaying
+
+# The exRelief.ui example demonstrates each of the options
+# for the relief property: plain, raised, sunken,
+# ridge, and groove.
+
+# The exResize.ui example shows the affect of
+# setting resizeability on and off for rows and
+# columns. After building and running this application,
+# resize the application window and notice which
+# widget change size and which stay the same.
+
+# The exScale.ui example shows the following:
+# -- That moving the scale changes the value.
+# -- That changing the value (by clicking on the
+#    +5 or -5 buttons) causes the scale to move.
+# -- That when you tie the scale value to a widget
+#    (the width of the "resizable" label), that 
+#    a width of 0 (which means "resize yourself" is
+#    actually wider than, say a width of 5.
+
+# The exScrollbar.ui example show how the scrollbar
+# widget interacts with the text widget.
+
+# The exSize1.ui example has a default sticky property 
+# so that the widgets are self-sized. Contrast this with
+# exSize2.ui.
+
+# The exSize2.ui example has a sticky property of ew
+# so that the widgets are aligned. Contrast this with
+# exSize1.ui.
+
+# The exSticky.ui example shows the various positions
+# a widget takes in its grid cell with different
+# sticky properties
+
+# The exText.ui example shows how the text and
+# scrollbar widgets work and interact.
