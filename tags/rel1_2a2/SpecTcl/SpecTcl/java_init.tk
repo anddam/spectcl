@@ -1,0 +1,67 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# code to set java mode - use as alternate startup file
+
+# puts stderr "Starting java support"
+Source java_setup.tk	;# Java code generator
+
+# make sure the java binary is in the user's path, and find a pointer 
+# to the java documentation:   Set "doc_dir" as needed for non-standard installations
+
+add_menuitem "Help" "Java notes" {html_help javanotes.html}
+set found 0
+
+# the following 2 lines can be "patched" from the windows installer
+# to prevent the dialogs below from appearing
+if {![info exists P(skip_nojava)]} {
+    set P(skip_nojava) 0
+}
+if {![info exists P(skip_nodocs)]} {
+    set P(skip_nodocs) 0
+}
+
+set skip_nodocs $P(skip_nodocs)
+set skip_nojava $P(skip_nojava)
+
+global tcl_platform
+if {$tcl_platform(platform) == "macintosh"} {
+    return
+}
+
+foreach path [split $env(PATH) $P(path_sep)] {
+    if {[file executable [file join $path java$P(exe_suffix)]]} {
+	incr found
+	break
+    }
+}
+if {!$found} {
+    set msg "Can't find java in your path, Java testing and help will be disabled."
+    if {$skip_nojava == 0} {set P(skip_nojava) [tk_dialog .warn Notice $msg warning 0 OK "Don't show this\n warning in future."]}
+    set P(skip_nodocs) $P(skip_nojava)
+    return
+}
+
+# set doc_dir to the directory containing the java api docs
+
+set found 0
+foreach path [split $env(PATH) $P(path_sep)] {
+    if {[set look [glob -nocomplain [file join $path apibook index.htm]]] != ""} {
+	incr found
+	break
+    }
+}
+if {[llength $look] < 1} {
+    set msg "Can't find java-api documentation. You may download this from http://www.javasoft.com:80/products/jdk/1.1/docs/api/packages.html"
+    append msg "It will not be accessable from the help menu."
+    set result 0
+    if {$skip_nodocs == 0} {set P(skip_nodocs) [tk_dialog .java Error  $msg error 0 OK "Don't show this\n warning in future."]}
+    set P(skip_nojava) $P(skip_nodocs)
+} else {
+    add_menuitem "Java notes" "Java api" "
+	html_help index.htm [file join $path apibook]
+    "
+}

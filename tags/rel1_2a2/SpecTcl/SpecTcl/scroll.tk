@@ -1,0 +1,129 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# figure out how to attach scroll bars
+
+# determine which widgets are scrollable by scrollbars in the same row/col
+
+proc find_scrollable {} {
+	global Widget_data Scroll_column Scroll_row
+	set widgets [array names Widget_data default:*,xscrollcommand]
+	regsub -all {default:([^,]+),xscrollcommand} $widgets {\1 } Scroll_column
+	set widgets [array names Widget_data default:*,yscrollcommand]
+	regsub -all {default:([^,]+),yscrollcommand} $widgets {\1 } Scroll_row
+}
+
+proc scroll_attach {} {
+	global Widgets Scroll_row Scroll_column
+
+	# find scrollbars and scrollable items
+
+	find_scrollable
+
+	dputs $Scroll_row $Scroll_column
+	set scrollbars ""; set scrollable_row ""; set scrollable_column ""
+	foreach win [array names Widgets] {
+		if {$win == "f"} continue
+		upvar #0 $win data
+		if {[string match *$data(type)* $Scroll_row]} {
+			lappend scrollable_row $win
+		}
+		if {[string match *$data(type)* $Scroll_column]} {
+			lappend scrollable_column $win
+		} elseif {$data(type) == "scrollbar"} {
+			lappend scrollbars $win
+		}
+	}
+	dputs scrollbars: $scrollbars <$scrollable_row> <$scrollable_column>
+	set num_scrolls [llength $scrollbars]
+
+	# find candidates for each scrollbar
+
+	foreach scrollbar $scrollbars {
+		upvar #0 $scrollbar data
+		set master $data(master)
+		array set map {row column column row}
+		if {[string match v* $data(orient)] == 0} {
+			set dim column
+		} else {
+			set dim row
+		}
+		set orient($scrollbar) $dim
+		set pos $data($dim)		;# row or column number
+		set offset $data($map($dim))
+		set distance 99			;# distance from nearest scrollable item
+		foreach item [set scrollable_$dim] {
+			upvar #0 $item data
+			if {$master != $data(master)} continue	;# wrong master
+			if {$pos != $data($dim)} continue		;# wrong row or column
+			set delta [expr abs($offset - $data($map($dim)))]
+			if {$delta < $distance} {
+				set candidate($scrollbar) $item
+				set distance $delta
+			} elseif {$delta == $distance} {
+				lappend candidate($scrollbar) $item
+			}
+		}
+	}
+
+	# start assigning scrollbars
+	# do the easy ones first (1 candidate), then remove candidate from lists
+
+	set assign 1
+	while {$assign && [set list [array names candidate]] != ""} {
+		set assign 0
+			
+		# process all scrollbars with 1 possible entry
+
+		dputs loop $list
+		foreach i $list {
+			dputs <$candidate($i)> == 1 ??
+			if {[llength $candidate($i)] == 1} {
+				scroll_associate $i $candidate($i) $orient($i)
+				set assign 1
+				lappend done($candidate($i)) $orient($i)
+				unset candidate($i)
+			}
+		}
+		# puts "new candidate list"
+		# parray candidate
+		# puts "assigned widgets"
+		# parray done
+
+		# remove assigned widgets (slow for now)
+
+		foreach i [array names candidate] {
+			set list $candidate($i)
+			foreach j [array names done] {
+				dputs remove? done: $j ($done($j)) from: $i=$list
+				if {[lsearch -exact $done($j) $orient($i)] == -1} continue
+				dputs orient match $j in $list
+				if {[set found [lsearch -exact $list $j]] != -1} {
+					dputs removing: $list element $found
+					set candidate($i) [lreplace $list $found $found]
+					dputs ------to: $candidate($i)
+				}
+			}
+		}
+		catch "unset done"
+	}
+	return "$num_scrolls scrollbar(s) found"
+}
+
+# configure the scroll bar and its associated widget to make the attachment
+
+proc scroll_associate {scroll widget orient} {
+	dputs $scroll $widget by $orient
+	upvar #0 $scroll sc
+	upvar #0 $widget w
+	if {$orient == "column"} {
+		set sc(command) "%B.$w(item_name) xview"
+		set w(xscrollcommand) "%B.$sc(item_name) set"
+	} else {
+		set sc(command) "%B.$w(item_name) yview"
+		set w(yscrollcommand) "%B.$sc(item_name) set"
+	}
+}

@@ -1,0 +1,108 @@
+WidGet file, version 1.1, created:  Thu May 10 16:33:52 CEST 2001
+Widget button#1
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname button#1
+	configure font Helvetica,12,Bold
+	other tabbing {}
+	other item_name butOk
+	geometry row 2
+	other type button
+	configure text Ok
+	geometry column 1
+	other comments {}
+Widget label#1
+	geometry row 1
+	other type label
+	other master {}
+	configure text {Name of Menu}
+	other pathname label#1
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other item_name label#1
+	other tabbing {}
+Widget button#2
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure command {destroy %R}
+	other master {}
+	other pathname button#2
+	configure font Helvetica,12,Bold
+	other tabbing {}
+	other item_name butCancel
+	geometry row 2
+	other type button
+	configure text Cancel
+	geometry column 2
+	other comments {}
+Widget f
+	other generic_options {button {activebackground #dcdcdc activeforeground #000000 activetile {} anchor center background #dcdcdc bitmap {} borderwidth 2 command {} comments {} cursor {} default disabled disabledforeground #a3a3a3 disabledtile {} error {- button configuration -} font Helvetica,12,Bold foreground #000000 height 0 help {} highlightbackground #dcdcdc highlightcolor #000000 highlightthickness 1 image {} item_name sample_button justify center level {} master {} offset 0,0 padx 9 pady 3 pathname sample_button relief raised state normal tabbing {} tags {} takefocus {} text button textvariable {} tile {} type button underline -1 width 0 wraplength 0
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 0}
+	other type frame
+	other code {bind $root <Key-Return> "$base.butOk invoke"
+bind $root <Key-Escape> "$base.butCancel invoke"
+focus $base.eName
+
+$base.butOk config -command "
+   switch [lindex $args  0] {
+      new {::menueditor::getname::new \[$base.eName get\]}
+      rename {::menueditor::getname::rename \[$base.eName get\]}
+   }
+   destroy $root
+"
+
+
+
+
+}
+	other min_row {30 30}
+	other master {}
+	other pathname f
+	other tags {}
+	other resize_column {0 0}
+	other level 0
+	configure background #e9e9e9
+	other help {}
+	other min_column {30 30}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget entry#1
+	configure textvariable entry
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname entry#1
+	other tabbing {}
+	other item_name eName
+	geometry row 1
+	other type entry
+	geometry column 2
+	other comments {}
+

@@ -1,0 +1,175 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+   <TITLE>SpecTcl quick tips</TITLE>
+   <META NAME="GENERATOR" CONTENT="Mozilla/3.01Gold (X11; I; SunOS 5.4 sun4m) [Netscape]">
+</HEAD>
+<BODY>
+
+<P><!-- Author: kcorey --></P>
+
+<H1 ALIGN=CENTER><!-- SpecTcl, by S. A. Uhler --
+ -- Copyright (c) 1994-1995 Sun Microsystems, Inc. --
+ -- See the file "license.txt" for information on usage and redistribution
+ -- of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ --><!-- Author: kcorey -->Quick
+Tips </H1>
+
+<UL>
+<CENTER><P><A HREF="#W">Widgets</A> | <A HREF="#L">Layout</A> | <A HREF="#U">Using
+the user interface</A> | <A HREF="#N">Navigation</A> | <A HREF="help.html">main
+help</A> </P></CENTER>
+</UL>
+
+<P>
+<HR></P>
+
+<H2><A NAME="W"></A><A HREF="#quick" name="W">Widgets</A></H2>
+
+<UL compact>
+<LI>To <B>create</B> a widget, drag it from the palette onto the grid,
+or select a palette widget, and click on the grid. If you click or drag
+off the grid new cells will be added as necessary. Frames can only be clicked
+onto the grid once. </LI>
+
+<LI>To <B>select</B> a widget, click on it (or use the shift arrow keys).
+</LI>
+
+<LI>To <B>configure</B> a widget, select it, then: </LI>
+
+<UL compact>
+<LI>Use the tool-bar </LI>
+
+<LI>Use the option sheet - Double-click on the widget (or key <TT>control-w</TT>).
+</LI>
+
+<LI>Repeat the last change - key <TT>control-r</TT> </LI>
+</UL>
+
+<LI>To <B>move</B> a widget, drag it to another location. </LI>
+
+<LI>To <B>copy</B> a widget, Shift-drag it to another location. </LI>
+
+<LI>To <B>Delete</B> a widget, select it, then hit the <TT>delete</TT>
+key, or press the delete button. </LI>
+
+<LI>To <B>change</B> a widget's <B>size</B>, make the widget stick to the
+sides of its cell, and then change the size of the cell by Dragging its
+<TT>row</TT> or <TT>column</TT> handle (at the left or top of the canvas)
+or the <TT>row</TT> or <TT>column</TT> gridline </LI>
+
+<LI>To <B>change</B> the <B>span</B> of a widget - select it, and drag
+its resize handles. </LI>
+</UL>
+
+<H2><A NAME="L"></A><A HREF="#quick" name="L">Layout</A></H2>
+
+<UL compact>
+<LI>To <B>add</B> a new <B>row</B> or <B>column</B> - click on a grid line
+to select it, and press the insert key, or the insert button. To add <B>both</B>,
+click in a grid square to select both the row and column, and press the
+insert key. </LI>
+
+<LI>To <B>select</B> a <B>row</B> or <B>column</B> </LI>
+
+<UL compact>
+<LI><B>Click</B> on the row or column <B>handle</B> (it will turn the selection
+color as set in the Preferences, on the Appear tab). </LI>
+
+<LI><B>Click</B> on an <B>empty cell</B>. </LI>
+</UL>
+
+<LI>To <B>delete</B> a row or column - select it and press the <TT>delete</TT>
+key or press the delete button. </LI>
+
+<LI>To change row or column <B>resizeability</B> - select it and click
+on it. The <B>arrow shape</B> reflects its resizability. </LI>
+
+<LI>To make a <B>sub-grid</B>, create a <TT>frame</TT> widget. </LI>
+
+<UL compact>
+<LI>Use sub-grids when widgets don't align on rows and columns </LI>
+</UL>
+</UL>
+
+<H2><A NAME="U"></A><A HREF="#quick" name="U">Using the user interface</A></H2>
+
+<UL compact>
+<LI>To <B>test</B> the interface, key <TT>control-t</TT>. </LI>
+
+<LI>To stop the test, key <TT>control-k</TT>. </LI>
+
+<LI>For a project named <color value=orange><I>foo</color></I> </LI>
+
+<UL compact>
+<LI>The project is saved in the file <color value=orange><I>foo</color></I>.ui
+</LI>
+
+<LI>The <B>tcl</B> code is saved in the file <color value=orange><I>foo</color></I>.ui.tcl
+</LI>
+
+<LI>The <B>procedure</B> is called <color value=orange><I>foo_ui</color></I>,
+and is called with the name of the frame or toplevel it should be instantiated
+in. </LI>
+
+<LI>If the <B>application code</B> is in a file called <color value=orange><I>foo</color></I>.tcl,
+The application code will be run as part of <B>testing</B> the interface,
+and <U>must</U> call <color value=orange><I><TT>foo_ui</color></TT></I>.
+<B>MAC&nbsp;NOTE: </B>interfaces built on the Macintosh will have a type
+and creator of 'STui/Spec'. The resulting tcl file will have a type and
+creator of 'TEXT/WIsH'.</LI>
+</UL>
+
+<LI>All widgets in an interface are <B>siblings</B> in the widget hierarchy,
+and named with the <B>item_name</B> option. </LI>
+
+<LI>For the <B>widget options</B> in the command property, The following
+substitutions are made: </LI>
+
+<DL compact>
+<DT>%B </DT>
+
+<DD>The <B>base</B> portion of the widget name (e.g. the part of the name
+preceding the final &quot;.&quot;). </DD>
+
+<DT>%R </DT>
+
+<DD>The parent of all of the widgets </DD>
+
+<DT>%M </DT>
+
+<DD>The geometry master for this widget </DD>
+
+<DT>%W </DT>
+
+<DD>The complete pathname of the widget </DD>
+</DL>
+
+<LI>Additional Tcl code can be inserted into the user interface procedure
+after all of the widgets have been created using the <B>edit code</B> option
+of the edit menu. </LI>
+</UL>
+
+<H2><A NAME="N"></A><A HREF="#quick" name="N">Navigation</A></H2>
+
+<UL compact>
+<LI>To <B>select</B> a widget, click on it. </LI>
+
+<LI>To <B>select</B> a row or column, click on its handle, or click in
+the empty cell. </LI>
+
+<LI>To <B>select</B> a row or column gridline click on it. </LI>
+
+<LI>To <B>select</B> the <B>next</B>widget, key <TT>Shift-right-arrow</TT>.
+</LI>
+
+<LI>To <B>select</B> the <B>previous</B> widget, key <TT>Shift-left-arrow</TT>.
+</LI>
+
+<LI>To <B>enter</B> a sub-frame, key <TT>down-arrow</TT>. </LI>
+
+<LI>To <B>enter</B> a parent frame, key <TT>up-arrow</TT>. </LI>
+</UL>
+
+</BODY>
+</HTML>

@@ -1,0 +1,100 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# This file contains misc. routines that should be rewritten
+# to support these three functions on your particular editor.
+
+# The procedure called to (re)open a file in the editor, possibly
+# providing a line number.
+proc edit_openFile {editor filename {line {}}} {
+    global env f Clip P Base_dir
+    set filename [subs_uniquefile \#tmp .tcl]
+    if {![catch {open $filename w} msg] && $msg != ""} {
+	set file $msg
+	append f(code) {}
+	puts -nonewline $file $f(code)
+	close $file
+	set startport 9000
+	while {![catch "socket localhost $startport"]} {
+	    incr startport
+	}
+	if {![catch "socket -server edit_socketService $startport" msg]} {
+	    exec [info nameofexecutable] [file join $Base_dir edit_runner.tk] $editor $filename $startport &
+	    set P(current_editted_file) $filename
+	} else {
+	    tk_messageBox -message "Can't open communications socket on port $startport." -type ok -icon error
+	    return 1
+	}
+    }
+    return 0
+}
+
+proc edit_socketService {channel address port} {
+    fconfigure $channel -blocking 0 -buffering none
+    fileevent $channel readable "edit_doneCallback $channel $port"
+}
+# Attempt to tell the editor to save the file
+# returns:
+#  0 - Successfully told the editor to save the file.
+#  1 - Couldn't tell the editor to save the file.
+proc edit_saveFile {filename} {
+    return 1
+}
+
+# This procedure should return numeric status codes
+# 0 - No file loaded/File has no changes/File saved
+# 1 - File has changes to save
+proc edit_statusFile {filename} {
+    global P
+    if {$P(current_editted_file) != ""} {
+	return 1
+    }
+    return 0
+}
+
+proc edit_doneCallback {ch file} {
+    global P f
+    fileevent $ch r {}
+    close $ch
+    set filename $P(current_editted_file)
+    if {![catch {open $filename r} msg] && $msg != ""} {
+	set file $msg
+	if {![catch {read $file} msg]} {
+	    set f(code) $msg
+	} else {
+	    tk_messageBox -message "Error reading $filename back into SpecTcl." -type ok -icon error
+	}
+	catch {close $file}
+	catch {file delete $filename}
+    } else {
+	tk_messageBox -message "Error '$msg' opening $filename to read it back into SpecTcl." -type ok -icon error
+    }
+    set P(current_editted_file) {}
+}
+
+proc edit_olddoneCallback {file} {
+    global P f
+    if {[eof $file]} {
+	fileevent $file r {}
+	#    set dummy [read $file]
+	set filename $P(current_editted_file)
+	if {![catch {open $filename r} msg] && $msg != ""} {
+	    set file $msg
+	    if {![catch {read $file} msg]} {
+		set f(code) $msg
+	    } else {
+		tk_messageBox -message "Error reading $filename back into SpecTcl." -type ok -icon error
+	    }
+	    catch {close $file}
+	} else {
+	    tk_messageBox -message "Error opening $filename to read it back into SpecTcl." -type ok -icon error
+	}
+	catch {file delete $filename}
+	set P(current_editted_file) {}
+    } else {
+	read $file
+    }
+}

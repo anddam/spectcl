@@ -1,0 +1,127 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# manage resize behavior of rows and columns
+# Each row or column is either resizable, or not.  The data associated
+# with the resize behavior is kept in a list, one element per row/col, 
+# kept in the frame's widget array in the options resize_row and
+# resize_column.
+
+# Each element may have the following values:
+#	0  don't resize (the default)
+#	1  don't resize (Specified by the user)
+#	2  resize - picked by the ui builder
+#	3  resize - picked by the user
+
+# In addition, min_row and min_column is a list of minimum row and
+# column sizes, which track along with the resize behavior
+
+# insert a new row/column onto the resize list
+#   table:  Which frame the grid belongs to
+#   what:   row/column
+#   index:  Which row or column #
+
+proc resize_insert {table what index {resize 0} {min 0}} {
+    global P
+    upvar #0 [winfo name $table] data
+    set index [expr $index/2 -1]
+    dputs $table $what $index
+    if {$index < 0} return
+    if {!$min} {set min $P(grid_spacing)}
+    if {[info exists data(resize_$what)]} {
+	dputs $data(resize_$what)
+	set data(resize_$what) [linsert $data(resize_$what) $index $resize]
+	set data(min_$what) [linsert $data(min_$what) $index $min]
+	set i 2
+	foreach qq $data(resize_$what) {
+	    if {$qq < 2} {
+		set wt 1
+	    } else {
+		set wt 1000
+	    }
+	    grid ${what}configure $table $i -weight $wt
+	    incr i 2
+	}
+	arrow_shapeall .can $table $what
+    } else {
+	set data(resize_$what) $resize
+	set data(min_$what) $min
+    }
+    dputs $data(resize_$what) $data(min_$what)
+}
+
+# delete a row or column from the resize list
+
+proc resize_delete {table what index} {
+	upvar #0 [winfo name $table] data
+	global _Message
+	dputs $table $what $index
+	set index [expr $index/2 -1]
+	catch {
+		set data(resize_$what) [lreplace $data(resize_$what) $index $index]
+		set data(min_$what) [lreplace $data(min_$what) $index $index]
+		arrow_shapeall .can $table $what
+	}
+}
+
+# initialize a resize list
+# Args are subject to change
+# This routine will probably go away
+
+proc resize_init {table rows cols spacing} {
+	global P
+	upvar #0 [winfo name $table] data
+	dputs $table $rows $cols
+	while {[incr rows -1] >= 0} {
+		lappend row 0
+		lappend row2 $spacing
+	}
+	while {[incr cols -1] >= 0} {
+		lappend col 0
+		lappend col2 $spacing
+	}
+	if {![info exists data(resize_column)]} {
+		dputs column $col
+		set data(resize_column) $col
+		set data(min_column) $col2
+	}
+	if {![info exists data(resize_row)]} {
+		set data(resize_row) $row
+		set data(min_row) $row2
+		dputs row $col
+	}
+}
+
+# set/clear/or toggle the resize behavior
+
+proc resize_set {table what index {value ""}} {
+	set index [expr $index/2 -1]
+	upvar #0 [winfo name $table] data
+	
+	dputs $table $what $index <$data(resize_$what)>
+	set current [lindex $data(resize_$what) $index]
+	if {$value == ""} {
+		set value [expr {$current < 2 ? 3 : 1}]
+	}
+	set data(resize_$what) [lreplace $data(resize_$what) $index $index $value]
+	return $value
+}
+
+# set the min size value
+
+proc resizemin_set {table what index {value 0}} {
+    if {$index > 1} {
+	set index [expr $index/2 -1]
+	upvar #0 [winfo name $table] data
+	
+	dputs $table $what $index <$data(min_$what)>
+	set current [lindex $data(min_$what) $index]
+	set data(min_$what) [lreplace $data(min_$what) $index $index $value]
+	return $value
+    } else {
+        return {}
+    }
+}

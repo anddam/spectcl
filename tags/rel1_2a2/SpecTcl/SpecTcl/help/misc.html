@@ -1,0 +1,105 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (X11; I; Linux 2.2.14 i586) [Netscape]">
+   <title>SpecTcl Miscellaney</title>
+<!-- SpecTcl, by S. A. Uhler --
+ -- Copyright (c) 1994-1995 Sun Microsystems, Inc. --
+ -- See the file "license.txt" for information on usage and redistribution
+ -- of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ -->
+</head>
+<body>
+
+<center>
+<h1>
+Miscellaneous Stuff</h1></center>
+
+<ul>
+<li src="aqball.gif">
+SpecTcl looks at the following environment variables:</li>
+
+<dl>
+<dt>
+SPECTCL_DIR</dt>
+
+<dd>
+The directory that contains the SpecTcl source files</dd>
+
+<dt>
+SPECTCL_SIZE</dt>
+
+<dd>
+If specified, each font used by SpecTcl is increased (or decreased) in
+size by this amount (in points).</dd>
+
+<dt>
+SPECTCL_HELP</dt>
+
+<dd>
+The directory containing the SpecTcl help files</dd>
+
+<dt>
+SPECTCL_RC</dt>
+
+<dd>
+An alternate location for the SpecTcl startup file.</dd>
+</dl>
+</ul>
+
+<ul>
+<li src="aqball.gif">
+Extra widget sets can be specified in the .SpecTclrc file:</li>
+
+<dl>&nbsp;
+<br>To the end of this file add an array that as field names has the packages
+that one wishes to load in with "package require". Only commands that are
+imported into the namespace can be used - the commands that one wishes
+to import into the namespace must be specified as the value e.g.
+<p><i>namespace eval :: {</i>
+<br><i>&nbsp;&nbsp; # BLT</i>
+<br><i>&nbsp;&nbsp; set ExtraWidgets(BLT) [list blt::barchart blt::graph
+blt::hierbox blt::stripchart]</i>
+<p><i>&nbsp;&nbsp; # Tix</i>
+<br><i>&nbsp;&nbsp; set ExtraWidgets(Tix) [list]</i>
+<p><i>&nbsp;&nbsp; # Tktable</i>
+<br><i>&nbsp;&nbsp; set ExtraWidgets(Tktable) [list]</i>
+<p><i>&nbsp;&nbsp; # Iwidgets: need to load [Incr Tcl] first</i>
+<br><i>&nbsp;&nbsp; package require Itcl</i>
+<br><i>&nbsp;&nbsp; namespace import itcl::*</i>
+<br><i>&nbsp;&nbsp; set ExtraWidgets(Iwidgets) [list iwidgets::notebook
+iwidgets::tabset iwidgets::watch]</i>
+<p><i>&nbsp;&nbsp; # BWidgets: need to rename commands because they start
+with</i>
+<br><i>&nbsp;&nbsp; # an upper case letter</i>
+<br><i>&nbsp;&nbsp; proc bwtree {args} {uplevel Tree $args}</i>
+<br><i>&nbsp;&nbsp; set ExtraWidgets(BWidget) [list bwtree]</i>
+<br><i>}</i>
+<p>Adding the above block to the end of the .SpecTclrc file would include
+the four specified widgets from the BLT package, all widgets from the <i>Tix</i>
+and <i>TkTable</i> packages, the three specified widgets from <i>IWidgets</i>
+and the <i>Tree</i> widget from <i>BWigets</i>. Note that <i>Tix</i> and
+<i>TkTable</i> have no namespace, so all widgets are included (on rare
+ocassions it is still necessary to specify widgets, even though they are
+not in a namespace). Note that Itcl must be specifically loaded in the
+case of <i>IWidgets</i>. <i>BWidgets</i> is tricky due to its uppercase
+widget commands. There might be other quirks for these packages, other
+packages and other versions of these packages
+<p>If you use these widgets and wish to test them, remember to add the
+relevant lines to Preferences|Options|Output - something like:
+<p><i>package require BLT</i>
+<br><i>namespace import blt::barchart blt::graph blt::hierbox blt::stripchart</i>
+<br><i>package require Tix</i>
+<br><i>package require Tktable</i>
+<br><i>package require Itcl</i>
+<br><i>namespace import itcl::*</i>
+<br><i>package require Iwidgets</i>
+<br><i>namspace import iwidgets::*</i>
+<br><i>proc bwtree {args} {uplevel Tree $args}</i>
+<br><i>package require BWidget</i>
+<br>&nbsp;</dl>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# Outlines serve 2 purposes.
+# 1) The function as a container to hold the resize handles
+# 2) They "block out" the parts of grid lines for widgets that span
+#    multiple rows or columns
+
+# Outlines are expensive to maintain, so create
+# them only if a widget has a row or column span > 1 *OR* the widget
+# is currently selected - so the resize handles will show.
+# This should be re-coded to avoid using variable traces, which tend to
+# be hard to debug, and can have subtle side effects
+
+# the outline is drawn as a child of the frame the widget is managed in, so
+# it is easy to find all outlines for a given frame, in case we need to
+# change their color.
+
+# associate an outline with a widget.
+# this sets a trace on the widgets rowspan and columnspan array elements
+# delete any old trace (if any) just in case we left one around
+
+proc outline_create {name} {
+	global $name
+	dputs "Creating trace for $name"
+	trace vdelete ${name}(rowspan) w outline_trace
+	trace vdelete ${name}(columnspan) w outline_trace
+	trace variable ${name}(rowspan) w outline_trace
+	trace variable ${name}(columnspan) w outline_trace
+}
+
+# remove the variable trace from an outline (not used)
+
+proc outline_remove {name} {
+	global $name
+	dputs "Removing trace for $name"
+	trace vdelete ${name}(rowspan) w outline_trace
+	trace vdelete ${name}(columnspan) w outline_trace
+}
+
+# create or destroy an outline for a window
+# This only happens as a result of a variable trace
+# and when outline_inhibit is TRUE
+# If the variable is referenced via an "upvar" alias: don't
+#   name:   The widget that needs an outline
+#   args:	Extra stuff passed in via trace that we don't need
+
+
+proc outline_trace {name args} {
+	global Current Outline_inhibit
+	upvar $name data
+	dputs "Trace $name: $args"
+	if {$Outline_inhibit || ![info exists data]} return
+	
+	# This check shouldn't be needed
+	if {![info exists data(columnspan)] || \
+		![info exists data(rowspan)]} {
+		dputs "-OOPS $name"
+		return
+	}
+
+	if {$data(rowspan) > 1 || \
+			$data(columnspan) > 1 || \
+			$Current(widget) == ".can.f.$data(pathname)"} {
+		outline_activate $data(pathname)
+	} else {
+		outline_destroy $data(pathname)
+	}
+}
+
+# actually make the outline for a window
+# outline names end in "_outline", and are children of the widget's master
+#  name:  The name of the widget to make an outline for
+
+proc outline_activate {name} {
+    upvar #0 $name data
+    set outline .can.f.${name}_outline
+    catch {frame $outline -bg [.can.f$data(master) cget -bg]}
+    dputs $name $outline
+    
+    outline_update .can.f.${name}
+    lower $outline .can.f.$name
+    catch "lower $outline .can.f.${name}_highlight"
+}
+
+# destroy the outline, and any resize handles
+# The resize handles will be "placed" in the outline, but
+# they are not children of the outline
+
+proc outline_destroy {name} {
+	upvar #0 $name data
+	set outline .can.f.${name}_outline
+	dputs $outline
+	if {[winfo exists $outline]} {
+		eval "destroy [place slaves $outline] $outline"
+	} else {
+		dputs "non-existant outline"
+	}
+}
+
+# update the highlight regions for a frame
+# This is still broken.
+# This is called whenever the table geometry of a master changes, which
+# causes the outline's size and location to change
+
+# This finds too many outlines when the master is the toplevel frame
+
+proc outline_update {master} {
+    set list [info commands *${master}_outline]
+    dputs $master $list
+    
+    regsub -all _outline [info commands *${master}_outline] {} list
+    foreach win $list {
+	upvar \#0 [winfo name $win] data
+	array set qq [grid info $win]
+	grid ${win}_outline -in $qq(-in) -row $qq(-row) \
+	    -column $qq(-column)\
+	    -sticky nsew -columnspan $qq(-columnspan) \
+	    -rowspan $qq(-rowspan)
+	if {[winfo exists ${win}_outline] && [winfo exists ${win}_highlight]} {
+	    lower ${win}_outline  ${win}_highlight
+	}
+    }
+}
+
+# color all of the outlines to match the background color of its master
+# Outlines must always be the color of their masters, so they are "invisible",
+# except where they cover piece of grid lines.
+
+proc outline_color {master} {
+	set color [$master cget -bg]
+	dputs $master $color
+	foreach win [info commands $master.*_outline] {
+		$win configure -bg $color
+	}
+}
+
+# forget the outlines (un-pack them)
+# It might be faster to unmap all of the outlines, re-layout the grids,
+# then re-map all of the outlines, instead of causing a flood of configure
+# events caused by the resize handles.
+
+proc outline_forget {{master .can.f}} {
+	set list [info commands $master.*_outline] 
+	foreach i $list {
+		place forget $i
+	}
+}
+
+# inhibit the effect of the outline variable trace temporarily
+
+proc outline_inhibit {value} {
+	global Outline_inhibit
+	set Outline_inhibit $value
+}

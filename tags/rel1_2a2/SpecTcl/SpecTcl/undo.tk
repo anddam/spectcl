@@ -1,0 +1,113 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# This will be undo someday
+# for now, just keep a transaction log
+# The strategy is to minimize the overhead for keeping an undo log, 
+# and pay the price only when undo is needed
+
+# any time an item is added to the "undo" log, look at the xaction type
+# and run a proc to extract any additional state needed to undo the operation
+# The state should be stored as part of the undo log.
+# When undo is requested, foreach entry in the current undo-log, run a
+# proc that knows how to "undo" the operation , given the info in the log
+# I'll have to determine and document the log format some day
+
+# mark the start of an undo transaction
+
+proc undo_mark {{why ""}} {
+	global Undo_count Undo_log
+	if {[catch {.buttons.undo configure -state normal \
+			-text "undo\n([incr Undo_count])"}]} {
+		return 0
+	}
+	# lappend Undo_log($Undo_count) $why
+	return 1
+}
+
+# add an entry onto the undo log
+
+proc undo_log {type args} {
+	global Undo_count Undo_log Current
+	set Current(dirty) 1
+	if {!$Undo_count} {return 0}
+	lappend Undo_log($Undo_count) "$type $args"
+	return $Undo_count
+}
+
+# reset the undo log
+
+proc undo_reset {}  {
+	global Undo_count Undo_log
+	set Undo_count 0
+	catch {unset Undo_log}
+	catch {.buttons.undo configure -state disabled -text undo}
+}
+
+# undo the last entry in the undo log
+
+proc undo {} {
+	global Undo_count Undo_log
+	foreach i $Undo_log($Undo_count) {
+		puts "Undo: undo:$i"
+		catch undo:$i
+	}
+	unset Undo_log($Undo_count)
+	if {[incr Undo_count -1] <= 0} {
+		.buttons.undo configure -state disabled -text undo
+	} else {
+		.buttons.undo configure -text "undo\n($Undo_count)"
+	}
+}
+
+# some demo undo functions
+
+# un-delete a widget
+# Don't check to make sure its location is valid, as (presumably)
+# it must be (ha)
+
+proc undo:delete_widget {name} {
+	global $name Widget_data
+	upvar #0 $name data
+	puts "Undeleting widget $name, master $data(master)"
+	set reborn [widget_configure $name]
+	outline_create $reborn
+	bindtags $reborn "busy widget [bindtags $reborn]"
+	update_table .can.f$data(master) undelete-widget
+}
+
+proc undo:delete_frame {name rows cols} {
+	global $name Widget_data
+	upvar #0 $name data
+	puts "Undeleting widget $name, master $data(master)"
+	set reborn [widget_configure $name]
+	outline_create $reborn
+	frame_create $name $rows $cols
+	bindtags $reborn "busy widget [bindtags $reborn]"
+	update_table .can.f$data(master) undelete-widget
+}
+
+# un-create a widget
+
+proc undo:create_widget {name} {
+	upvar #0 $name data
+	puts "Uncreating widget $name"
+	delete_selected_widget .can.f$data(pathname)
+}
+
+# un-create a slot
+#  master: name of the table
+#  what:   row or column
+#  index:  which one (internal coordinates)
+
+proc undo:create_slot {master what index} {
+	puts "un-creating arrow $master $what $index"
+	table_delete $master $what $index
+	grid_remove $master $what
+	arrow_delete .can $what $master
+	update_table .can.f "uncreate grid"
+}
+
