@@ -123,7 +123,6 @@ set ::menueditor::pos 0
 #
 proc ::menueditor::init {root} {
    # Create the variables $root, $base and $mbase
-   uplevel #0 source menueditorgetname.ui.tcl
    set ::menueditor::root $root
    regsub {\.$} $root {} ::menueditor::base
    set ::menueditor::mbase $::menueditor::base.demomenu
@@ -134,8 +133,12 @@ proc ::menueditor::init {root} {
       upvar #0 $item wdata
       if {"$wdata(type)"=="menu"} {
          lappend ::menueditor::menulist [list $item $wdata(item_name)]
-         $::menueditor::base.lbEntries insert end $wdata(item_name)
       }
+   }
+   set ::menueditor::menulist [lsort $::menueditor::menulist]
+   # Fill up the listbox widget
+   foreach item $::menueditor::menulist {
+      $::menueditor::base.lbEntries insert end [lindex $item 1]
    }
 
    # Create the $itemdefaults array
@@ -148,6 +151,9 @@ proc ::menueditor::init {root} {
       }
    }
    destroy $::menueditor::mbase
+   
+   # Hide the tearoff checkbutton
+   grid forget $::menueditor::base.cbTearoff
 }
 #***
 
@@ -224,7 +230,6 @@ proc ::menueditor::CreateTheOptionmenu {menu} {
 set l $::menueditor::base.lbEntries
 ::rename $l ::menueditor::.l
 proc ::$l {args} {
-   puts $args
    if {[regexp {^selection$} [lindex $args 0]] &&
        [regexp {^set$} [lindex $args 1]]} {
       ::menueditor::displaymenu $::menueditor::mbase [::menueditor::.l index [lindex $args 2]]
@@ -257,7 +262,7 @@ proc ::menueditor::mbTypeCmd {type} {
       set val [lindex $item 1]
       set Opt [string toupper [string index $opt 1]][string range $opt 2 end]
       label $f.l$Opt -text $Opt
-      entry $f.e$Opt
+      entry $f.e$Opt -bg #F6F6F6
       bind $f.e$Opt <Key-Left> "
          if {\[$f.e$Opt index insert\]>0} {
             $f.e$Opt icursor \[expr {\[$f.e$Opt index insert\]-1}\]
@@ -293,7 +298,7 @@ proc ::menueditor::rename {} {
 
 
 
-#****f* SpecTcl/menueditor::rename
+#****f* SpecTcl/menueditor::getname::rename
 # DESCRIPTION
 #   Renames a menu
 # SOURCE
@@ -303,7 +308,8 @@ proc ::menueditor::getname::rename {name} {
    set ident [lindex [lindex $::menueditor::menulist $tmp] 0]
    global $ident
    array set $ident [list item_name $name]
-   lreplace ::menueditor::menulist $tmp $tmp [list $ident $name]
+   set ::menueditor::menulist \
+      [lreplace $::menueditor::menulist $tmp $tmp [list $ident $name]]
    $::menueditor::base.lbEntries delete $tmp
    $::menueditor::base.lbEntries insert $tmp $name
    $::menueditor::base.lbEntries activate $tmp
