@@ -1,0 +1,9 @@
+# html_init.tcl --
+#
+#	This file initialized SpecTcl to edit HTML forms.
+#
+# Copyright (c) 1997 Sun Microsystems, Inc. All rights reserved.
+#
+# SCCS: @(#) html_init.tk 1.1 97/05/16 17:18:42
+
+Source html_setup.tk
