@@ -31,12 +31,12 @@ proc widget_extract {widget {array ""}} {
     upvar #0 $array data
 
     # extract widget attributes
-    # don't extract command options if they already exist
+    # don't extract command|variable options if they already exist
 
     foreach option [$widget configure] {
 	if {[llength $option] == 5} {
 	    set item [string trimleft [lindex $option 0] -]
-	    if {(![string match *command* $item] || ![info exists data($item)])
+	    if {(![regexp (command|variable) $item] || ![info exists data($item)])
 	        && (![string match type $item])
 	        && (![string match class $item] || ![info exists data($item)])} {
 		set data($item) [lindex $option 4]
@@ -119,7 +119,7 @@ proc widget_update {widget} {
     set fillanchorkludge {}
     foreach i [array names data] {
 	if {[info exists Widget_data(default:$class,$i)]} {
-	    if {![string match *command* $i]} {
+	    if {![regexp (command|variable) $i]} {
 		if {$i == "font"} {
 		    set font $data($i)
 		} elseif {$i == "colormap"} {
@@ -178,7 +178,7 @@ proc widget_configure {array {root .can.f} {manage 1}} {
     set fillanchorkludge {}
     foreach i [array names data] {
 	if {[info exists Widget_data(default:$class,$i)]} {
-	    if {![string match *command* $i]} {
+	    if {![regexp (command|variable) $i]} {
 		if {$i == "font"} {
 		    set font $data($i)
 		} elseif {$i == "colormap"} {
@@ -282,8 +282,8 @@ proc validate_field {name item value} {
 	}
     }
     set cmd ""
-    if {[string match *command* $item]} {
-	dputs skipping $item - its a command
+    if {[regexp (command|variable) $item]} {
+	dputs skipping $item - its a command|variable
     } elseif {[string match $item "class"]} {
 	set cmd "set data($item) $value"
     } elseif {[info exists Widget_data(default:$class,$item)]} {
