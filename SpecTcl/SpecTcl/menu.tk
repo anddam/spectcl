@@ -79,9 +79,8 @@ proc from_clipboard {{test 0}} {
 	return 0
     }
 
-    if {$Current(frame) != ".can.f"} {
-	regsub "table master (\[^ \n\]*)" $widget "table master .[winfo name $Current(frame)]" widget
-    }
+    # Give the widget the correct master (frame)
+    regsub "table master (\[^ \n\]*)" $widget "table master .[winfo name $Current(frame)]" widget
     # Adjust the widget so that it gets put into the right spot.
     # Note that we only want to change the very first widget, as
     # if there's more, the first one is the container.  
