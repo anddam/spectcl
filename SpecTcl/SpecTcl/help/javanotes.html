@@ -3,6 +3,7 @@
  -- See the file "license.txt" for information on usage and redistribution
  -- of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  -->
+
 <title>Java Notes</title>
 <center>
 <h1>Java Notes</h1>
@@ -27,18 +28,18 @@ Generic terminology
 <li src=aqball.gif align=baseline>
 Component names
 <menu compact>
-<li>label		->		Label
-<li>entry		->		TextField
-<li>text		->		TextArea
-<li>button		->		Button
-<li>scrollbar	->		Scrollbar
-<li>frame		->		Panel
-<li>checkbutton	->		Checkbox
-<li>radiobutton	->		Checkbox
-<li>menubutton	->		Choice
-<li>listbox		->		List
+<li>label		->		JLabel
+<li>entry		->		JTextField
+<li>text		->		JTextArea
+<li>button		->		JButton
+<li>scrollbar	->		JScrollBar
+<li>frame		->		JPanel
+<li>checkbutton	->		JCheckBox
+<li>radiobutton	->		JRadioButton
+<li>menubutton	->		JComboBox
+<li>listbox		->		JList
 <li>canvas		->		Canvas
-<li>frame		->		panel
+<li>frame		->		Jpanel
 </menu>
 <li src=aqball.gif align=baseline>
 Option names
@@ -49,13 +50,13 @@ Option names
 </ul>
 <h2><a name=R2 href=#top><color value=red>Java</color> specific component options</a></h2>
 <dl>
-<dt>Checkbox (radiobutton) Groups
+<dt>JRadioButton (radiobutton) Groups
 <dd>In <color value=red>java</color>, check-boxes are turned into radio-buttons by associating a check-box
 group to them.  In SpecJava, the <code>variable</code> option on the property
 sheet for radio buttons controls which group the button belongs to.
 The easyest way to make a group of radio buttons is to create the first one,
 set its <code>variable</code>, and then copy it using <em>shift-drag</em>.
-<dt>Choice (menubutton) widgets
+<dt>JComboBox (menubutton) widgets
 <dd>The choices are input as a comma-separated list in the
 <code>items</code> option.  The label (<code>text</code> option) also appears
 as a choice if specified.
@@ -156,11 +157,10 @@ consists of the following public methods:
 This method instantiates the user interface.  It will be called automatically if the class is
 run from a browser or applet viewer.  The <code>super.init</code> method is called to allow
 application specific initialization to occur.
-<dt>public boolean handleEvent(Event event)
+<dt>public void actionPerformed(ActionEvent event)
 <dd>All of the behavior, as entered in the <code>action</code> property is dispatched from this
-method, which is overridden from the component class.  For every event for which no action is defined,
-the <code>super.handleEvent</code> method is called, allowing for generic behaviors to be
-handled by the parent class.
+method, which is implemented via the ActionListener interface.
+
 <dt>public static void main(String[] args)
 <dd>
 This calls the <code>init</code> method, permitting the class to be run as a standalone

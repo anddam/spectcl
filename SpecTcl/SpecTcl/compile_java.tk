@@ -13,12 +13,21 @@
 
 set Boiler {
 public static void main(String[] args) {
-    Frame f = new Frame("%1$s Test");
+    JFrame f = new JFrame("%1$s Test");
     %1$s win = new %1$s();
+    f.addWindowListener(
+       new WindowAdapter()
+       {
+             public void windowClosing(WindowEvent e)
+             {
+                 System.exit(0);
+             }
+        }
+    );
     win.init();
-    f.add("Center", win);
+    f.getContentPane().add("Center", win);
     f.pack();
-    f.show();
+    f.setVisible(true);
 }
 
 private void reset(GridBagConstraints con) {
@@ -39,33 +48,36 @@ private void reset(GridBagConstraints con) {
 }
 
 array set Javamap {
-	label	Label
-	entry	TextField
-	text	TextArea
-	button	Button
-	scrollbar Scrollbar
-	frame	Panel
-	checkbutton	Checkbox
-	radiobutton	Checkbox
-	menubutton  Choice
-	listbox List
-	canvas Canvas
+	label		JLabel
+	entry		JTextField
+	text		JTextArea
+	button		JButton
+	scrollbar 	JScrollBar
+	frame		JPanel
+	checkbutton	JCheckBox
+	radiobutton	JRadioButton
+    	menubutton  	JComboBox
+	listbox 	JList
+	canvas 		Canvas
 }
 	
 # Value is the
 array set Javamap {
 	label.text		$var.setText("$value");
-	entry.text		$var.setText("$value");
-	entry.show		$var.setEchoCharacter('$value');
-	checkbutton.text $var.setLabel("$value");
-	radiobutton.text $var.setLabel("$value");
-	radiobutton.variable "$var.setCheckboxGroup($value);"
-	button.text		$var.setLabel("$value");
-	menubutton.text {[choice_text $var $value]}
+	label.justify		{[do_justify $var $value]}
+	entry.text		$var.setText("$value");	
+	checkbutton.text 	$var.setText("$value");
+	radiobutton.text 	$var.setText("$value");
+	entry.width		[entry_width]
+	button.text		$var.setText("$value");
+    	menubutton.text 	{[choice_text $var $value]}
 	*.font			{$var.setFont([jfont $value]);}
-	*.foreground	{$var.setForeground([jcolor $value]);}
-	*.background	{$var.setBackground([jcolor $value]);}
-	*.editable	{[do_editable $var $value]}
+	*.state			{[do_state $var $value]}
+	*.help			{[do_help $var $value]}
+	*.foreground		{$var.setForeground([jcolor $value]);}
+	*.background		{$var.setBackground([jcolor $value]);}
+	*.editable		{[do_editable $var $value]}
+	*.comments		{[do_comments $value]}
 }
 # This used to be a part of Javamap, but what's it supposed
 # to do?
@@ -112,7 +124,8 @@ array set Javafillmap {
 
 # set up some java specific preferences
 
-set P(extends) java.applet.Applet
+set P(extends) JApplet
+set P(implements) ActionListener
 
 proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 	global Widget_data Format Masters Version Javamap Javaanchormap Javafillmap Boiler P
@@ -217,6 +230,10 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		}
 	}
 	puts $out_fd "import java.awt.*;"
+	puts $out_fd "import java.awt.event.*;"
+	puts $out_fd "import javax.swing.*;"
+	puts $out_fd "import javax.swing.event.*;"
+	
 	if {[info exists P(imports)]} {
 		foreach import $P(imports) {
 			puts $out_fd "import $import;"
@@ -270,7 +287,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			catch {set group $data(configure,variable)}
 			if {![info exists CB_Groups($group)]} {
 				set CB_Groups($group) 1
-				puts $out_fd "public CheckboxGroup $group = new CheckboxGroup();"
+				puts $out_fd "public ButtonGroup $group = new ButtonGroup();"
 				append widget_names \"$group\",
 			}
 		}
@@ -354,7 +371,16 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		if {$type == "entry"} {
 			set width 20
 			catch {set width $data(configure,width)}
-			puts $out_fd "\t$var = new TextField($width);"
+			if {[info exists data(configure,show)]} {
+				if {$data(configure,show)=="false"} {
+					puts $out_fd "\t$var = new JPasswordField($width);"
+				} else {
+					puts $out_fd "\t$var = new JTextField($width);"
+				}
+			} else {
+				puts $out_fd "\t$var = new JTextField($width);"
+			}
+			puts $out_fd "\t$var.addActionListener(this);"
 		} elseif {$type == "scrollbar"} {
 			set orient VERTICAL
 			catch {
@@ -362,24 +388,47 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 					set orient HORIZONTAL
 				}
 			}
-			puts $out_fd "\t$var = new Scrollbar(Scrollbar.$orient);"
+			puts $out_fd "\t$var = new JScrollBar(JScrollBar.$orient);"
+			
+
 		} elseif {$type == "text"} {
-			set rows 5; set cols 20
+			set rows 5; set cols 20 ; set scroll "Scroller"
 			catch {set rows $data(configure,height)}
 			catch {set cols $data(configure,width)}
-			puts $out_fd "\t$var = new TextArea($rows,$cols);"
+			puts $out_fd "\t$var = new JTextArea($rows,$cols);"
+			puts $out_fd "\tJScrollPane $var$scroll = new JScrollPane($var);" 
 		} elseif {$type == "listbox"} {
-			set rows 4; set multi false
+			set rows 4; set multi false ; set scroll "Scroller"
 			catch {set rows $data(configure,height)}
 			catch {set multi [expr { \
 					$data(configure,selectmode) == "multiple" ? "true" : "false"}]}
 			if {$rows == 0} {set rows 4}
-			puts $out_fd "\t$var = new List($rows,$multi);"
-		} elseif {$type == "menubutton" && $data(other,items) != ""} {
-			puts $out_fd "\t$var = new $data(actual)();"
-			foreach i [split $data(other,items) ,] {
-				puts $out_fd "\t$var.addItem(\"$i\");"
+			puts $out_fd "\t$var = new JList();"
+			puts $out_fd "\t$var.setVisibleRowCount($rows);"
+			if {$multi == "true"} {
+				set multi "true"
+				puts $out_fd "\t$var.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);"					
+			} else {
+				puts $out_fd "\t$var.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);"	
 			}
+			puts $out_fd "\tJScrollPane $var$scroll = new JScrollPane($var);"			
+
+		} elseif {$type == "menubutton" } {
+			puts $out_fd "\t$var = new $data(actual)();"
+			if {$data(other,items) != ""} {				
+				foreach i [split $data(other,items) ,] {
+					puts $out_fd "\t$var.addItem(\"$i\");"
+				}
+			}			
+		} elseif {$type == "checkbutton" } {			
+			puts $out_fd "\t$var = new JCheckBox();"
+			
+		} elseif {$type == "radiobutton" } {			
+			puts $out_fd "\t$var = new JRadioButton();"
+			puts $out_fd "\t$data(configure,variable).add($var);"					
+		} elseif {$type =="button"} {
+			puts $out_fd "\t$var = new $data(actual)();"
+			puts $out_fd "\t$var.addActionListener(this);"			
 		} else {
 			puts $out_fd "\t$var = new $data(actual)();"
 		}
@@ -410,7 +459,13 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			}
 			# puts "+++ ($option) $type.$param ($value) <$m1> <$m2>"
 		}
-		puts $out_fd "	[Jreal_master $name]add($var);"
+		if {$type == "listbox" || $type == "text"} {
+			#set type "listbox"
+			puts $out_fd "	[Jreal_master $name]getContentPane().add($var$scroll);"			
+		} else {
+			set orange 0
+			puts $out_fd "	[Jreal_master $name]getContentPane().add($var);"
+		}
 		# puts $out_fd "\twidgets\[[incr count]] = $var;\n"
                 if {[info exists P(java_include_comments)] && $P(java_include_comments) != 0} {
                     puts $out_fd "\t$data(other,comments)"
@@ -444,7 +499,12 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		puts  $out_fd "\tcon.fill = GridBagConstraints.$Javafillmap(sticky:$data(geometry,sticky));"
 
 		# FIX THIS
-		puts  $out_fd "\t[Jreal_master2 $name]grid.setConstraints($var, con);"
+		if {$type == "listbox" || $type == "text"} {
+			#set type "listbox"
+			puts $out_fd "\t[Jreal_master2 $name]grid.setConstraints($var$scroll, con);"			
+		} else {
+			puts  $out_fd "\t[Jreal_master2 $name]grid.setConstraints($var, con);"
+		}
 		puts  $out_fd ""
 	}
 
@@ -453,42 +513,92 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 	foreach name [array names Masters] {
 		upvar #0 __X_$name data
 
-		if {$name == "f" } {set uname ""; set vname ""} else {
+		if {$name == "f" } {set uname "this."; set vname ""} else {
 		    set uname $data(other,item_name).
 		    set vname $data(other,item_name)_
 		}
-		puts $out_fd "	${uname}setLayout(${vname}grid);"
+		puts $out_fd "\t${uname}getContentPane().setLayout(${vname}grid);"
+		puts $out_fd "\t//Set the Background Color"
+		puts $out_fd "\t${uname}getContentPane().setBackground([jcolor $P(frame_bg)]);"
+	}
+	
+	#do some other event handling stuff	
+	foreach name $names {
+		upvar #0 __X_$name data
+		if {$data(other,type)=="scrollbar"} {
+			puts $out_fd "\t$data(other,item_name).addAdjustmentListener("
+			puts $out_fd "\t\tnew AdjustmentListener() {"
+			puts $out_fd "\t\t\tpublic void adjustmentValueChanged( AdjustmentEvent event )"
+			puts $out_fd "\t\t\t{"
+			if {[info exists data(other,action)]} {
+				if {$data(other,action) != ""} {
+					puts $out_fd "\t\t\t\t\t$data(other,action)"
+				}
+			}
+			puts $out_fd "\t\t\t}"
+			puts $out_fd "\t\t}"
+			puts $out_fd "\t);"
+		} elseif {$data(other,type)=="listbox"} {
+			#time for some JList event handling with an inner class
+			puts $out_fd "\t$data(other,item_name).addListSelectionListener("
+			puts $out_fd "\t\tnew ListSelectionListener() {"
+			puts $out_fd "\t\t\tpublic void valueChanged(ListSelectionEvent event)"
+			puts $out_fd "\t\t\t{"
+			if {[info exists data(other,action)]} {
+				if {$data(other,action) != ""} {
+					puts $out_fd "\t\t\t\t\t$data(other,action)"
+				}
+			}
+			puts $out_fd "\t\t\t}"
+			puts $out_fd "\t\t}"
+			puts $out_fd "\t);"		
+		} elseif {$data(other,type)=="menubutton" || $data(other,type)=="checkbutton" || $data(other,type)=="radiobutton"} {
+			puts $out_fd "\t$data(other,item_name).addItemListener("
+			puts $out_fd "\t\tnew ItemListener() {"
+			puts $out_fd "\t\t\tpublic void itemStateChanged( ItemEvent e )"
+			puts $out_fd "\t\t\t{"
+			puts $out_fd "\t\t\t\tif (e.getStateChange() == ItemEvent.SELECTED )"
+			puts $out_fd "\t\t\t\t{"
+			if {[info exists data(other,action)]} {
+				if {$data(other,action) != ""} {
+					puts $out_fd "\t\t\t\t\t$data(other,action)"
+				}
+			}
+			puts $out_fd "\t\t\t\t}"
+			puts $out_fd "\t\t\t}"
+			puts $out_fd "\t\t}"
+			puts $out_fd "\t);"
+		}
 	}
 	puts $out_fd "\n\t// Give the application a chance to do its initialization"
         set init ""
 	catch {set init $P(init)}
-	puts $out_fd "\t$init\n\}\n"
+	puts $out_fd "\t$init\n\}\n"	
+	
+	# write the actionPerformed event implementation method for actionEvents
+	puts $out_fd "public void actionPerformed(ActionEvent event) \{"
 
-	# write the handle event procedure
-
-	puts $out_fd "public boolean handleEvent(Event event) \{"
 	foreach name $names {
 		upvar #0 __X_$name data
-		if {[info exists data(other,action)]} {
-			if {$data(other,action) != ""} {
-				puts $out_fd "\tif (event.target == $data(other,item_name) && event.id == event.ACTION_EVENT) \{"
-				if {[info proc action_override] != {}} {
-					puts $out_fd [action_override __X_$name $data(other,action)]
-				} else {
+		if {$data(other,type)=="button" || $data(other,type)=="entry" || $data(other,type)=="text"} {
+			if {[info exists data(other,action)]} {
+				if {$data(other,action) != ""} {
+					puts $out_fd "\tif (event.getSource() == $data(other,item_name)) \{"
 					puts $out_fd "\t\t$data(other,action)"
+					puts $out_fd "\t\}"
 				}
-				puts $out_fd "\t\} else"
 			}
 		}
 	}
 
+
 	# temporary escape to quit app.
-	puts $out_fd "\tif (event.id==event.KEY_ACTION && event.key==event.F4 && event.modifiers==event.ALT_MASK) \{  // Alt-F4 always exits"
-	puts $out_fd "\t\tSystem.exit(3);"
-	puts $out_fd "\t\} else"
+	#puts $out_fd "\tif (event.id==event.KEY_ACTION && event.key==event.F4 && event.modifiers==event.ALT_MASK) \{  // Alt-F4 always exits"
+	#puts $out_fd "\t\tSystem.exit(3);"
+	#puts $out_fd "\t\} else"
 
 	# call parent's event handler
-	puts $out_fd "\t\treturn super.handleEvent(event);\n\treturn true;"
+	#puts $out_fd "\t\treturn super.handleEvent(event);\n\treturn true;"
 	puts $out_fd "\}"
 
 	# read in other methods from an external file
@@ -678,7 +788,58 @@ proc choice_text {var value} {
 	if {$value == ""} {
 		return {}
 	} else {
-		return $var.addItem("$value")\;
+		#place the name of the combo box in the top index.
+		return $var.insertItemAt("$value",0)\;\n\t$var.setSelectedIndex(0)\;
+	}
+}
+
+proc do_justify {var value} {
+    switch -- $value {
+    	left {
+		return $var.setHorizontalAlignment(SwingConstants.LEFT)\;
+	}
+	right {
+		return $var.setHorizontalAlignment(SwingConstants.RIGHT)\;
+	}
+	center {
+		return $var.setHorizontalAlignment(SwingConstants.CENTER)\;
+	}
+	default {
+		return {}
+	}
+   }
+}
+
+proc do_state {var value} {
+    switch -- $value {
+    	active {
+		return $var.setSelected(true)\;
+	} 
+        normal {
+		return $var.setEnabled(true)\;
+	}
+	disabled {
+		return $var.setEnabled(false)\;
+	}
+	default {
+		return {}
+	}
+    }
+}
+
+proc do_help {var value} {
+	if {$value == ""} {
+	    return {}
+	} else {
+	    return $var.setToolTipText("$value")\;
+	}
+}
+
+proc do_comments {value} {
+	if {$value == ""} {
+	    return {}
+	} else {
+	    return //$value
 	}
 }
 
