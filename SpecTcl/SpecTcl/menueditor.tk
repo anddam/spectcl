@@ -1,0 +1,59 @@
+# Extra code for the menueditor
+
+uplevel #0 {
+
+catch {namespace eval menueditor {}} ;# To activate the namespace
+
+proc ::menueditor::CreateTheOptionmenu {menu} {
+   menu $menu -tearoff 0
+   set root [winfo toplevel [winfo parent $menu]]
+   regsub {\.$} $root {} base
+
+   global sTatE
+   array set sTatE {command,Label	normal
+      cascade,Label	normal
+      separator,Label	disabled
+      checkbutton,Label	normal
+      radiobutton,Label	normal
+   }
+
+   foreach type {command cascade separator checkbutton radiobutton} {
+      $menu add radio -label $type \
+         -value $type \
+         -variable mbType.value \
+         -command "
+            foreach tmp {Label} {
+               $base.e\$tmp config -state \$sTatE($type,\$tmp)
+            }
+         "
+   }
+   $menu invoke 0
+}
+
+
+proc ::menueditor::displaymenu {mbase {number 0}} {
+   set garrayname [lindex [lindex [set ::menueditor::menulist] $number] 0]
+   set gadgets [lindex [uplevel #0 array get $garrayname gadgets] 1]
+   
+   # Start a fresh
+   catch {destroy $mbase} out 
+   
+   # Create menu
+   menu $mbase -tearoff 0
+   foreach {item opts} $gadgets {
+      $mbase add $item
+      foreach {opt val} $opts {
+         switch -- $opt {
+            -command -
+            -menu -
+            -variable {}
+            default {
+              $mbase entryconfig last $opt $val
+            }
+         }
+      }
+   }
+   $mbase post 0 0
+}
+
+} ;# End uplevel

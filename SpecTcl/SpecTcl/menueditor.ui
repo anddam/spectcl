@@ -1,4 +1,18 @@
-WidGet file, version 1.1, created:  Wed May 02 10:10:25 CEST 2001
+WidGet file, version 1.1, created:  Fri May 04 17:23:11 CEST 2001
+Widget button#10
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname button#10
+	other tabbing {}
+	other item_name view
+	geometry row 1
+	other type button
+	configure text Post/View
+	geometry column 2
+	other comments {}
 Widget frame#2
 	other panel {}
 	geometry row 1
@@ -18,7 +32,7 @@ Widget frame#2
 	geometry pady 5
 	configure borderwidth 1
 	other comments {}
-	geometry column 2
+	geometry column 3
 	configure relief sunken
 	other tabbing {}
 	other item_name fSeparator
@@ -37,6 +51,20 @@ Widget label#5
 	geometry column 1
 	other item_name lType
 	other tabbing {}
+Widget button#11
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname button#11
+	other tabbing {}
+	other item_name new
+	geometry row 2
+	other type button
+	configure text New
+	geometry column 2
+	other comments {}
 Widget entry#4
 	other error {}
 	other tags {}
@@ -65,8 +93,9 @@ Widget label#6
 	other item_name lLabel
 	other tabbing {}
 Widget listbox#1
-	geometry row 2
+	geometry row 1
 	configure height 0
+	geometry rowspan 6
 	other error {}
 	other type listbox
 	other master {}
@@ -74,12 +103,27 @@ Widget listbox#1
 	other tags {}
 	configure width 0
 	other level {}
+	configure exportselection 0
 	other help {}
 	other comments {}
 	geometry column 1
 	other tabbing {}
 	other item_name lbEntries
 	geometry sticky nesw
+Widget button#12
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname button#12
+	other tabbing {}
+	other item_name remove
+	geometry row 3
+	other type button
+	configure text Remove
+	geometry column 2
+	other comments {}
 Widget entry#5
 	other error {}
 	other tags {}
@@ -119,21 +163,21 @@ Widget button#3
 	geometry row 1
 	other type button
 	configure text Add
-	geometry column 5
+	geometry column 6
 	other comments {}
-Widget entry#6
+Widget button#4
 	other error {}
 	other tags {}
 	other level {}
 	other help {}
-	other focus .widget.form.can.f.entry#6,font,entry
-	other master .frame#1
-	other pathname entry#6
+	other master {}
+	other pathname button#4
 	other tabbing {}
-	other item_name eVariable
-	geometry row 4
-	other type entry
-	geometry column 2
+	other item_name insert
+	geometry row 2
+	other type button
+	configure text Insert
+	geometry column 6
 	other comments {}
 Widget label#8
 	geometry row 4
@@ -149,19 +193,19 @@ Widget label#8
 	geometry column 1
 	other item_name lVariable
 	other tabbing {}
-Widget button#4
+Widget entry#6
 	other error {}
 	other tags {}
 	other level {}
 	other help {}
-	other master {}
-	other pathname button#4
+	other focus .widget.form.can.f.entry#6,font,entry
+	other master .frame#1
+	other pathname entry#6
 	other tabbing {}
-	other item_name insert
-	geometry row 2
-	other type button
-	configure text Insert
-	geometry column 5
+	other item_name eVariable
+	geometry row 4
+	other type entry
+	geometry column 2
 	other comments {}
 Widget button#5
 	other error {}
@@ -175,7 +219,7 @@ Widget button#5
 	geometry row 4
 	other type button
 	configure text Replace
-	geometry column 5
+	geometry column 6
 	other comments {}
 Widget label#9
 	geometry row 5
@@ -218,26 +262,10 @@ Widget button#6
 	geometry row 5
 	other type button
 	configure text Dismiss
-	geometry column 5
-	other comments {}
-Widget checkbutton#1
-	configure variable cbTearoff.value
-	other error {}
-	other tags {}
-	other level {}
-	other help {}
-	other focus .widget.form.can.f.checkbutton#1,font,entry
-	other master {}
-	other pathname checkbutton#1
-	other tabbing {}
-	other item_name cbTearoff
-	geometry row 1
-	other type checkbutton
-	configure text Tearoff
-	geometry column 1
+	geometry column 6
 	other comments {}
 Widget f
-	other generic_options {button {
+	other generic_options {button {activebackground #dcdcdc activeforeground #000000 activetile {} anchor center background #dcdcdc bitmap {} borderwidth 2 command {} comments {} cursor {} default disabled disabledforeground #a3a3a3 disabledtile {} error {- button configuration -} font Helvetica,12,Bold foreground #000000 height 0 help {} highlightbackground #dcdcdc highlightcolor #000000 highlightthickness 1 image {} item_name sample_button justify center level {} master {} offset 0,0 padx 9 pady 3 pathname sample_button relief raised state normal tabbing {} tags {} takefocus {} text button textvariable {} tile {} type button underline -1 width 0 wraplength 0
 		} canvas {
 		} checkbutton {
 		} entry {
@@ -255,16 +283,132 @@ Widget f
 	other panel {}
 	other resize_row {0 0 0 0 0 3}
 	other type frame
-	other code menu\ \$base.mbType.m\ -tearoff\ 0\n\nglobal\ state\narray\ set\ state\ \{command,Label\tnormal\n\ \ \ cascade,Label\tnormal\n\ \ \ separator,Label\tdisabled\n\ \ \ checkbutton,Label\tnormal\n\ \ \ radiobutton,Label\tnormal\n\}\n\nforeach\ type\ \{command\ cascade\ separator\ checkbutton\ radiobuttion\}\ \{\n\ \ \ \$base.mbType.m\ add\ radio\ -label\ \$type\ \\\n\ \ \ \ \ \ -value\ \$type\ \\\n\ \ \ \ \ \ -variable\ mbType.value\ \\\n\ \ \ \ \ \ -command\ \"\n\ \ \ \ \ \ \ \ \ foreach\ tmp\ \{Label\}\ \{\n\ \ \ \ \ \ \ \ \ \ \ \ \$base.e\\\$tmp\ config\ -state\ \\\$state(\$type,\\\$tmp)\n\ \ \ \ \ \ \ \ \ \}\n\ \ \ \ \ \ \"\n\}\n.mbType.m\ invoke\ 0\n\nset\ mbase\ \$base.demomenu\nmenu\ \$mbase\ -tearoff\ 0\n\$mbase\ post\ 0\ 0\n\n#\ Callbacks\ for\ buttons\n\$base.view\ config\ -command\ \"\n\ \ \ \$mbase\ post\ 0\ 0\n\ \ \ catch\ \{\$mbase\ activate\ 0\}\n\"\n\$base.add\ config\ -command\ \"\n\ \ \ switch\ \\\$\{mbType.value\}\ \{\n\ \ \ \ \ \ checkbutton\ -\n\ \ \ \ \ \ radiobutton\ -\n\ \ \ \ \ \ command\ \{\n\ \ \ \ \ \ \ \ \ \$mbase\ add\ \\\$\{mbType.value\}\ -label\ \\\[\$base.eLabel\ get\\\]\ -command\ \{\$mbase\ post\ 0\ 0\}\n\ \ \ \ \ \ \}\n\ \ \ \ \ \ cascade\ \{\n\ \ \ \ \ \ \ \ \ \$mbase\ add\ cascade\ -label\ \\\[\$base.eLabel\ get\\\]\ -menu\ \$mbase.\\\[\$base.eMenu\ get\\\]\n\ \ \ \ \ \ \ \ \ menu\ \$mbase.\\\[\$base.eMenu\ get\\\]\n\ \ \ \ \ \ \}\n\ \ \ \ \ \ separator\ \{\n\ \ \ \ \ \ \ \ \ \$mbase\ add\ separator\n\ \ \ \ \ \ \}\n\ \ \ \}\n\ \ \ \$mbase\ activate\ end\n\ \ \ catch\ \{\\\[focus\\\]\ selection\ range\ 0\ end\\\]\}\n\"\n\n#\ Still\ needs\ work\n\$base.replace\ config\ -command\ \"\n\ \ \ \$mbase\ entryconfig\ \\\[\$mbase\ index\ active\\\]\ -label\ \\\[\$base.eLabel\ get\\\]\n\"\n\n\$base.cbTearoff\ config\ -command\ \"\$mbase\ config\ -tearoff\ \\\$\{cbTearoff.value\}\"\n\n#\ Bindings\nbind\ \$root\ <Key-Up>\ \"\n\ \ \ catch\ \{\$mbase\ activate\ \\\[expr\ \\\[\$mbase\ index\ active\\\]-1\\\]\}\n\"\nbind\ \$root\ <Key-Down>\ \"\n\ \ \ catch\ \{\$mbase\ activate\ \\\[expr\ \\\[\$mbase\ index\ active\\\]+1\\\]\}\n\"\nbind\ \$root\ <Key-Left>\ \"bell\"\nbind\ \$root\ <Key-Right>\ \"\n\ \ \ catch\ \{\$mbase\ postcascade\ \\\[\$mbase\ index\ active\\\]\}\n\"\n#\ Arrow\ keys\ in\ entry\ widgets\ must\ override\ arrow\ keys\ in\n#\ \$root\ except\ at\ the\ beginning\ or\ end\ of\ the\ input\ string\nforeach\ item\ \{Label\ Command\ Variable\ Menu\}\ \{\n\ \ \ set\ w\ \$base.e\$item\n\ \ \ bind\ \$w\ <Key-Left>\ \"\n\ \ \ \ \ \ if\ \{\\\[\$w\ index\ insert\\\]>0\}\ \{\n\ \ \ \ \ \ \ \ \ \$w\ icursor\ \\\[expr\ \{\\\[\$w\ index\ insert\\\]-1\}\\\]\n\ \ \ \ \ \ \ \ \ break\ \ \;#\ So\ that\ \$root\ binding\ is\ not\ executed\n\ \ \ \ \ \ \}\n\ \ \ \"\n\ \ \ bind\ \$w\ <Key-Right>\ \"\n\ \ \ \ \ \ if\ \{\\\[\$w\ index\ insert\\\]<\\\[\$w\ index\ end\\\]\}\ \{\n\ \ \ \ \ \ \ \ \ \$w\ icursor\ \\\[expr\ \{\\\[\$w\ index\ insert\\\]+1\}\\\]\n\ \ \ \ \ \ \ \ \ break\ \ \;#\ So\ that\ \$root\ binding\ is\ not\ executed\n\ \ \ \ \ \ \}\n\ \ \ \"\n\}\n#\ Fast\ button\ invoking\nbind\ \$root\ <Key-Return>\ \"\$base.add\ invoke\"\nbind\ \$root\ <Key-Insert>\ \"\$base.insert\ invoke\"\nbind\ \$root\ <Key-Delete>\ \"\$base.delete\ invoke\"\nbind\ \$root\ <Key-Escape>\ \"\$base.dismiss\ invoke\"\n\n\n
+	other code {source /home/msj/projects/SpecTcl/SpecTcl/menueditor.tk
+
+# Initialise listbox
+set ::menueditor::menulist [list]
+foreach item [uplevel #0 array names Widgets] {
+   upvar #0 $item wdata
+   if {"$wdata(type)"=="menu"} {
+      lappend ::menueditor::menulist [list $item $wdata(item_name)]
+      $base.lbEntries insert end $wdata(item_name)
+   }
+}
+
+# Menu for $base.mbType
+::menueditor::CreateTheOptionmenu $base.mbType.m
+
+# The demo menu
+set mbase $base.demomenu
+
+# Callbacks for buttons
+$base.view config -command "
+   $mbase post 0 0
+   catch {$mbase activate 0}
+"
+$base.remove config -command "
+   if {\"\[tk_messageBox -icon question -type yesno -parent $root -message \"Are you sure?\"\]\"==\"yes\"} {
+      catch {$base.lbEntries delete \[$base.lbEntries curselection\]}
+   }
+"
+$base.add config -command "
+   switch \${mbType.value} {
+      checkbutton -
+      radiobutton -
+      command {
+         $mbase add \${mbType.value} -label \[$base.eLabel get\] -command {$mbase post 0 0}
+      }
+      cascade {
+         $mbase add cascade -label \[$base.eLabel get\] -menu $mbase.\[$base.eMenu get\]
+         menu $mbase.\[$base.eMenu get\]
+      }
+      separator {
+         $mbase add separator
+      }
+   }
+   $mbase activate end
+   catch {\[focus\] selection range 0 end\]}
+"
+
+# Still needs work
+$base.replace config -command "
+   $mbase entryconfig \[$mbase index active\] -label \[$base.eLabel get\]
+"
+
+$base.cbTearoff config -command "$mbase config -tearoff \${cbTearoff.value}"
+
+# Bindings
+bind $root <Key-Up> "
+   catch {$mbase activate \[expr \[$mbase index active\]-1\]}
+"
+bind $root <Key-Down> "
+   catch {$mbase activate \[expr \[$mbase index active\]+1\]}
+"
+bind $root <Key-Left> "bell"
+bind $root <Key-Right> "
+   catch {$mbase postcascade \[$mbase index active\]}
+"
+# Arrow keys in entry widgets must override arrow keys in
+# $root except at the beginning or end of the input string
+foreach item {Label Command Variable Menu} {
+   set w $base.e$item
+   bind $w <Key-Left> "
+      if {\[$w index insert\]>0} {
+         $w icursor \[expr {\[$w index insert\]-1}\]
+         break  ;# So that $root binding is not executed
+      }
+   "
+   bind $w <Key-Right> "
+      if {\[$w index insert\]<\[$w index end\]} {
+         $w icursor \[expr {\[$w index insert\]+1}\]
+         break  ;# So that $root binding is not executed
+      }
+   "
+}
+# Fast button invoking
+bind $root <Key-Return> "$base.add invoke"
+bind $root <Key-Insert> "$base.insert invoke"
+bind $root <Key-Delete> "$base.delete invoke"
+bind $root <Key-Escape> "$base.dismiss invoke"
+
+# Selection callback in listbox
+set l $base.lbEntries
+rename $l ::menueditor::.l
+proc $l {args} "
+   puts \$args
+   if {\[regexp {^selection\$} \[lindex \$args 0\]\] &&
+       \[regexp {^set\$} \[lindex \$args 1\]\]} {
+      ::menueditor::displaymenu $mbase \[::menueditor::.l index \[lindex \$args 2\]\]
+   }
+   uplevel ::menueditor::.l \$args
+"
+
+catch {$l selection set 0}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
 	other min_row {30 30 30 30 30 30}
 	other master {}
 	other pathname f
 	other tags {}
-	other resize_column {0 0 0 0 0}
+	other resize_column {0 0 0 0 0 0}
 	other level 0
 	configure background #e9e9e9
 	other help {}
-	other min_column {30 30 30 30 30}
+	other min_column {30 30 30 30 30 30}
 	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
 	other comments {}
 	other item_name f
@@ -281,21 +425,23 @@ Widget button#7
 	geometry row 3
 	other type button
 	configure text Delete
-	geometry column 5
+	geometry column 6
 	other comments {}
-Widget button#9
+Widget checkbutton#4
+	configure variable cbTearoff.value
 	other error {}
 	other tags {}
 	other level {}
 	other help {}
+	other focus .widget.form.can.f.checkbutton#1,font,entry
 	other master {}
-	other pathname button#9
+	other pathname checkbutton#4
 	other tabbing {}
-	other item_name view
-	geometry row 3
-	other type button
-	configure text Post/View
-	geometry column 1
+	other item_name cbTearoff
+	geometry row 5
+	other type checkbutton
+	configure text Tearoff
+	geometry column 2
 	other comments {}
 Widget menubutton#2
 	configure textvariable mbType.value
@@ -312,6 +458,7 @@ Widget menubutton#2
 	other item_name mbType
 	geometry row 1
 	other type menubutton
+	configure text command
 	geometry column 2
 	other comments {}
 	configure relief raised
@@ -331,7 +478,8 @@ Widget frame#1
 	other help {}
 	other min_column {30 30}
 	other comments {}
-	geometry column 3
+	geometry column 4
 	other tabbing {}
 	other item_name fr
+	geometry sticky n
 

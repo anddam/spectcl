@@ -22,9 +22,13 @@ proc menueditor_ui {root args} {
 
 	frame $base.fr
 
-	checkbutton $base.cbTearoff \
-		-text Tearoff \
-		-variable cbTearoff.value
+	listbox $base.lbEntries \
+		-exportselection 0 \
+		-height 0 \
+		-width 0
+
+	button $base.view \
+		-text Post/View
 
 	button $base.add \
 		-text Add
@@ -37,11 +41,11 @@ proc menueditor_ui {root args} {
 		-menu "$base.mbType.m" \
 		-relief raised \
 		-takefocus {} \
+		-text command \
 		-textvariable mbType.value
 
-	listbox $base.lbEntries \
-		-height 0 \
-		-width 0
+	button $base.new \
+		-text New
 
 	button $base.insert \
 		-text Insert
@@ -51,8 +55,8 @@ proc menueditor_ui {root args} {
 
 	entry $base.eLabel
 
-	button $base.view \
-		-text Post/View
+	button $base.remove \
+		-text Remove
 
 	button $base.delete \
 		-text Delete
@@ -70,44 +74,52 @@ proc menueditor_ui {root args} {
 
 	entry $base.eVariable
 
-	button $base.dismiss \
-		-command "destroy $root" \
-		-text Dismiss
-
 	label $base.lMenu \
 		-text Menu
 
 	entry $base.eMenu \
 		-textvariable entry
 
+	checkbutton $base.cbTearoff \
+		-text Tearoff \
+		-variable cbTearoff.value
+
+	button $base.dismiss \
+		-command "destroy $root" \
+		-text Dismiss
+
 
 	# Geometry management
 
-	grid $base.fSeparator -in $root	-row 1 -column 2  \
+	grid $base.fSeparator -in $root	-row 1 -column 3  \
 		-pady 5 \
 		-rowspan 6 \
 		-sticky ns
-	grid $base.fr -in $root	-row 1 -column 3  \
-		-rowspan 6
-	grid $base.cbTearoff -in $root	-row 1 -column 1 
-	grid $base.add -in $root	-row 1 -column 5 
+	grid $base.fr -in $root	-row 1 -column 4  \
+		-rowspan 6 \
+		-sticky n
+	grid $base.lbEntries -in $root	-row 1 -column 1  \
+		-rowspan 6 \
+		-sticky nesw
+	grid $base.view -in $root	-row 1 -column 2 
+	grid $base.add -in $root	-row 1 -column 6 
 	grid $base.lType -in $base.fr	-row 1 -column 1 
 	grid $base.mbType -in $base.fr	-row 1 -column 2 
-	grid $base.lbEntries -in $root	-row 2 -column 1  \
-		-sticky nesw
-	grid $base.insert -in $root	-row 2 -column 5 
+	grid $base.new -in $root	-row 2 -column 2 
+	grid $base.insert -in $root	-row 2 -column 6 
 	grid $base.lLabel -in $base.fr	-row 2 -column 1 
 	grid $base.eLabel -in $base.fr	-row 2 -column 2 
-	grid $base.view -in $root	-row 3 -column 1 
-	grid $base.delete -in $root	-row 3 -column 5 
+	grid $base.remove -in $root	-row 3 -column 2 
+	grid $base.delete -in $root	-row 3 -column 6 
 	grid $base.lCommand -in $base.fr	-row 3 -column 1 
 	grid $base.eCommand -in $base.fr	-row 3 -column 2 
-	grid $base.replace -in $root	-row 4 -column 5 
+	grid $base.replace -in $root	-row 4 -column 6 
 	grid $base.lVariable -in $base.fr	-row 4 -column 1 
 	grid $base.eVariable -in $base.fr	-row 4 -column 2 
-	grid $base.dismiss -in $root	-row 5 -column 5 
 	grid $base.lMenu -in $base.fr	-row 5 -column 1 
 	grid $base.eMenu -in $base.fr	-row 5 -column 2 
+	grid $base.cbTearoff -in $root	-row 5 -column 2 
+	grid $base.dismiss -in $root	-row 5 -column 6 
 
 	# Resize behavior management
 
@@ -122,6 +134,7 @@ proc menueditor_ui {root args} {
 	grid columnconfigure $root 3 -weight 0 -minsize 30
 	grid columnconfigure $root 4 -weight 0 -minsize 30
 	grid columnconfigure $root 5 -weight 0 -minsize 30
+	grid columnconfigure $root 6 -weight 0 -minsize 30
 
 	grid rowconfigure $base.fr 1 -weight 0 -minsize 30
 	grid rowconfigure $base.fr 2 -weight 0 -minsize 30
@@ -131,36 +144,34 @@ proc menueditor_ui {root args} {
 	grid columnconfigure $base.fr 1 -weight 0 -minsize 30
 	grid columnconfigure $base.fr 2 -weight 0 -minsize 30
 # additional interface code
-menu $base.mbType.m -tearoff 0
+source /home/msj/projects/SpecTcl/SpecTcl/menueditor.tk
 
-global state
-array set state {command,Label	normal
-   cascade,Label	normal
-   separator,Label	disabled
-   checkbutton,Label	normal
-   radiobutton,Label	normal
+# Initialise listbox
+set ::menueditor::menulist [list]
+foreach item [uplevel #0 array names Widgets] {
+   upvar #0 $item wdata
+   if {"$wdata(type)"=="menu"} {
+      lappend ::menueditor::menulist [list $item $wdata(item_name)]
+      $base.lbEntries insert end $wdata(item_name)
+   }
 }
 
-foreach type {command cascade separator checkbutton radiobuttion} {
-   $base.mbType.m add radio -label $type \
-      -value $type \
-      -variable mbType.value \
-      -command "
-         foreach tmp {Label} {
-            $base.e\$tmp config -state \$state($type,\$tmp)
-         }
-      "
-}
-.mbType.m invoke 0
+# Menu for $base.mbType
+::menueditor::CreateTheOptionmenu $base.mbType.m
 
+# The demo menu
 set mbase $base.demomenu
-menu $mbase -tearoff 0
-$mbase post 0 0
+if {[catch {::menueditor::displaymenu $mbase} xxx]} {
+   tk_messageBox -message $xxx
+}
 
 # Callbacks for buttons
 $base.view config -command "
    $mbase post 0 0
    catch {$mbase activate 0}
+"
+$base.remove config -command "
+   catch {$base.lbEntries delete active}
 "
 $base.add config -command "
    switch \${mbType.value} {
@@ -221,6 +232,32 @@ bind $root <Key-Return> "$base.add invoke"
 bind $root <Key-Insert> "$base.insert invoke"
 bind $root <Key-Delete> "$base.delete invoke"
 bind $root <Key-Escape> "$base.dismiss invoke"
+
+# Selection callback in listbox
+set l $base.lbEntries
+rename $l ::menueditor::.l
+proc $l {args} "
+   puts \$args
+   if {\[regexp {^selection\$} \[lindex \$args 0\]\] &&
+       \[regexp {^set\$} \[lindex \$args 1\]\]} {
+      ::menueditor::displaymenu $mbase \[::menueditor::.l index \[lindex \$args 2\]\]
+   }
+   uplevel ::menueditor::.l \$args
+"
+
+#$l selection set 0
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
