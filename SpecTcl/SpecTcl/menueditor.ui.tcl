@@ -15,12 +15,12 @@ proc menueditor_ui {root args} {
 	    set base $root
 	}
     
+	frame $base.fr
+
 	frame $base.fSeparator \
 		-borderwidth 1 \
 		-relief sunken \
 		-width 2
-
-	frame $base.fr
 
 	label $base.label#11 \
 		-text Menus
@@ -95,14 +95,14 @@ proc menueditor_ui {root args} {
 
 	# Geometry management
 
-	grid $base.fSeparator -in $root	-row 1 -column 3  \
-		-pady 5 \
-		-rowspan 6 \
-		-sticky ns
 	grid $base.fr -in $root	-row 3 -column 4  \
 		-columnspan 2 \
 		-rowspan 4 \
 		-sticky n
+	grid $base.fSeparator -in $root	-row 1 -column 3  \
+		-pady 5 \
+		-rowspan 6 \
+		-sticky ns
 	grid $base.label#11 -in $root	-row 1 -column 1  \
 		-columnspan 2 \
 		-ipady 5
