@@ -37,6 +37,7 @@ proc widget_extract {widget {array ""}} {
 	if {[llength $option] == 5} {
 	    set item [string trimleft [lindex $option 0] -]
 	    if {(![string match *command* $item] || ![info exists data($item)])
+	        && (![string match type $item])
 	        && (![string match class $item] || ![info exists data($item)])} {
 		set data($item) [lindex $option 4]
 	    }
@@ -73,7 +74,6 @@ proc widget_extract {widget {array ""}} {
 
     # extract geometry attributes (assume blt_table for now)
     # need to handle row, col separately
-
     if {[winfo manager $widget] == "grid"} {
 	regsub -all { -([^ ]+)} [grid info $widget] { \1} options
 	regsub -all pad $options wad options	;# botch for padding
@@ -274,6 +274,12 @@ proc validate_field {name item value} {
     }
     if {[info exists data(type)]} {
 	set class  $data(type)
+    }
+    if {[info exists Widget_data(ClassFilter:$class)]} {
+	dputs out-filtering $name: $item=<$value>
+	if {![$Widget_data(ClassFilter:$class) $name $item value]} {
+	    return $value
+	}
     }
     set cmd ""
     if {[string match *command* $item]} {

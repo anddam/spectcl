@@ -26,7 +26,7 @@ proc configure_widget_data {{var Widget_data} {check ._check_} {cmd ""}} {
 	return $data(widgets)
     }
     array set Skip {
-	toplevel 1 exit 1 destroy 1 puts 1 eval 1 menu 1 sh 1 spawn 1 
+	toplevel 1 exit 1 destroy 1 puts 1 eval 1 sh 1 spawn 1 
 	vwait 1 quit 1 tixDoWhenIdle 1 evalstats 1
     }
     
@@ -101,6 +101,7 @@ proc fetch_widget_data {widget {array_name Widget_data} {check ._check_}} {
 	if {[llength $option] > 2} {
 	    foreach {name x y z value} $option {}
 	    regsub {^-} $name {} name
+	    if {"$name"=="type"} {continue} ;# This occurs in menus
 	    set data(default:$widget,$name) $value
 	    dputs "$widget $option"
 	    lappend data(options:$widget) $name
@@ -229,8 +230,21 @@ proc InstallWidgets {} {
     set x 0
     foreach widgetlist [list $topwidgets $bottomwidgets] {
 	foreach widget [lsort $widgetlist] {
+	    # make a "sample" widget for configuration
+	
+	    catch {destroy .sample_$widget}
+	    if {[catch {$widget .sample_$widget -var example_$widget}]} {
+		$widget .sample_$widget
+	    }
+	    catch {.sample_$widget configure -text $widget}
+	    catch {.sample_$widget configure -label $widget}
+
+            # Add widget to generic menu
 	    $spec(m:genericMenu) add command -label $widget \
 		-command "activate_generic $widget true"
+	    
+	    # Add widget to palette unless it is the menu widget
+	    if {"$widget"=="menu"} {continue}
 	    catch {destroy .palette.f.$widget}
 
 	    if {[lsearch [image names] $widget.gif] > -1} {
@@ -253,14 +267,6 @@ proc InstallWidgets {} {
 		    -columnspan 2 -sticky {ew}
 	    }
 	
-	    # make a "sample" widget for configuration
-	
-	    catch {destroy .sample_$widget}
-	    if {[catch {$widget .sample_$widget -var example_$widget}]} {
-		$widget .sample_$widget
-	    }
-	    catch {.sample_$widget configure -text $widget}
-	    catch {.sample_$widget configure -label $widget}
 	    set Next_widget($widget) 0
 	    incr row
 	}

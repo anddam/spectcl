@@ -314,6 +314,16 @@ proc form_pos {win option value} {
 }
 	
 
+# For menu widgets
+# Really ought to be hidden
+proc OutFilter_gadgets {win option variable args} {
+    upvar $variable data
+    set data "Cannot be modified"
+    return 0
+}	
+
+
+
 # let the user choose a widget name.
 # Don't let the user's use "#" or "@" in names, to make my life easier
 # hope the widget we're taking about is $Current(widget)
@@ -325,11 +335,16 @@ proc OutFilter_item_name {win option variable args} {
 	return 1
     }
     global Next_widget
-    if {![regexp {^[a-zA-Z0-9_]*$} $data]} {
+    if {[regexp {^menu[#][0-9]+$} $win]} {
+        if {![regexp {^[a-zA-Z0-9_.]*$} $data] || [regexp {^\.} $data] || [regexp {\.\.} $data]} {
+	    set data "Use only alphanumerics or . in menuwidget names"
+            return 0
+        }
+    } elseif {![regexp {^[a-zA-Z0-9_]*$} $data]} {
 	set data "Use only alphanumerics in widget names"
 	return 0
     }
-    if {![regexp {^[a-z0-9_][a-zA-Z0-9_]*$} $data]} {
+    if {![regexp {^[a-z0-9_][a-zA-Z0-9_.]*$} $data]} {
 	set data "Widget name cannot start with an upper-case letter"
 	return 0
     }
@@ -411,6 +426,7 @@ proc install_filters {} {
 	outfilter:text			OutFilter_text
 	outfilter:label			OutFilter_text
 	outfilter:panel			OutFilter_panel
+	outfilter:gadgets		OutFilter_gadgets
     }
 }
 
@@ -615,3 +631,4 @@ proc orient_create {win} {
 # the widget specific configuration routines are identified here
 
 set Widget_data(configure:Frame) frame_configure
+set Widget_data(ClassFilter:menu) ::menueditor::ClassFilter
