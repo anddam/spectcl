@@ -16,14 +16,14 @@ proc toggle_grid {} {
 	foreach i [array names Frames] {
 		grid_resize $i $Grid
 		update_table $i grid
-		}
 	}
+}
 
 # Copy the selected widget to the clipboard
 
 proc to_clipboard {} {
     global Current _Message
-    if {$Current(widget) != ""} {
+    if {"$Current(widget)" != ""} {
 	# We now cheat.  We 'save' the widget and anything in it
 	# into a string.
 	set data [get_file_data [winfo name $Current(widget)]]
