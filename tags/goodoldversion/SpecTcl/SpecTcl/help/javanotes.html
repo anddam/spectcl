@@ -1,0 +1,211 @@
+<!-- SpecTcl, by S. A. Uhler --
+ -- Copyright (c) 1994-1996 Sun Microsystems, Inc. --
+ -- See the file "license.txt" for information on usage and redistribution
+ -- of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ -->
+<title>Java Notes</title>
+<center>
+<h1>Java Notes</h1>
+<h2><a name=top>Contents</a></h2>
+<a href=#R4>glossary</a> |
+<a href=#R2>component options</a> |
+<a href=#R1>menu options</a> |
+<a href=#R3>code generation</a> |
+<a href=#R5>misc.</a> |
+</center>
+<h2><a name=R4 href=#top>Glossary</a></h2>
+<p>
+Tk and <color value=red>java</color> use different names for, well, just about everything.  In many cases, the Tk names
+are used.  This section maps the Tk names into their <color value=red>java</color> equivalents.
+<ul compact>
+<li src=aqball.gif align=baseline>
+Generic terminology
+<menu compact>
+<li>widget	->	component
+<li>geometry	->	layout
+</menu>
+<li src=aqball.gif align=baseline>
+Component names
+<menu compact>
+<li>label		->		Label
+<li>entry		->		TextField
+<li>text		->		TextArea
+<li>button		->		Button
+<li>scrollbar	->		Scrollbar
+<li>frame		->		Panel
+<li>checkbutton	->		Checkbox
+<li>radiobutton	->		Checkbox
+<li>menubutton	->		Choice
+<li>listbox		->		List
+<li>canvas		->		Canvas
+<li>frame		->		panel
+</menu>
+<li src=aqball.gif align=baseline>
+Option names
+<menu compact>
+<li>command		->		action
+<li>pad			->		inset
+</menu>
+</ul>
+<h2><a name=R2 href=#top><color value=red>Java</color> specific component options</a></h2>
+<dl>
+<dt>Checkbox (radiobutton) Groups
+<dd>In <color value=red>java</color>, check-boxes are turned into radio-buttons by associating a check-box
+group to them.  In SpecJava, the <code>variable</code> option on the property
+sheet for radio buttons controls which group the button belongs to.
+The easyest way to make a group of radio buttons is to create the first one,
+set its <code>variable</code>, and then copy it using <em>shift-drag</em>.
+<dt>Choice (menubutton) widgets
+<dd>The choices are input as a comma-separated list in the
+<code>items</code> option.  The label (<code>text</code> option) also appears
+as a choice if specified.
+</dl>
+<p>
+Several options on the component property sheets have special meaning to <color value=red>java</color>.
+They are:
+<dl>
+<dt>action
+<dd>A valid <color value=red>java</color> statement should be entered here.  Typically this is a method invocation, either
+from a method inherited in the current class, a static method, such as <code>System.out.println()</code>,
+or a method of the <code>arg</code> instance variable, such as <code>arg.foo()</code>.
+The local variable <code>event</code> of type <code>Event</code> is available as an argument, as
+are all of the user interface objects.
+<dt>item_name
+<dd>
+This is used as the name of the <color value=red>java</color> instance for this user interface element.
+If the default value is used, the "#" is changed into a "_".
+This name will also be a public instance variable in the generated <color value=red>java</color> code.
+<dt>subclass
+<dd>
+This option is used to specify an alternate class for this user interface element.  <code>Subclass</code>
+should be a subclass of the component used.  Subclassing to change the behavior by overriding the
+<code>action</code> method will not work, the <b>action</b> option should be used instead.
+If the <code>subclass</code> option is of the form:
+<ul>
+<code>subclass.method(args)</code>
+</ul>
+then right after the object is created (of type <code>subclass</code>), the <code>method</code> method is called with
+the arguments indicated, permitting subclass specific initialization to occur.
+<dd>
+</dl>
+<h2><a name=R1 href=#top>Accessing the <color value=red>Java</color> additions to the <b>SpecTcl</b> user interface</a></h2>
+<p>
+These <color value=red>java</color> specific functions have been added to the
+menus:
+<dl>
+<dt> java
+<dd> on the <b>command</b> menu, takes <color value=red>java</color> code (in <code><subst>$Current(project).java</subst></code>)
+generated from the saved user interface specification, currently
+<code><subst>$Current(project).jui</subst></code>,
+compiles it (with javac) and runs the interface in test mode.
+If the file <code><subst>$Current(project).html</subst></code> exists in the
+current directory, the user interface will be tested by calling the applet viewer.
+Otherwise, it will be run as a standalone application.
+<p>
+The name of the user interface, as indicated on the title bar
+(e.g. <code><subst>$Current(project)</code></subst>),
+is used as the name of the class.
+<dt> kill java
+<dd> on the <b>command</b> menu, terminates the current test application,
+if one is running.  This only works on systems that support the <em>kill</em> command.
+<dt> java...
+<dd> on the preferences menu, pops up a dialog box to specify the <color value=red>java</color> code
+generation options of SpecTcl.  These are used to control how the user
+interface is integrated into the rest of the
+<color value=red>java</color> application (or applet).
+The preferences contain the following items:
+<dl>
+<dt>package <x>(currently "<subst>$P(package)</subst>")
+<dd>The name of the <color value=red>java</color> package this class will belong to.  The default is the empty package.
+<dt>imports <x>(currently "<subst>$P(imports)</subst>")
+<dd>The name of a package to import.  This is mostly used when there is a
+<code><subst>$Current(project).include.java</subst></code> file in use.
+<dt>extends <x>(currently "<subst>$P(extends)</subst>")
+<dd>The name of the class that this class will inherit from.
+<dt>implements <x>(currently "<subst>$P(implements)</subst>")
+<dd>The name of the interface that the class will implement.  This is useful when several
+different use interface panels need to be used from the same application.
+<dt>arg type <x>(currently "<subst>$P(arg)</subst>")
+<dd>Each generated class contains a public instance variable called <code>arg</code>.  This
+may be used as a reference to invoke methods from in the <i>action</i> fields of the user interface
+elements.  The type of this variable is defined here.  If you choose not to use it, or leave
+it blank, <code>Object</code> is used for the type.
+</dl>
+<dt>java api
+<dd> on the help menu, allows access to the current <color value=red>java</color> documentation.  If
+this menu item is missing, then SpecJava was not installed properly, so
+the documentation could not be found.  The current location is thought to be
+<subst>$doc_dir</subst>.
+<dt>java notes
+<dd>This page, from the help menu.
+</dl>
+<h2><a name=R3 href=#top>Generated code</a></h2>
+<p>
+The class generated by SpecTcl
+(e.g. <code><subst>$Current(project)</subst></code>)
+consists of the following public methods:
+<dl>
+<dt>public Object[] getWidgets()
+<dd>This array contains the user interface element objects and checkbox groups.
+<dt>public String[] getNames()
+<dd>This array contains the string names of the interface elements, as indicated on the <code>item_name
+</code> option of the property sheet.  The order corresponds to the ordering in the
+<code>getWidgets</code> method.
+<dt>public void init()
+<dd>
+This method instantiates the user interface.  It will be called automatically if the class is
+run from a browser or applet viewer.  The <code>super.init</code> method is called to allow
+application specific initialization to occur.
+<dt>public boolean handleEvent(Event event)
+<dd>All of the behavior, as entered in the <code>action</code> property is dispatched from this
+method, which is overridden from the component class.  For every event for which no action is defined,
+the <code>super.handleEvent</code> method is called, allowing for generic behaviors to be
+handled by the parent class.
+<dt>public static void main(String[] args)
+<dd>
+This calls the <code>init</code> method, permitting the class to be run as a standalone
+application.
+</dl>
+<h4>Instance variables and application specifics.</h4>
+<ul>
+<li src=aqball.gif align=baseline>
+Each of the user interface components is defined to be a public instance
+variable, and therefore accessible from within the <code>action</code> property.
+<li src=aqball.gif align=baseline>
+The variable <code>arg</code> is an application specific slot, whose type is determined from
+the <code>arg type</code> option of the property sheet, to make it easy to invoke methods
+from unrelated classes in the <code>action</code>property.
+</ul>
+<h2><a name=R5 href=#top>Miscellaneous</a></h2>
+<p>
+<ul>
+<li src=aqball.gif align=baseline>
+If the file <code><subst>$Current(project).include.java</subst></code> exists in the
+current directory, then the code is inserted directly into the generated <color value=red>java</color> code.
+This technique, however, is discouraged.
+<li src=aqball.gif align=baseline>
+Application specific functionality may be added to <em>SpecTcl</em> by including <em>Tcl</em>
+commands in the file <code><subst>$Current(project).rc</subst></code>.
+<li src=aqball.gif align=baseline>
+Arbitrary strings may be associated with particular widgets, by adding new options to the
+widget property sheet, and making them available in the generated code as an array of strings,
+one per widget.
+<p>
+As an example, suppose automated entry field validation is desired.  An new property, 
+called <code>check</code> can be added to every entry widget by placing the following code
+in the file <code><subst>$Current(project).rc</subst></code> file in the current directory.
+<ul>
+set P(other_items:entry) check.
+</ul>
+Then that property can be exported into the generated code with the line:
+<ul>
+set P(export) "check"
+</ul>
+where the value can be a list of exported properties.  The generated code will have a public
+method called
+<code>check</code> which returns the array of strings containing the <code>check</code> option
+for every widget.  The order of the strings is the same as returned by the
+<code>getNames</code> method of the generated class.
+</ul>
+<hr>
+<A href=javanotes.html>again</a>

@@ -1,0 +1,34 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# This file contains misc. routines that are editor specific.
+
+# temporary procedure to edit code
+
+proc edit_code {{name untitled}} {
+    global env f Clip P tcl_platform
+    set editor {}
+    if {[info exists env(EDITOR)]} {
+	if {$tcl_platform(platform) == "unix"} {
+	    set editor "xterm -e "
+	}
+	append editor "$env(EDITOR)"
+    }
+    if {[info exists env(VISUAL)]} {
+	set editor "$env(VISUAL)"
+    }
+    if {$P(use-external-editor) != 1 || ($editor == {} && $P(external-editor-command) == {})} {
+	catch "destroy .edit"
+	toplevel .edit
+	wm title .edit "$name Code"
+	edit_ui .edit
+    } else {
+	if {$P(external-editor-command) != ""} {
+	    set editor $P(external-editor-command)
+	}
+	edit_openFile $editor $name
+    }
+}

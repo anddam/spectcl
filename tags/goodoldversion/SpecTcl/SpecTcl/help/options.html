@@ -1,0 +1,98 @@
+<!Doctype HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<Html>
+<Head>
+<Title>Widget options</Title>
+<!-- Author: kcorey -->
+<META NAME="GENERATOR" CONTENT="Mozilla/3.01Gold (X11; I; SunOS 5.4 sun4m) [Netscape]">
+</Head>
+<Body>
+
+
+
+<h1 ALIGN=CENTER><!-- Author: kcorey --><!-- SpecTcl, by S. A. Uhler --
+ -- Copyright (c) 1994-1995 Sun Microsystems, Inc. --
+ -- See the file "license.txt" for information on usage and redistribution
+ -- of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ -->Widget
+options</h1>
+<p>
+Widget options in SpecTcl can be configured from the widgets option
+sheet. This page describes only those widget options that are <b>different</b>
+than the options that would be used in an <tt>widget configure</tt>
+command, and are therefore described in the Tk man pages. 
+<p>
+There are cases where the name of a widget option (such as <tt>padx</tt>)
+conflicts with the name of a geometry management option. In those cases,
+one of the options is renamed to prevent ambiguity. Consequently, the
+option name used in the actual generated Tcl code will not match the
+name on the corresponding option sheet. 
+<dl>
+<dt>align (widget) 
+<dd>This option specifies alignment of text within each widget that
+supports it.
+<dt>comments 
+<dd>This is arbitrary text. It is not currently used for anything. 
+<dt>command 
+<dd>The command options permits four special substitutions to take
+place. They are %B, %M, %W, and %R, which are replaced with the base
+name of the widget, the name of the geometry master, the name of the
+widget, and the widgets root. A %% gets changed into a single %. For
+example, if this panel is instantiated in .toplevel, and the widget
+is named <tt>widget</tt>, and is managed by the widget <tt>frame</tt>,
+the following substitutions are made: 
+<pre>                %B      .toplevel
+                %M      .toplevel.frame
+                %W      .toplevel.widget
+                %R      .toplevel
+        </pre>
+<p>
+The values of %B and %R differ only when the panel is instantiated
+in ".". 
+<dt>font 
+<dd>Fonts in SpecTcl are not entered using the X font names. Instead,
+they are specified by a comma separated list of fields. The first two
+fields are the font family and point size. The remaining fields consist
+of zero or more of <b>italic</b> or <b>bold</b>. (eg. "times,12,bold",
+"helvetica,14,bolditalic", "courier,8,")
+<dt>help 
+<dd>If the <b>help</b> field is used, its contents are displayed as
+part of the help message when the cursor is over the widget. The <b>help</b>
+is not currently available to the application. 
+<dt>item_name 
+<dd>This is the <b>name</b> of the widget, as would be returned by
+<tt>winfo name</tt>. The application code should use this name to refer
+to the widget. If the interface is instantiated in a frame called '.foo',
+then the widget would be <tt>.foo.item_name</tt>. Because of Tcl/Tk
+limitations, this must start with a lowercase letter or number.
+<dt>padx 
+<dt>pady 
+<dd>Each widget can have up to three kinds of padding: internal, default,
+and external. 
+<ul compact>
+<li><b>Internal padding</b> forms the bounding box for the text placed
+inside of widgets such as buttons or labels. With non-zero internal
+padding, the <tt>justify</tt> option will anchor the text to the proper
+size of this internal-padding bounding box. 
+<li><b>Default padding</b> is the extra space inside the widget's border,
+and outside the text inside the widget. 
+<li><b>External padding</b> is the extra space outside the widget's
+border that keeps the border away from the edge of the cell. External
+padding only makes a difference if the widget is set to fill its cavity
+(with the fill option), or if the widget is the biggest in its row
+or column. 
+</ul>
+<dt>tabbing order 
+<dd>For this field, an arbitrary text string is used to alter the default
+tabbing order of the widgets. By default, the order is left to right,
+then top down. The values of this field are sorted alphabetically to
+sort the widgets, using the default order for widgets with the same
+string. All widgets with no string indicated are sorted first. 
+<dt>tags 
+<dd>This field contains the list of binding tags used for this widget.
+If nothing is specified, the default <b>bindtags</b> are used. 
+</dl>
+
+
+</Body>
+</Html>
+

@@ -1,0 +1,246 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# get configure info for all of the widgets (Simplified version)
+# The commands in this file are used to derive information about
+# widgets, options, etc.  This information needs to be computed once
+# for each version of TK, and is invariant across all applications
+
+# find all tcl commands that are widgets
+#   <command> .xxx must work and return .xxx
+#   winfo exists .xxx must be true
+# For each widget, extract info into an array
+
+# [This is the *old* tK3.6 version]
+
+proc configure_widget_data {{var Widget_data} {check ._check_} {cmd ""}} {
+    global Skip P
+    upvar #0 $var data
+    catch {destroy $check}
+    
+    # only need to run this 1'ce
+    if {[info exists data(widgets_configured)]} {
+	return $data(widgets)
+    }
+    array set Skip {
+	toplevel 1 exit 1 destroy 1 puts 1 eval 1 menu 1 sh 1 spawn 1 
+	vwait 1 quit 1 tixDoWhenIdle 1 evalstats 1
+    }
+    
+    set potential {}
+    set widgetsIknow {}
+    catch {set widgetsIknow $data(widgets)}
+    set notSupplied [catch {set potential $P(widgets)}]
+    if {$widgetsIknow == "" && $potential == ""} {
+	set potential [info commands]
+    }
+    foreach i $widgetsIknow {
+	set mywidgets($i) 1
+    }
+    foreach i $potential {
+	if {$notSupplied} {
+	    if {[string index $i 0] == "."} continue	;# skip widget inst's
+	    if {[info exists Skip($i)]} continue	;# skip these
+	    if {[string match exp_* $i]} continue	;# skip these too
+	    if {([info procs $i] == $i) && ![info exists P(proc:$i)]} continue
+	}
+	set do $i
+	if {[catch "$do $check" foo]}  continue
+	if {[winfo exists $check]} {
+	    if {$cmd != ""} {
+		eval "$cmd $i"
+	    }
+	    set mywidgets($i) 1
+	    fetch_widget_data $i data $check
+	}
+	catch {destroy $check}
+    }
+    set widgets [array names mywidgets]
+    set data(widgets) $widgets
+    set data(widgets_configured) 1
+    return $widgets
+}
+
+# build an array containing widget options
+
+proc fetch_widget_data {widget {array_name Widget_data} {check ._check_}} {
+    upvar $array_name data
+    
+    # query configuration options
+    
+    set all [$check configure]
+    catch {unset data(options:$widget)}	;# incase we re-source
+    foreach option $all {
+	if {[llength $option] > 2} {
+	    foreach {name x y z value} $option {}
+	    regsub {^-} $name {} name
+	    set data(default:$widget,$name) $value
+	    dputs "$widget $option"
+	    lappend data(options:$widget) $name
+	    if {![info exists data(option:$name)]} {
+		set data(option:$name) [get_option_type $check $widget $name]
+	    }
+	}
+    }
+    return ""
+}
+
+# return the type of an option
+# the only *guaranteed* way to do this is by creating a new widget for
+# each test, as some invalid options leave the widgets in an undefined state
+# Thats too slow, so We'll keep a list of "bad" options and deal with them
+# separately
+
+proc get_option_type {name widget option {font fixed}} {
+
+    # try to set the option to these values.  Keep track of the values
+    # that work. 
+
+    set tests "2 1 1c #123 ne raised warning arrow disabled vertical $font"
+    array set bad_options {image 1 orient 1}
+    set bad [expr [info exists bad_options($option)] == 1]
+
+    foreach test $tests {
+	set result [catch "$name configure -$option $test" _Message]
+	append out $result
+	if {$result && $bad} {
+	    destroy $name; $widget $name
+	}
+    }
+    return [assign_option_type $out]
+}
+
+# assign a type to result pattern
+# This depends on the types and order of tests performed in
+# get_option_types
+#   pat:  The list of successes/failures for each test
+
+proc assign_option_type {pat} {
+    switch -exact $pat {
+	00000000000 {set result string}
+	00011111111 {set result distance}
+	00111111111 {set result integer}
+	10111111111 {set result boolean}
+	11101111111 {set result color}
+	11110111111 {set result anchor}
+	11111011111 {set result relief}
+	11111101111 {set result bitmap}
+	11111110111 {set result cursor}
+	11111111011 {set result state}
+	11111111101 {set result orientation}
+	11111111110 {set result font}
+	11111111111 {set result special}
+	default      {set result unknown}
+    }
+    return $result
+}
+
+# configure the widget data for the table geometry manager
+# This is hard-wired for now create something to manage, manage it
+# extract the management options, then destroy it.
+# for now, we'll pretend the geometry manager is like a widget,
+# and configure its data the same way  This will change with the new
+# table geometry manager
+
+proc configure_geometry_data {{var Widget_data} {check ._check_}} {
+    upvar #0 $var data
+    frame $check
+    frame $check.1
+    grid $check.1 -row 0 -column 0
+    grid columnconfigure $check.1 -0 -weight 1
+    regsub -all { -} [grid info $check.1] { default:table,} options
+    regsub -all pad $options wad options	;# botch for padding
+    regsub -all anchor $options align options	;# botch for padding
+    destroy $check
+    array set data [lrange $options 2 end]
+    foreach i {row column} {
+	set data(default:position,$i) 0
+    }
+}
+
+# find all the widgets.  Put here so we can call it later.  Useless?  maybe.
+
+proc FindWidgets {} {
+    global _Message Saved_Widget_data Widget_data widgets
+    set _Message "Gathering configuration information"
+    busy_on
+    update
+    set widgets [configure_widget_data Widget_data ._check_ widget_progress]
+    foreach qq [array names Widget_data] {
+	set Saved_Widget_data($qq) $Widget_data($qq)
+    }
+    busy_off
+}
+
+# install the widgets in the palette
+
+proc InstallWidgets {} {
+    global widgets Next_widget sample_checkbutton Base_dir P spec
+    catch {unset Next_widget}
+    set row 0
+    set numcols 2
+    set topwidgets {}
+    set bottomwidgets {}
+
+    foreach w $widgets {
+	if {"[info command $w]" != $w} {
+	    regsub $w $widgets "" widgets
+	}
+    }
+
+    foreach w $widgets {
+	if {[lsearch [image names] $w.gif] == -1} {
+	    lappend bottomwidgets $w
+	} else {
+	    lappend topwidgets $w
+	}
+    }
+
+    frame .palette.f -bg [.palette cget -bg]
+    pack .palette.f -fill both -anchor nw -padx 2 -pady 2
+
+    set x 0
+    foreach widgetlist [list $topwidgets $bottomwidgets] {
+	foreach widget [lsort $widgetlist] {
+	    $spec(m:genericMenu) add command -label $widget \
+		-command "activate_generic $widget true"
+	    catch {destroy .palette.f.$widget}
+
+	    if {[lsearch [image names] $widget.gif] > -1} {
+		set imlabel $widget.gif
+		set imlabelin ${widget}_r.gif
+	    } else {
+		set imlabel {}
+		set imlabelin {}
+	    }
+	    label .palette.f.$widget -text $widget -image $imlabel\
+		-anchor w -pady 1 -padx 2 -highlightthickness 1 -bg \
+		#c0c0c0 -highlightbackground #c0c0c0
+	    bindtags .palette.f.$widget {busy . palette palette_action all}
+
+	    if {$x == 0} {
+		grid .palette.f.$widget -row [expr $row/$numcols] \
+		    -column [expr $row%$numcols]
+	    } else {
+		grid .palette.f.$widget -row $row -column 0 \
+		    -columnspan 2 -sticky {ew}
+	    }
+	
+	    # make a "sample" widget for configuration
+	
+	    catch {destroy .sample_$widget}
+	    if {[catch {$widget .sample_$widget -var example_$widget}]} {
+		$widget .sample_$widget
+	    }
+	    catch {.sample_$widget configure -text $widget}
+	    catch {.sample_$widget configure -label $widget}
+	    set Next_widget($widget) 0
+	    incr row
+	}
+	incr x
+    }
+    return $row
+}

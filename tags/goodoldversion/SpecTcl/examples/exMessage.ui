@@ -1,0 +1,195 @@
+WidGet file, version 1.1, created:  Mon Jul 28 16:33:25 PDT 1997
+Widget label#1
+	geometry row 5
+	other error {- Label configuration -}
+	other type label
+	other master {}
+	configure text aspect:
+	other pathname label#1
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	configure borderwidth 2
+	geometry sticky e
+	other item_name label#1
+	other tabbing {}
+Widget button#1
+	geometry row 1
+	other error {}
+	other type button
+	other master .frame#1
+	configure text 150
+	configure default disabled
+	other pathname button#1
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 4
+	geometry column 1
+	other comments {}
+	configure borderwidth 2
+	geometry sticky ew
+	other item_name button#1
+	other tabbing {}
+	configure command {.message#1 config -aspect 150;ShowText}
+Widget button#2
+	geometry row 1
+	other error {}
+	other type button
+	other master .frame#1
+	configure text 500
+	configure default disabled
+	other pathname button#2
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 4
+	configure borderwidth 2
+	geometry column 2
+	other comments {}
+	geometry sticky ew
+	configure command {.message#1 config -aspect 500; ShowText}
+	other tabbing {}
+	other item_name button#2
+Widget message#1
+	geometry columnspan 3
+	geometry row 2
+	configure aspect 500
+	other error {}
+	other type message
+	configure textvariable msgText
+	other master {}
+	geometry ipadx 2
+	geometry ipady 2
+	other pathname message#1
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 2
+	geometry column 2
+	other comments {}
+	configure borderwidth 2
+	geometry sticky nesw
+	other item_name message#1
+	other tabbing {}
+	configure relief groove
+Widget button#3
+	geometry row 1
+	other error {}
+	other type button
+	other master .frame#1
+	configure text 1000
+	configure default disabled
+	other pathname button#3
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 4
+	other comments {}
+	configure borderwidth 2
+	geometry column 3
+	geometry sticky ew
+	other item_name button#3
+	other tabbing {}
+	configure command {.message#1 config -aspect 1000; ShowText}
+Widget entry#1
+	geometry row 4
+	other error {}
+	other type entry
+	configure textvariable entryText
+	other master {}
+	other pathname entry#1
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 3
+	other comments {}
+	configure borderwidth 2
+	configure cursor {}
+	geometry sticky ew
+	other item_name entry#1
+	other tabbing {}
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 1 0 0 0 0}
+	other type frame
+	other code {# The exMessage example demos the message widget. 
+# When you enter a long string of text in the entry widget
+# and press the Return key, the message widget adds
+# newline characters and displays the message. When you 
+# click on a button, you change the aspect property of 
+# the message widget.
+
+bind .entry#1 <Key-Return> {ShowText}
+
+proc ShowText {} {
+  global entryText msgText
+
+  set msgText $entryText
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+	other min_row {10 67 10 30 12 10}
+	other master {}
+	other pathname f
+	other resize_column {0 1 1 1 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {10 30 49 30 10}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget frame#1
+	other panel {}
+	geometry row 5
+	other resize_row 0
+	other error {}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other resize_column {0 0 0}
+	other tags {}
+	other level 1
+	other min_column {30 30 30}
+	other help {}
+	geometry column 3
+	other comments {}
+	geometry sticky ew
+	other item_name frame#1
+	other tabbing {}
+

@@ -1,0 +1,126 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# This file by Ken Corey (1996)
+# Copyright (c) 1994-1996 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# provide the necessary support to allow composite widgets.
+# 
+# This is a bare minimum. Currently no provision is made for:
+#  1) Provide control over how properties are trickled down to
+#     internal widgets
+#  2) Provide control over adding new subcommands
+#  3) Provide control over what procedure is called when
+#  4) The widget needs to "realize" itself (configure/expose events
+#     on the parent frame?  *shrug*)
+
+# The command is called to create a 'fake' widget.
+# wcommand is the name of the new 'widget'.
+# props is a list of properties that are not reflected in 
+#   a frame, and that we need to keep track of.
+#   This is composed of pairs:
+#    {class Foobar color {} size {}}
+# pass is a list of properties that are sent to the widget
+#   when the configure command is given to our new widget.
+#   {width height bd borderwidth bg background}
+proc make_widget {wcommand props pass} {
+    global fauxWidgetProps fauxWidgetPass P
+    foreach {p v} $props {
+	set fauxWidgetProps(${wcommand}:$p) $v
+    }
+    foreach {p} $pass {
+	set fauxWidgetPass(${wcommand}:$p) {}
+    }
+    proc $wcommand {args} "
+        eval \"uplevel 1 widget_maker $wcommand \$args\"
+    "
+    set P(proc:$wcommand) 1
+    lappend P(widgets) $wcommand
+}
+
+proc widget_maker {widget_name args} {
+    set widget [lindex $args 0]
+    set command [lindex $args 1]
+    
+    switch {$command} {
+	"-configure" {
+	    puts "Got -configure $args"
+	}
+	"-cget" {
+	    puts "Got cget $args."
+	}
+	default {
+	    frame $widget  -class $widget_name -width 20 -height 20
+	    rename $widget ${widget}_forreal
+	    proc $widget {args} "
+                uplevel 1 widget_proxy $widget foobar \$args
+            "
+	    return $widget
+	}
+    }
+}
+
+proc widget_proxy {this widget args} {
+    global fauxWidgetProps fauxWidgetPass
+    set command [lindex $args 0]
+    set postcom [lindex $args 1]
+    set details [lindex $args 2]
+    if {[string match "conf*" $command]} {
+	set command "configure"
+    }
+    switch "$command" \
+	configure {
+	    if {[llength $args] <= 2} {
+		set buffer ""
+		foreach qq [array names fauxWidgetProps $widget:*] {
+		    regexp {([^:]*):(.*)} $qq dummy a prop
+		    set capped [string toupper [string range $prop 0 0]][string range $prop 1 end]
+		    lappend buffer [list -$prop $prop $capped $fauxWidgetProps($qq) $fauxWidgetProps($qq)]
+		}
+		foreach qq [array names fauxWidgetPass $widget:*] {
+		    regexp {([^:]*):(.*)} $qq dummy a prop
+		    set capped [string toupper [string range $prop 0 0]][string range $prop 1 end]
+		    set value [${this}_forreal cget -$prop]
+		    lappend buffer [list -$prop $prop $capped $value $value]
+		}
+		set buffer [lsort $buffer]
+		return $buffer
+	    } else {
+		foreach {comm value} [lrange $args 1 end] {
+		    regexp {([\-]*)(.*)} $comm dummy dummy postcom
+		    if {$postcom != {}} {
+			if {$value != {}} {
+			    if {[array names fauxWidgetProps $widget:$postcom]!= "" && $postcom != "class"} {
+				set fauxWidgetProps($widget:$postcom) $value
+			    } elseif {[array names fauxWidgetPass $widget:$postcom]!= ""} {
+				${this}_forreal config $comm $value
+			    } else {
+				error "unknown option \"$postcom\""
+			    }
+			} else {
+			    if {[array names fauxWidgetProps $widget:$postcom] != ""} {
+				set capped [string toupper [string range $postcom 0 0]][string range $postcom 1 999]
+				return "-$postcom $postcom $capped $fauxWidgetProps($widget:$postcom) $fauxWidgetProps($widget:$postcom)"
+			    } else {
+				error "unknown option \"$postcom\""
+			    }
+			}
+		    }
+		}
+	    }
+	} \
+	cget {
+	    regexp {([\-]*)(.*)} $postcom dummy dummy postcom
+	    if {[array names fauxWidgetProps $widget:$postcom] != {}} {
+		return $fauxWidgetProps($widget:$postcom)
+	    } elseif {[array names fauxWidgetPass $widget:$postcom] != {}} {
+		return [${this}_forreal cget -$postcom]
+	    } else {
+		error "unknown option \"[lindex $args 1]\""
+	    }
+	} \
+	default {
+	    error "unknown option \"[list $args]\""
+	}
+}

@@ -1,0 +1,9 @@
+SpecTcl 1.0 (c) Sun Microsystems, 1995 by Stephen Uhler, Ken Corey
+
+This directory contains the files for the SpecTcl help. The HTML files
+use a modified version of the HTML library version 0.3:
+* The form, isindex, and imagemap support has been removed.
+* The <li> tag has been enhanced to support "gif" symbols with
+  a src=image.gif attribute.
+* back-filled fixes from 0.4
+

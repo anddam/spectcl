@@ -1,0 +1,339 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1997 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# These commands are called via the menubar.  The goal is to have all
+# "-command" options of widgets and menus (and bindings) consist entirely
+# of procedure calls with aruments, so we can create test cases in batch
+# files by simulating events and button/menu invocations
+
+# toggle the grid lines
+
+proc toggle_grid {} {
+	global Frames Grid
+	foreach i [array names Frames] {
+		grid_resize $i $Grid
+		update_table $i grid
+		}
+	}
+
+# Copy the selected widget to the clipboard
+
+proc to_clipboard {} {
+    global Current _Message
+    if {$Current(widget) != ""} {
+	# We now cheat.  We 'save' the widget and anything in it
+	# into a string.
+	set data [get_file_data [winfo name $Current(widget)]]
+	clipboard clear
+	clipboard append $data
+    }
+}
+
+# paste the clipboard item into the current canvas (gulp)
+# This is still broken
+
+proc from_clipboard {{test 0}} {
+    global Current SpecTcl_widget Next_widget Oldref
+    if {!$test} {global _Message}
+    
+    if {[catch {set widget [selection get -selection CLIPBOARD]}]} {
+	set _Message "No data on clipboard"
+	return 0
+    }
+    if {![regexp "WidGet file" $widget]} {
+	set _Message "Invalid data on clipboard"
+	return 0
+    }	
+    
+    if {$test} {return 1}
+    
+    set begin [expr [string first "\n" $widget]+1]
+    set widget [string range $widget $begin end]
+    
+    # change the appopriate widget parameters and put the
+    # widget in a "hidden" spot
+    catch {destroy .clipboard}
+    frame .clipboard
+    
+    # figure out where to put it
+    # 1) if a widget is selected, delete it and put new one there
+    # 2) if a row and column are selected, put it there
+    # 3) if a row or column is selected, put in first empty cell (later)
+    # 4) punt
+    
+    if {$Current(widget) != ""} {
+	regexp {\-column ([0-9]*) \-row ([0-9]*)} [grid info $Current(widget)] dummy col row
+	delete_selected 0
+    } elseif {$Current(row) != "" && $Current(column) != ""} {
+	regsub {[^_]*_} $Current(row) {} row
+	regsub {[^_]*_} $Current(column) {} col
+	if {[grid slaves $Current(frame) -row $row -column $col] != ""} {
+	    set _Message "Selected position is already occupied"
+	    return 0
+	}
+    } else {
+	set _Message "No where to put widget!"
+	return 0
+    }
+
+    if {$Current(frame) != ".can.f"} {
+	regsub "table master (\[^ \n\]*)" $widget "table master .[winfo name $Current(frame)]" widget
+    }
+    # Adjust the widget so that it gets put into the right spot.
+    # Note that we only want to change the very first widget, as
+    # if there's more, the first one is the container.  
+    regsub {geometry row ([0-9]*)} $widget "geometry row [expr $row/2]" widget
+    regsub {geometry column ([0-9]*)} $widget "geometry column [expr $col/2]" widget
+
+    load_project_string $widget .can.f 0
+    regexp "Widget (\[^ \n\]*)" $widget dummy win
+    if {[info exists Oldref($win)]} {
+	select_widget .can.f.$Oldref($win)
+    } else {
+	select_widget .can.f.$win
+    }
+    sync_all
+}
+
+# bring up generic menu option sheet affiliated with selected widget
+
+proc menu_generic {} {
+	global Current _Message
+	if {$Current(widget) != ""} {
+		upvar #0 [winfo name $Current(widget)] data
+		activate_generic $data(type) true
+	} else {
+		set _Message "No widget is selected"
+		bell
+	}
+}
+
+# bring up widget menu option sheet
+
+proc menu_widget {} {
+    global Current _Message
+    if {$Current(widget) != ""} {
+	activate_option $Current(widget) true
+    } elseif {$Current(selected_widget_type) != ""} {
+	set widget .sample_[winfo name $Current(selected_widget_type)]
+	widget_extract $widget
+	activate_option $widget true
+    } else {
+	set _Message "No widget is selected"
+	bell
+    }
+}
+
+# set the proper menu option to active/inactive
+
+proc editmenu_active {} {
+    global Current
+    
+    # options that need a selected widget
+    
+    set state [expr {"$Current(widget)" == "" ? "disabled" : "normal"}]
+    foreach i {{Widget Properties...}} {
+	catch {[menubar_getmenuname .menu $i] entryconfigure $i -state $state}
+    }
+    set state [expr {"$Current(widget)" == "" ? "disabled" : "normal"}]
+    foreach i {Cut Copy} {
+	catch {[menubar_getmenuname .menu $i] entryconfigure $i -state $state}
+    }
+    
+    set state [expr {"$Current(widget)$Current(row)$Current(column)$Current(gridline)" == "" ? "disabled" : "normal"}]
+    [menubar_getmenuname .menu Delete] entryconfigure Delete -state $state
+    [menubar_getmenuname .menu Insert] entryconfigure Insert -state $state
+    
+    set state [expr {![from_clipboard 1]? "disabled" : "normal"}]
+    [menubar_getmenuname .menu Paste] entryconfigure Paste -state $state
+}
+
+proc commandmenu_active {} {
+    global Current Widgets
+
+    if {[catch {test_interp eval {. cget -bd}}]} {
+	set state disabled
+    } else {
+	set state normal
+    }
+
+    menu_setstate "Stop Test" $state
+    
+    if {[array size Widgets] == 0} {
+	set state disabled
+    } else {
+	set state normal
+    }
+    menu_setstate "Build" $state
+    menu_setstate "Build and Test" $state
+    menu_setstate "Build Application" $state
+
+    set state disabled
+    set cw {}
+    regexp {.*(frame\#[0-9]*)} $Current(widget) dummy cw
+    if {$cw != ""} {
+	upvar \#0 $cw data
+	if {[llength [concat $data(min_row) $data(min_column)]] == 2 } {
+	    set flag 0
+	    foreach q [grid slaves .can.f.$cw] {
+		if {![string match *@* $q]} {
+		    set flag 1
+		}
+	    }
+	    if {$flag == 0} {
+		set state normal
+	    }
+	}
+    }
+    menu_setstate "Load Project into Frame..." $state
+    
+    if {[llength [array names Widgets scrollbar\#*]] == 0} {
+	set state disabled
+    } else {
+	set state normal
+    }
+    menu_setstate "Attach Scrollbars" $state
+    
+    if {$Current(repeat) == ""} {
+	set state disabled
+    } else {
+	set state normal
+    }
+    menu_setstate "Reapply the Toolbar" $state
+
+    #
+    # Enable/disable the "Select 1st Child" menu item depending
+    # on whether the select widget is a frame that contains some child(ren).
+    #
+    # Enable/disable the "Select Parent" menu item depending
+    # on whether the selected widget is in a subframe.
+    #
+    set childstate  disabled
+    set parentstate disabled
+
+    if {$Current(widget) != ""} {
+	set name [winfo name $Current(widget)]
+	upvar #0 $name data
+	if {"$data(type)" == "frame"} {
+	    foreach qq [grid slaves $Current(widget)] {
+		if {![regexp {@} $qq] &&
+			![string match *outline_highlight $qq] &&
+			![string match *_outline $qq]} {
+		    set childstate normal
+		    break
+		}
+	    }
+	}
+
+        set master .can.f$data(master)
+        if {$master !=  ".can.f"} {
+	    set parentstate normal
+        }
+    }
+    menu_setstate "Select Parent" $parentstate
+    menu_setstate "Select 1st Child" $childstate
+}
+
+# set up the html help
+
+# add a "box" tag to put a box around the text
+array set HMtag_map {box {Tbox box}}
+
+proc html_help {{file help.html} {dir {}}} {
+    global _Message Help_history Help_dir env Base_dir P
+    
+    if {$dir != {}} {
+	set Help_dir $dir
+    } elseif {[info exists env(SPECTCL_HELP)]} {
+	set Help_dir $env(SPECTCL_HELP)
+    } else {
+	set Help_dir [file join $Base_dir help]
+    }
+    
+    set Help_history ""
+    set _Message "Loading help..."
+    update idletasks
+    catch {destroy .help}
+    toplevel .help
+    update idletasks
+    update
+    help_ui .help
+    
+    # This sets up the window to be managed by the "group"
+    # concept
+    bind_map .help
+
+    update
+    HMinit_win .help.text
+    
+    # font hack adjust
+    
+    global env
+    if {[info exists env(SPECTCL_SIZE)]} {
+	HMset_state .help.text -size $env(SPECTCL_SIZE)
+    }
+    # HMset_indent $win 2.2
+    # set <dt> text in magenta
+    .help.text tag configure hi -foreground magenta
+    .help.text tag configure box -borderwidth 3 -relief ridge
+    HMlink_callback .help.text $file
+    set _Message ""
+}
+
+# menubar_getmenuname --
+#
+#	Returns the menu widget that contains the given label.
+#
+# Arguments:
+#	w:	   pathname of the widget to start searching.
+#	itemlabel: find the menu that contains the item that has this label.
+#
+# Results:
+#	pathname of the menu widget if found, otherwise an empty string.
+
+proc menubar_getmenuname {w itemlabel} {
+    dputs $w $itemlabel
+    set result ""
+    switch [winfo class $w] {
+	Frame {
+	}
+	Menu {
+	    if {![catch {$w index $itemlabel} msg]} {
+		return $w
+	    }
+	}
+	default {
+	}
+    }
+    foreach child [winfo children $w] {
+        if {[set result [menubar_getmenuname $child $itemlabel]] != ""} {
+	    return $result
+	}
+    }
+    return $result
+}
+
+proc menu_activate {item} {
+    menu_setstate $item normal
+}
+
+proc menu_disable {item} {
+    menu_setstate $item disabled
+}
+
+proc menu_setstate {item state} {
+    if {$state == 0} {
+	set state disabled
+    }
+    if {$state == 1} {
+	set state normal
+    }
+
+    set m [menubar_getmenuname .menu $item]
+    if {$m != ""} {
+	$m entryconfig [$m index $item] -state $state
+    }
+}

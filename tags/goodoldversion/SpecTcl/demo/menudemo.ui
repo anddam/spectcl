@@ -1,0 +1,140 @@
+WidGet file, version 1.0, created:  Tue Jan 14 09:19:58 PST 1997
+Widget menubutton#4
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text Preferences
+	other pathname menubutton#4
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	configure borderwidth 2
+	other comments {}
+	geometry column 4
+	other tabbing {}
+	other item_name menubutton#4
+Widget menubutton#1
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text File
+	other pathname menubutton#1
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	geometry column 1
+	other comments {}
+	configure borderwidth 2
+	other item_name menubutton#1
+	other tabbing {}
+Widget f
+	other panel {}
+	other resize_row {0 3}
+	other type frame
+	other code {proc doNothing {args} {
+}
+
+menu $base.menubutton#1.m
+$base.menubutton#1.m add command -label "Open" -command doNothing
+
+menu $base.menubutton#2.m
+$base.menubutton#2.m add command -label "Undo" -command doNothing
+
+menu $base.menubutton#3.m
+$base.menubutton#3.m add command -label "Build & Test" -command doNothing
+
+menu $base.menubutton#4.m
+$base.menubutton#4.m add command -label "Options..." -command doNothing
+
+menu $base.menubutton#7.m
+$base.menubutton#7.m add command -label "About" -command doNothing
+
+}
+	other min_row {30 30}
+	other master {}
+	other pathname f
+	other tags {}
+	other resize_column {0 0 0 0 0 0 3 0}
+	other level 0
+	configure background #e9e9e9
+	other help {}
+	other min_column {30 30 30 30 30 30 30 30}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget menubutton#2
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text Edit
+	other pathname menubutton#2
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	configure borderwidth 2
+	other comments {}
+	geometry column 2
+	other tabbing {}
+	other item_name menubutton#2
+Widget menubutton#7
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text Help
+	other pathname menubutton#7
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	geometry column 6
+	other comments {}
+	configure borderwidth 2
+	other item_name menubutton#7
+	other tabbing {}
+Widget menubutton#3
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text Commands
+	other pathname menubutton#3
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	geometry column 3
+	other comments {}
+	configure borderwidth 2
+	other item_name menubutton#3
+	other tabbing {}
+Widget frame#1
+	other panel {}
+	geometry columnspan 8
+	geometry row 1
+	other resize_row 0
+	other error {- Frame configuration -}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other resize_column {1 1 1 1 3 1}
+	other tags {}
+	other level 1
+	other min_column {30 30 30 30 30 30}
+	other help {}
+	geometry column 1
+	other comments {}
+	configure borderwidth 1
+	geometry sticky ew
+	other item_name frame#1
+	other tabbing {}
+	configure relief raised
+

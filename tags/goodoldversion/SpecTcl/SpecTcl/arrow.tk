@@ -1,0 +1,424 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# manage "arrows", the row/column indicators
+# Each grid has a set of corrosponding row and column arrows that
+# track the row and column sizes for that grid.  The arrow for each grid
+# share the same "skinny" canvas-es and use canvas tags to identify
+# each arrow group. Each arrow has 2 tags: the identifier for the arrow's
+# group, and the group with a _nn suffix, where "nn" is the row or col #
+
+# Update the arrow positions
+# Each arrow is updated to match the length of its 
+# corrosponding row/col
+# This gets called often, so it should be fast
+#  base:	 The base name for the arrow canvases, as in ${base}_row...
+#  master:	 The name of the table, which is also the tag name
+
+proc arrow_update {base master} {
+	global P Current
+
+    if {$Current(frame) != "" && $Current(frame) != $master} {
+	#move existing arrows out of view
+	${base}_row move tag:$Current(frame) -50 0
+	${base}_column move tag:$Current(frame) 0 -50
+    }
+	set center 5
+	set tag tag:$master
+    foreach {maxcolumn maxrow} [grid size $master] {}
+    for {set x1 2} {$x1 < $maxcolumn} {incr x1 2} {
+	foreach {dumcolumn dumrow dumcolumnh dumrowh} [grid bbox $master $x1 0] {}
+	${base}_column coords ${tag}_$x1 $dumcolumn $center [expr $dumcolumn+$dumcolumnh] $center
+    }
+    for {set x1 2} {$x1 < $maxrow} {incr x1 2} {
+	foreach {dumcolumn dumrow dumcolumnh dumrowh} [grid bbox $master 0 $x1] {}
+	${base}_row coords ${tag}_$x1 $center $dumrow $center [expr $dumrow+$dumrowh]
+    }
+	# now update the offsets, if any
+
+	if {$master != ".can.f"} {
+		set dx [expr [winfo rootx $master.@0] - [winfo rootx .can.f] + 2*$P(grid_size)]
+		set dy [expr [winfo rooty $master.@0] - [winfo rooty .can.f] + 2*$P(grid_size)]
+		dputs offset: $dx,$dy
+		arrow_offset $base column $master $dx
+		arrow_offset $base row $master $dy
+	}
+}
+
+# Update an arrow position, move the rest for speed's sake.
+# Each arrow is updated to match the length of its 
+# corrosponding row/col
+# This gets called often, so it should be fast
+#  base:	 The base name for the arrow canvases, as in ${base}_row...
+#  master:	 The name of the table, which is also the tag name
+
+proc arrow_update_one {base master what index} {
+	global P Current X0 Y0
+
+    if {$Current(frame) != "" && $Current(frame) != $master} {
+	#move existing arrows out of view
+	${base}_row move tag:$Current(frame) -50 0
+	${base}_column move tag:$Current(frame) 0 -50
+    }
+	set center 5
+	set tag tag:$master
+    foreach {maxcolumn maxrow} [grid size $master] {}
+
+    set x [expr $X0-[winfo rootx $master]]
+    set y [expr $Y0-[winfo rooty $master]]
+    if {$what == "column"} {
+	for {set x1 0} {$x1 < $maxcolumn} {incr x1 2} {
+	    foreach {dumcolumn dumrow dumcolumnh dumrowh} [grid bbox $master $x1 0] {}
+	    ${base}_column coords ${tag}_$x1 $dumcolumn $center [expr $dumcolumn+$dumcolumnh] $center
+	}
+    } else {
+	for {set x1 0} {$x1 < $maxrow} {incr x1 2} {
+	    foreach {dumcolumn dumrow dumcolumnh dumrowh} [grid bbox $master 0 $x1] {}
+	    ${base}_row coords ${tag}_$x1 $center $dumrow $center [expr $dumrow+$dumrowh]
+	}
+    }
+	# now update the offsets, if any
+	
+	if {$master != ".can.f"} {
+	    set dx [expr [winfo rootx $master.@0] - [winfo rootx .can.f] + 2*$P(grid_size)]
+	    set dy [expr [winfo rooty $master.@0] - [winfo rooty .can.f] + 2*$P(grid_size)]
+	    dputs offset: $dx,$dy
+	    arrow_offset $base column $master $dx
+	    arrow_offset $base row $master $dy
+	}
+}
+
+
+
+# activate a set of arrows.This affects the arrows visibility and bindings
+#  base:  The base of the canvas name (e.g. .can)
+#  win:   Which set of arrows to activate
+#  color: What color to make the activated arrows
+
+proc arrow_activate {base master {color grey}} {
+    global P Current
+    set tag tag:$master
+    dputs $master
+    arrow_update $base $master	;# this is overkill: find the bug!
+    if {$Current(frame) != ""} {
+	#move existing arrows out of view
+	${base}_row move tag:$Current(frame) -50 0
+	${base}_column move tag:$Current(frame) 0 -50
+    }
+    #move new arrows into view.
+    foreach i {row column} {
+	${base}_$i bind all  <$P(button)> {}
+	${base}_$i bind $tag  <$P(button)> " arrow_begin_sweep $master %X %Y"
+	${base}_$i bind $tag  <ButtonRelease-$P(button)> "arrow_unhit %W $i %X %Y"
+	${base}_$i bind $tag  <B$P(button)-Motion> "arrow_move %W $i %X %Y"
+	${base}_$i itemconfigure $tag -fill $color
+	${base}_$i raise $tag
+    }
+    update idletasks
+}
+
+proc arrow_begin_sweep {master x y} {
+    global Arrow_move Y0 X0 Current
+    set Arrow_move 1
+#    set Y0 [expr [winfo rooty .can] - [winfo rooty $master]]
+#    set X0 [expr [winfo rootx .can] - [winfo rootx $master]]
+    set Y0 $y
+    set X0 $x
+    set Current(resize_widget) $Current(widget)
+    if {$Current(widget) != ""} {
+	if {[winfo exists $Current(resize_widget)_outline]} {
+	    array set dribble [grid info $Current(resize_widget)]
+	    grid $Current(resize_widget)_outline -row $dribble(-row)\
+		-column $dribble(-column) -rowspan $dribble(-rowspan)\
+		-columnspan $dribble(-columnspan) -sticky nsew
+	}
+    }
+}
+
+# This gets called from the button-release binding of an arrow as:
+# arrow_unhit %W [row|column] %x %y
+
+proc arrow_unhit {win what x y} {
+    global Arrow_move Frames No_hit Current
+    dputs $win $what $x $y
+    set Arrow_move 0
+    
+    # re-sized a row/column - we had all this info, then lost it.  Oh well.
+    # 'tis all broken
+    
+    if {$No_hit} {
+	set tag [lindex [$win gettags [$win find withtag current]] 1]
+	regexp {tag:([^_]*)_(.*)} $tag dummy master index
+	upvar #0 [winfo name $master] data
+	set index [expr $index / 2 - 1]
+	set data(min_$what) [lreplace $data(min_$what) $index $index $No_hit]
+	set No_hit 0
+	if {[winfo exists $Current(resize_widget)]} {
+	    select_widget $Current(resize_widget)
+	    sync_all
+	}
+	foreach frame [array names Frames] {
+	    update_table $frame arrow_move
+	}
+	
+	# toggled row/column state
+	
+    } else {
+	arrow_hit $win $what $x $y
+    }
+}
+
+# change the offset of a set of arrow, for sub-frames
+# this interface is temporary
+#  base: .can
+#  what: "row" or "column"
+#  tag:  which table
+#  offset:  Offset from the beginning (defaults to 0)
+
+proc arrow_offset {base what master {offset 0}} {
+	set tag tag:$master
+	set coords [${base}_$what coords $tag]
+	dputs   $tag <$coords> offset=$offset
+	if {$what == "row"} {
+		${base}_row move $tag 0 [expr $offset - [lindex $coords 1]]
+	} else {
+		${base}_column move $tag [expr $offset - [lindex $coords 0]] 0
+	}
+}
+
+
+# delete an arrow from the end of the table
+# it should suffice to delete the last tag, but only if we're careful
+# to maintain the relative stacking order of all arrows with "tag"
+#  base: The base of the canvas name (e.g. .can)
+#  what: Row or Column
+#  master:  Which frame
+#  all:  delete the last arrow, or all of them
+# return value:  The name of the tag deleted, or ""
+
+# This should return the tag of the arrow deleted, so the caller can
+# unset "Current", if any
+
+proc arrow_delete {base what master {all ""}} {
+	global Current
+	set can ${base}_$what
+	set tag tag:$master
+	if {$all != ""} {
+		$can delete $tag
+		return ""
+	} else {
+		set all_tags [lindex [$can find withtag $tag] end]
+		set tag [lindex [$can gettag $all_tags] end]
+		$can delete $tag
+		dputs  $tag ($Current($what))
+		return $tag
+	}
+}
+
+# set the shape of an arrow
+#  can:  the root of the canvas (e.g. can_$what)
+#  master:  Which table the arrow belongs to
+#  what:  "row" or "column"
+#  index: which arrow
+#  value:	true if <->, otherwise |-|
+
+proc arrow_shape {can master what index value} {
+    global Current
+    dputs $can $master $what $index $value
+    set Current(dirty) 2
+    set tag tag:${master}_$index
+    if {$value} {	
+	set shape {4 10 4}
+	grid ${what}configure $master $index -weight 1000
+    } else {
+	set shape {4 0 4}
+	grid ${what}configure $master $index -weight 1
+    }
+    dputs $master $what $value
+    ${can}_$what itemconfigure $tag -arrowshape $shape
+}
+
+# reshape all the arrows, based on the table's resize property
+
+proc arrow_shapeall {can master what} {
+    upvar #0 [winfo name $master] data
+    set list $data(resize_$what)
+    set index 0
+    dputs $master $what: $list
+    foreach arrow $list {
+	if {$arrow > 1} {	
+	    set shape {4 10 4}
+	    set resize 1000
+	} else {
+	    set shape {4 0 4}
+	    set resize 1
+	}
+	set tag tag:${master}_[incr index 2]
+	dputs "${can}_$what itemconfigure $tag -arrowshape $shape"
+	${can}_$what itemconfigure $tag -arrowshape $shape
+	grid ${what}configure $master $index -weight $resize
+    }
+}
+
+# create a new arrow
+# This doesn't happen often (except, perhaps,  at startup)
+#  can: name of the canvas
+#  what: "row" or "column"
+#  master: The table master
+#  index:  MUST be even or "all" or ""
+#  value:  what shape: <=1 -> no resize, >=2 -> resize
+
+# the "value" option is never used
+
+proc arrow_create {can what master {index ""} {value ""}} {
+    global P
+    set tag tag:$master
+    
+    # create all of the arrows
+    
+    foreach {maxcolumns maxrows} [grid size $master] {}
+    dputs $can $master $what $index $value
+    if {![winfo exists $can]} {return 0}
+    if {$index == "all"} {
+	set max [set max${what}s]
+	incr max -1
+	set shape 0
+	$can delete $tag
+	dputs "new" $what $max
+	for {set indx 2} {$indx < $max} {incr indx 2; incr shape} {
+	    arrow_create $can $what $master $indx [lindex $value $shape]
+	}
+	$can itemconfigure $tag -fill [$can cget -bg]
+	return 1
+	
+	# create the "next" arrow, get the resize behavior right (or try to)
+	
+    } elseif {$index == ""} {
+	set index [expr [llength [$can find withtag $tag]] * 2 + 2]
+	upvar #0 [winfo name $master] data
+	set value [lindex  $data(resize_$what) end]
+    }
+    
+    if {$what == "row"} {
+	set where_grid "0 $index"
+    } else {
+	set where_grid "$index 0"
+    }
+    foreach {dumcolumn dumrow dumcolumnh dumrowh} [eval "grid bbox $master $where_grid"] {}
+    if {$what == "row"} {
+	set coords "-45 $dumrow -45 $dumrowh"
+    } else {
+	set coords "$dumcolumn -45 $dumcolumnh -45"
+    }
+    set coords 
+    if {$value != "" && $value > 1} {	
+	set shape {"4 10 4"}
+	set reshape 1000
+    } else {
+	set shape {"4 0 4"}
+	set reshape 1
+    }
+    set options "-width 3 -arrow both -arrowshape $shape -fill $P(grid_color) \
+			-tags \"$tag ${tag}_$index\""
+    
+    eval $can create line $coords $options
+    $can bind ${tag}_$index  <Enter> "$can configure -cursor [cursor handle]"
+    $can bind ${tag}_$index  <Leave> "$can configure -cursor {}"
+    grid ${what}configure $master $index -weight $reshape
+    return 1
+}
+
+# Process a button hit on an arrow.  This is invoked via bind
+# If the arrow is "current", toggle its resize mode, otherwise make it
+# the current arrow
+#   win:	the window receiving the event (%W)
+#   what:	"row" or "column"
+#   color:	The color to highlight the arrow
+
+proc arrow_hit {win what x y {color red}} {
+    global Current No_hit X0 Y0
+    set X0 $x; set Y0 $y
+    set master none
+    set tag [lindex [$win gettags [$win find withtag current]] 1]
+    regexp {tag:([^_]*)_(.*)} $tag dummy master index
+    if {$master == "none"} return
+    dputs "$master $what $index ($tag)"
+    unselect_widget
+    unselect_grid
+    if {$tag == $Current($what)} {
+	arrow_shape .can $master $what $index \
+	    [expr [resize_set $master $what $index] > 1]
+    } else {
+	arrow_highlight $what $master $index $color
+	sync_all
+    }
+}
+
+# sweep out a row or column, changing its size
+# Only sweep if we're near the right edge of the arrow
+# (I'm re-computing too much stuff here)
+
+proc arrow_move {win what x y} {
+    if {[button_gravity $x $y 5]} {return}
+    
+    global No_hit P _Message Current X0 Y0
+    set Current(dirty) 1
+    if {!$No_hit} {
+	incr No_hit
+    }
+    array set map2 {row y column x}
+    set tag [lindex [$win gettags [$win find withtag current]] 1]
+    dputs $win $what $x,$y <[expr [winfo rooty .can.f] - [winfo rooty .can]]> ($tag)
+    regexp {tag:([^_]*)_(.*)} $tag dummy master index
+    if {$what == "row"} {
+	foreach {dumcolumn dumrow dumwidth dumheight} [grid bbox $master 0 $index] {}
+    } else {
+	foreach {dumcolumn dumrow dumwidth dumheight} [grid bbox $master $index 0] {}
+    }
+    set width [expr int(([set $map2($what)] - [winfo root$map2($what) $master]) - [set dum${what}] - \
+			    $P(grid_size))]
+    dputs width $width
+    if {$width < 5} return
+    set No_hit $width
+    set _Message "$what [expr $index/2] size $width"
+    grid ${what}configure $master $index -minsize $width
+    arrow_update_one .can $master $what $index
+}
+
+# unselect the "current" row or column indicator
+# what: "row" or "column"
+
+proc arrow_unhighlight {what} {
+	global Current P
+	if {$Current($what) != ""} {
+		.can_$what itemconfigure $Current($what) -fill $P(grid_color)
+		set Current($what) ""
+	}
+}
+
+
+# highlight an arrow
+#  what: "row" or "column"
+#  tag:  which set of arrows (the table master)
+#  index: which arrow in the set
+#  color: What color to make the arrow
+
+proc arrow_highlight {what master index color} {
+	global Current
+	dputs $master $index $color
+	arrow_unhighlight $what
+	set tag tag:$master
+	.can_$what itemconfigure ${tag}_$index -fill $color
+	set Current($what) ${tag}_$index
+}
+
+# zap all arrows!
+
+proc arrow_zapall {base} {
+	dputs $base
+	${base}_row delete all
+	${base}_column delete all
+}

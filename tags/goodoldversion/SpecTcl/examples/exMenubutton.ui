@@ -1,0 +1,142 @@
+WidGet file, version 1.0, created:  Thu May 29 19:15:02 PDT 1997
+Widget menubutton#8
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text File
+	other pathname menubutton#8
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	geometry column 1
+	other comments {}
+	configure borderwidth 1
+	other tabbing {}
+	other item_name fileMenubutton
+Widget menubutton#4
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text Preferences
+	other pathname menubutton#4
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	configure borderwidth 1
+	other comments {}
+	geometry column 4
+	other item_name preferencesMenubutton
+	other tabbing {}
+Widget menubutton#2
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text Edit
+	other pathname menubutton#2
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	configure borderwidth 1
+	other comments {}
+	geometry column 2
+	other item_name editMenubutton
+	other tabbing {}
+Widget f
+	other panel {}
+	other resize_row {0 3 0 0 0}
+	other type frame
+	other code menu\ .fileMenubutton.m\n\ \ \ \ \ .fileMenubutton.m\ add\ command\ -label\ \"Open\"\ \ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"Open\"}\n\ \ \ \ \ .fileMenubutton.m\ add\ command\ -label\ \"Close\"\ \ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"Close\"}\ \n\nmenu\ .editMenubutton.m\n\ \ \ \ \ .editMenubutton.m\ add\ command\ -label\ \"Undo\"\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"Undo\"}\n\ \ \ \ \ .editMenubutton.m\ add\ separator\n\ \ \ \ \ .editMenubutton.m\ add\ command\ -label\ \"Cut\"\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {tk_textCut\ \ \ .entry#2}\n\ \ \ \ \ .editMenubutton.m\ add\ command\ -label\ \"Copy\"\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {tk_textCopy\ \ .entry#2}\n\ \ \ \ \ .editMenubutton.m\ add\ command\ -label\ \"Paste\"\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {tk_textPaste\ .entry#2}\n\ \nmenu\ .styleMenubutton.m\n\ \ \ \ \ .styleMenubutton.m\ add\ radio\ -label\ \"plain\"\ \\\n\ \ \ \ \ \ \ \ \ \ -variable\ stylevar\ -value\ 0\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"Style\ is\ \$stylevar\"}\n\ \ \ \ \ .styleMenubutton.m\ add\ radio\ -label\ \"italic\"\ \\\n\ \ \ \ \ \ \ \ \ \ -variable\ stylevar\ -value\ 1\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"Style\ is\ \$stylevar\"}\n\ \ \ \ \ .styleMenubutton.m\ add\ radio\ -label\ \"bold\"\ \\\n\ \ \ \ \ \ \ \ \ \ -variable\ stylevar\ -value\ 2\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"Style\ is\ \$stylevar\"}\n\nmenu\ .preferencesMenubutton.m\n\ \ \ \ \ .preferencesMenubutton.m\ add\ check\ -label\ \"Opt1\"\ \\\n\ \ \ \ \ \ \ \ \ \ -variable\ opt1\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"Opt1\ is\ \$opt1\"}\n\ \ \ \ \ .preferencesMenubutton.m\ add\ check\ -label\ \"Opt2\"\ \\\n\ \ \ \ \ \ \ \ \ \ -variable\ opt2\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"Opt2\ is\ \$opt2\"}\n\ \nmenu\ .helpMenubutton.m\n\ \ \ \ \ .helpMenubutton.m\ add\ command\ -label\ \"About\"\ \\\n\ \ \ \ \ \ \ \ \ \ -command\ {puts\ stdout\ \"About\"}\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n
+	other min_row {30 30 10 5 10}
+	other master {}
+	other pathname f
+	other resize_column {0 0 0 0 3 0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {11 30 30 30 30 30 9}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other container 0
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget menubutton#3
+	geometry row 1
+	other type menubutton
+	other error {}
+	other master .frame#1
+	configure text Style
+	other pathname menubutton#3
+	other tags {}
+	configure font {interface user,12,Italic}
+	other level {}
+	other help {}
+	configure menu m
+	configure borderwidth 1
+	geometry column 3
+	other comments {}
+	other tabbing {}
+	other item_name styleMenubutton
+Widget frame#1
+	other panel {}
+	geometry columnspan 7
+	geometry row 1
+	other resize_row 0
+	other error {- Frame configuration -}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other resize_column {1 1 1 1 3 1}
+	other tags {}
+	other level 1
+	other help {}
+	other min_column {30 30 30 30 30 46}
+	other container 0
+	configure borderwidth 1
+	other comments {}
+	geometry column 1
+	configure relief raised
+	other tabbing {}
+	other item_name frame#1
+	geometry sticky ew
+Widget entry#2
+	geometry columnspan 5
+	geometry row 4
+	other type entry
+	configure textvariable entry
+	other master {}
+	configure highlightthickness 1
+	other pathname entry#2
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	configure borderwidth 1
+	other tabbing {}
+	other item_name entry#2
+	geometry sticky nesw
+Widget menubutton#7
+	geometry row 1
+	other error {}
+	other type menubutton
+	other master .frame#1
+	configure text Help
+	other pathname menubutton#7
+	other tags {}
+	other level {}
+	other help {}
+	configure menu m
+	configure borderwidth 1
+	other comments {}
+	geometry column 6
+	other tabbing {}
+	other item_name helpMenubutton
+
