@@ -639,6 +639,8 @@ proc orient_create {win} {
 	if {$current != "" && !($current&1)} {
 	    set boss(resize_$dim) [lreplace $boss(resize_$dim) $index $index\
 				       [expr {$resize ? 2:0}]]
+	    set boss(weight_$dim) [lreplace $boss(weight_$dim) $index $index\
+				       [expr {$resize ? 1:0}]]
 	    arrow_shape .can $master $dim $data($dim) $resize
 	}
 	set other row
