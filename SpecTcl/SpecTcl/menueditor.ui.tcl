@@ -52,7 +52,7 @@ proc menueditor_ui {root args} {
 		-menu "$base.mbType.m" \
 		-relief raised \
 		-takefocus {} \
-		-text command \
+		-text cascade \
 		-textvariable mbType.value
 
 	button $base.add \
@@ -70,18 +70,6 @@ proc menueditor_ui {root args} {
 	button $base.delete \
 		-text Delete
 
-	button $base.rename \
-		-padx 0 \
-		-text Rename
-	catch {
-		$base.rename configure \
-			-font -*-Helvetica-Bold-R-Normal-*-*-120-*-*-*-*-*-*
-	}
-
-	button $base.replace \
-		-default active \
-		-text Replace
-
 	button $base.copy \
 		-padx 0 \
 		-text Copy
@@ -89,6 +77,10 @@ proc menueditor_ui {root args} {
 		$base.copy configure \
 			-font -*-Helvetica-Bold-R-Normal-*-*-120-*-*-*-*-*-*
 	}
+
+	button $base.replace \
+		-default active \
+		-text Replace
 
 	checkbutton $base.cbTearoff \
 		-text Tearoff \
@@ -105,11 +97,11 @@ proc menueditor_ui {root args} {
 
 	grid $base.fr -in $root	-row 3 -column 4  \
 		-columnspan 2 \
-		-rowspan 5 \
+		-rowspan 4 \
 		-sticky n
 	grid $base.fSeparator -in $root	-row 1 -column 3  \
 		-pady 5 \
-		-rowspan 7 \
+		-rowspan 6 \
 		-sticky ns
 	grid $base.label#11 -in $root	-row 1 -column 1  \
 		-columnspan 2 \
@@ -120,7 +112,7 @@ proc menueditor_ui {root args} {
 	grid $base.lbEntries -in $root	-row 2 -column 1  \
 		-padx 5 \
 		-pady 5 \
-		-rowspan 6 \
+		-rowspan 5 \
 		-sticky nesw
 	grid $base.view -in $root	-row 2 -column 2  \
 		-padx 5 \
@@ -142,17 +134,14 @@ proc menueditor_ui {root args} {
 	grid $base.delete -in $root	-row 4 -column 7  \
 		-padx 5 \
 		-sticky ew
-	grid $base.rename -in $root	-row 5 -column 2  \
+	grid $base.copy -in $root	-row 5 -column 2  \
 		-padx 5 \
 		-sticky ew
 	grid $base.replace -in $root	-row 5 -column 7  \
 		-padx 5 \
 		-sticky ew
-	grid $base.copy -in $root	-row 6 -column 2  \
-		-padx 5 \
-		-sticky ew
-	grid $base.cbTearoff -in $root	-row 7 -column 2 
-	grid $base.dismiss -in $root	-row 7 -column 7  \
+	grid $base.cbTearoff -in $root	-row 6 -column 2 
+	grid $base.dismiss -in $root	-row 6 -column 7  \
 		-padx 5 \
 		-sticky esw
 
@@ -163,8 +152,7 @@ proc menueditor_ui {root args} {
 	grid rowconfigure $root 3 -weight 0 -minsize 30
 	grid rowconfigure $root 4 -weight 0 -minsize 30
 	grid rowconfigure $root 5 -weight 0 -minsize 30
-	grid rowconfigure $root 6 -weight 0 -minsize 30
-	grid rowconfigure $root 7 -weight 1 -minsize 30
+	grid rowconfigure $root 6 -weight 1 -minsize 30
 	grid columnconfigure $root 1 -weight 1 -minsize 30
 	grid columnconfigure $root 2 -weight 0 -minsize 30
 	grid columnconfigure $root 3 -weight 0 -minsize 30
