@@ -246,7 +246,7 @@ proc get_file_data {{start_widget ""}} {
 	    # same value
 
 	    set skip 0
-	    foreach type "$class geometry table" {
+	    foreach type "$class geometry GRID" {
 		if {![catch {set default $Widget_data(default:$type,$i)}]} {
 		    set attrib $i
 		    if {$item == "f"} {
@@ -655,11 +655,11 @@ proc load_prep_widget {lines master clean} {
 	    array set $name [lrange $line 1 end]
 	}
 
-	foreach def [array names Widget_data default:table*] {
+	foreach def [array names Widget_data default:GRID*] {
 	    set i [lindex [split $def ,] 1]
 	    if ![info exists [set name]($i)] {
-		if [info exists Widget_data(default:table,$i)] {
-		    set [set name]($i) $Widget_data(default:table,$i)
+		if [info exists Widget_data(default:GRID,$i)] {
+		    set [set name]($i) $Widget_data(default:GRID,$i)
 		}
 	    }
     }

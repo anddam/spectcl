@@ -198,7 +198,7 @@ proc __save_project {{file ""} {compile 0} {start_widget ""}} {
 	    # same value
 
 	    set skip 0
-	    foreach type "$class geometry table" {
+	    foreach type "$class geometry GRID" {
 		if {![catch {set default $Widget_data(default:$type,$i)}]} {
 		    set attrib $i
 		    if {$item == "f"} {
@@ -512,7 +512,7 @@ proc get_resize {list} {
 #   created before the inner ones
 # * Create all widgets in the specified tabbing order.  If the tab order is the
 #   same, then use row/col order based on the coordinates of the containing
-#   table cell
+#   grid cell
 
 # This version depends upon the running state of SpecTcl, and needs to be
 # re-written to permit the compiler to be invoked as a separate app
@@ -637,7 +637,7 @@ proc validate_field {name item value} {
 	set cmd "set data($item) $value"
     } elseif {[info exists Widget_data(default:$class,$item)]} {
 	set cmd "$widget configure -$item \"[sub_bs $value 1]\""
-    } elseif {[info exists Widget_data(default:table,$item)]} {
+    } elseif {[info exists Widget_data(default:GRID,$item)]} {
 	set cmd [list grid configure $widget -$item $value]
 	regsub -all {(-i?)wad([xy])} $cmd {\1pad\2} cmd	;# padding botch
 	regsub -all align $cmd anchor cmd	;# padding botch

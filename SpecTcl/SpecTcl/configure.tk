@@ -1,4 +1,4 @@
-	# SpecTcl, by S. A. Uhler and Ken Corey
+# SpecTcl, by S. A. Uhler and Ken Corey
 # Copyright (c) 1994-1995 Sun Microsystems, Inc.
 #
 # See the file "license.txt" for information on usage and redistribution
@@ -176,7 +176,7 @@ proc configure_geometry_data {{var Widget_data} {check ._check_}} {
     frame $check.1
     grid $check.1 -row 0 -column 0
     grid columnconfigure $check.1 -0 -weight 1
-    regsub -all { -} [grid info $check.1] { default:table,} options
+    regsub -all { -} [grid info $check.1] { default:GRID,} options
     regsub -all pad $options wad options	;# botch for padding
     regsub -all anchor $options align options	;# botch for padding
     destroy $check
