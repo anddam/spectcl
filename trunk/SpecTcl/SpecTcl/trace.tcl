@@ -117,6 +117,7 @@ proc dputs {args} {
 	if {![info exists Debug]} {
 		return
 	}
+	puts [list [info level -1] $args]; return
 	set level [expr [info level] - 1]
 	if {$level > 0} {
 		set caller [lindex [info level $level] 0]
