@@ -1,4 +1,4 @@
-DOC=menueditor.HTML
+DOC=menueditor.HTML save.HTML
 
 # Make automatically generated documentation
 doc: $(DOC)
