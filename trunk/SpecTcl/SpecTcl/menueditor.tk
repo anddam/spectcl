@@ -249,6 +249,7 @@ proc ::menueditor::CreateTheOptionmenu {menu} {
    $menu invoke 0
 
 # Selection callback in listbox
+bind $::menueditor::base.lbEntries <Double-1> {menu_widget}
 set l $::menueditor::base.lbEntries
 ::rename $l ::menueditor::.l
 proc ::$l {args} {
@@ -332,7 +333,7 @@ proc ::menueditor::copy {} {
 # SOURCE
 #
 proc ::menueditor::getname::rename {name} {
-   set tmp [$::menueditor::base.lbEntries curselection]
+   set tmp $::menueditor::currentmenu(number)   
    set ident [lindex [lindex $::menueditor::menulist $tmp] 0]
    global $ident
    array set $ident [list item_name $name]
@@ -362,7 +363,8 @@ proc ::menueditor::getname::copy {name} {
    global Widgets $ident
    menu .can.f.$ident
    set Widgets($ident) 1
-   array set $ident [list type menu item_name $name gadgets $Ident(gadgets)]
+   array set $ident [array get Ident]
+   array set $ident [list pathname $ident item_name $name]
    lappend ::menueditor::menulist [list $ident $name]
    $::menueditor::base.lbEntries insert end $name
    $::menueditor::base.lbEntries activate end
@@ -386,6 +388,7 @@ proc ::menueditor::getname::new {name} {
    set ident menu#$tmp
    global Widgets $ident
    menu .can.f.$ident
+   widget_extract .can.f.$ident
    set Widgets($ident) 1
    array set $ident [list type menu item_name $name gadgets {}]
    lappend ::menueditor::menulist [list $ident $name]
@@ -441,7 +444,11 @@ proc ::menueditor::displaymenu {mbase {number 0}} {
    catch {destroy $mbase} out 
    
    # Create menu
-   menu $mbase -tearoff 0
+   menu $mbase
+   foreach opt [array names Ident] {
+      catch {$mbase config -$opt $Ident($opt)}
+   }
+   $mbase config -tearoffcommand ::menueditor::tearoffcmd
    foreach {item opts} $Ident(gadgets) {
       $mbase add $item
       foreach {opt val} $opts {
@@ -457,9 +464,28 @@ proc ::menueditor::displaymenu {mbase {number 0}} {
    }
    $mbase post 0 0
    ::menueditor::setpos 0
+   # Widget properties
+   unselect_widget
+   set ::Current(widget) .can.f.$ident
+   set ::Current(text) {}
+   if {[winfo ismapped .widget]} {
+      menu_widget
+      #activate_option .can.f.$ident true
+      focus $::menueditor::root
+   }
 }
 #***
 
+proc ::menueditor::ClassFilter {win opt var args} {
+   puts ClassFilter
+   upvar $var data
+   if {"$opt" == "item_name"} {
+      ::menueditor::getname::rename $data
+   } elseif {![regexp command $opt]} {
+      catch {$::menueditor::mbase config -$opt $data}
+   }
+   return 1
+}
 
 
 #****f* SpecTcl/menueditor::insert
@@ -533,6 +559,20 @@ proc ::menueditor::replace {} {
 #
 proc ::menueditor::tearoff {} {
    $::menueditor::mbase config -tearoff ${::cbTearoff.value}
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::tearoffcmd
+# DESCRIPTION
+#   Called if the demomenu is torn off (this is not allowed)
+# SOURCE
+#
+proc ::menueditor::tearoffcmd {args} {
+   destroy [lindex $args 1] ;# Destroy the torn off menu
+   tk_messageBox -icon error -parent $::menueditor::root \
+      -message "Don't tearoff the demo menu!" 
 }
 #***
 

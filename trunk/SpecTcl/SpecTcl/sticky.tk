@@ -86,7 +86,7 @@ proc sticky_update {win} {
 #	grid configure .sticky.b -sticky $P(default:sticky)
     } else {
 	array set options [grid info $win]
-	if {$options(-sticky) == ""} {
+	if {[llength [array names options]]==0 || $options(-sticky) == ""} {
 	    set options(-sticky) "c"
 	}
 	.sticky.l config -image sticky_$options(-sticky).gif
