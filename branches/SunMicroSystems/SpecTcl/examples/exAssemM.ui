@@ -1,0 +1,98 @@
+WidGet file, version 1.1, created:  Wed Jul 30 14:55:38 PDT 1997
+Widget frame#3
+	other panel {}
+	geometry row 2
+	other resize_row 0
+	other error {}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#3
+	other resize_column 0
+	other tags {}
+	other level 1
+	other min_column 30
+	other help {}
+	geometry column 3
+	other comments {}
+	geometry sticky nesw
+	other item_name frame#3
+	other tabbing {}
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {0 3 0}
+	other type frame
+	other code {# The exAssemM.ui example demonstrates how you
+# can develop some interfaces as subassemblies
+# and then load them at run-time into frames. To
+# show how this works, the scale assembly
+# exAssemS.ui is loaded twice. To see the name
+# qualification that makes this work, look at
+# the code generated for exAssemM.ui.tcl. And 
+# note how the statements below load exAssemS_ui 
+# into frames.
+
+# Load scale assembly
+source exAssemS.ui.tcl
+
+# Load scale interface into frame#1
+exAssemS_ui .frame#1
+
+# Load same interface into frame#3
+# but this could as easily be a different assembly
+exAssemS_ui .frame#3
+
+
+
+
+
+
+}
+	other min_row {10 30 10}
+	other master {}
+	other pathname f
+	other resize_column {0 3 3 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {11 44 50 10}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget frame#1
+	other panel {}
+	geometry row 2
+	other resize_row 0
+	other error {}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other resize_column 0
+	other tags {}
+	other level 1
+	other min_column 30
+	other help {}
+	geometry column 2
+	other comments {}
+	geometry sticky nesw
+	other item_name frame#1
+	other tabbing {}
+

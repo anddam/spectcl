@@ -1,0 +1,193 @@
+WidGet file, version 1.1, created:  Wed Jul 30 14:03:58 PDT 1997
+Widget button#14
+	geometry row 1
+	other type button
+	other error {}
+	configure anchor w
+	other master {}
+	configure text Column3
+	configure default normal
+	configure justify left
+	other pathname button#14
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 4
+	other comments {}
+	geometry column 6
+	geometry sticky ew
+	other item_name button#14
+	other tabbing {}
+Widget text#4
+	other error {- Text configuration -}
+	other tags {}
+	other level {}
+	other help {}
+	configure height 1
+	other master {}
+	other pathname text#4
+	configure background white
+	other tabbing {}
+	geometry sticky nesw
+	other item_name text#4
+	geometry row 2
+	other type text
+	configure width 1
+	other comments {}
+	geometry column 4
+Widget entry#3
+	geometry row 3
+	other error {}
+	other type entry
+	configure textvariable entry
+	other master {}
+	other pathname entry#3
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 6
+	other comments {}
+	other tabbing {}
+	other item_name entry#3
+	geometry sticky ew
+Widget text#5
+	other error {- Text configuration -}
+	other tags {}
+	other level {}
+	other help {}
+	configure height 1
+	other master {}
+	other pathname text#5
+	configure background white
+	other tabbing {}
+	geometry sticky nesw
+	other item_name text#5
+	geometry row 2
+	other type text
+	configure width 1
+	other comments {}
+	geometry column 6
+Widget button#11
+	geometry row 1
+	other type button
+	other error {}
+	configure anchor w
+	other master {}
+	configure text Column1
+	configure default normal
+	other pathname button#11
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 4
+	geometry column 2
+	other comments {}
+	other tabbing {}
+	other item_name button#11
+	geometry sticky ew
+Widget entry#1
+	geometry row 3
+	other error {}
+	other type entry
+	configure textvariable entry
+	other master {}
+	other pathname entry#1
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 2
+	other comments {}
+	other tabbing {}
+	other item_name entry#1
+	geometry sticky ew
+Widget f
+	other generic_options {button {
+		} canvas {
+		} checkbutton {
+		} entry {
+		} frame {
+		} label {
+		} listbox {
+		} menubutton {
+		} message {
+		} radiobutton {
+		} scale {
+		} scrollbar {
+		} text {
+		}
+	}
+	other panel {}
+	other resize_row {1 3 0}
+	other type frame
+	other code {# The exResize.ui example shows the affect of
+# setting resizeability on and off for rows and
+# columns. After building and running this application,
+# resize the application window and notice which
+# widget change size and which stay the same.
+
+}
+	other min_row {30 6 9}
+	other master {}
+	other pathname f
+	other resize_column {1 3 1 3 1 3}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {10 2 10 2 10 6}
+	other help {}
+	other Colors {black white bisque grey red green blue magenta yellow #AE00B200C300}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget button#12
+	geometry row 1
+	other type button
+	other error {}
+	configure anchor w
+	other master {}
+	configure text Column2
+	configure default normal
+	configure justify left
+	other pathname button#12
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 4
+	geometry column 4
+	other comments {}
+	geometry sticky ew
+	other item_name button#12
+	other tabbing {}
+Widget entry#2
+	geometry row 3
+	other error {}
+	other type entry
+	configure textvariable entry
+	other master {}
+	other pathname entry#2
+	other tags {}
+	other level {}
+	other help {}
+	geometry column 4
+	other comments {}
+	other tabbing {}
+	other item_name entry#2
+	geometry sticky ew
+Widget text#3
+	other error {- Text configuration -}
+	other tags {}
+	other level {}
+	other help {}
+	configure height 1
+	other master {}
+	other pathname text#3
+	configure background white
+	other tabbing {}
+	geometry sticky nesw
+	other item_name text#3
+	geometry row 2
+	other type text
+	configure width 1
+	other comments {}
+	geometry column 2
+
