@@ -1,0 +1,143 @@
+WidGet file, version 0.3, created:  Tue Apr 02 10:51:47 PST 1996
+Widget button#1
+	other reqwidth {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 11
+	configure pady 4
+	other focus .widget.form.can.f.button#1,action,entry
+	other master .frame#1
+	other pathname button#1
+	configure font Helvetica,16,Bold
+	other action {my_action("yes button");}
+	other item_name button#1
+	other tabbing {}
+	geometry row 1
+	other subclass {}
+	other reqheight {}
+	other type button
+	configure text Yes
+	geometry column 1
+	other comments {}
+Widget label#1
+	geometry row 1
+	geometry columnspan 2
+	other subclass {}
+	other reqheight {}
+	other type label
+	other master {}
+	configure text {Demo 1}
+	other pathname label#1
+	other tags {}
+	configure font Helvetica,16,Bold
+	other reqwidth {}
+	other level {}
+	other help {}
+	geometry column 1
+	other action {}
+	other comments {}
+	other item_name label#1
+	other tabbing {}
+Widget button#2
+	other reqwidth {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 11
+	configure pady 4
+	other focus .widget.form.can.f.button#2,action,entry
+	other master .frame#1
+	other pathname button#2
+	configure font Helvetica,16,Bold
+	other action {my_action("no button");}
+	other tabbing {}
+	other item_name button#2
+	geometry row 1
+	other subclass {}
+	other reqheight {}
+	other type button
+	configure text No
+	geometry column 2
+	other comments {}
+Widget label#2
+	geometry row 2
+	other subclass {}
+	other reqheight {}
+	other type label
+	other master {}
+	configure text stuff:
+	other pathname label#2
+	other tags {}
+	configure font Helvetica,16,Bold
+	other reqwidth {}
+	other level {}
+	other help {}
+	geometry column 1
+	other action {}
+	other comments {}
+	other item_name label#2
+	other tabbing {}
+Widget f
+	other panel {}
+	other subclass {}
+	other resize_row {0 0 0}
+	other type frame
+	other min_row {30 30 30}
+	other master {}
+	other pathname f
+	other resize_column {0 0}
+	other tags {}
+	other level 0
+	configure background #e9e9e9
+	other min_column {30 30}
+	other help {}
+	other preferences {package {} imports {} implements {} arg Object extends Demo1App}
+	other action {}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget entry#1
+	configure textvariable entry
+	other reqwidth {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.entry#1,action,entry
+	other master {}
+	other pathname entry#1
+	configure font Helvetica,16
+	other action {my_action(entry_1.getText());}
+	other tabbing {}
+	other item_name entry#1
+	other subclass {}
+	geometry row 2
+	other reqheight {}
+	other type entry
+	other comments {}
+	geometry column 2
+Widget frame#1
+	other panel {}
+	geometry row 3
+	geometry columnspan 2
+	other subclass {}
+	other resize_row 0
+	other reqheight {}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other resize_column {0 0}
+	other tags {}
+	other reqwidth {}
+	other level 1
+	other min_column {30 30}
+	other help {}
+	geometry column 1
+	other action {}
+	other comments {}
+	other item_name frame#1
+	other tabbing {}

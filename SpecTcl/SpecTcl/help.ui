@@ -1,0 +1,181 @@
+WidGet file, version 1.0, created:  Fri Feb 14 09:32:23 PST 1997
+Widget button#1
+	other reqwidth {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 9
+	configure pady 3
+	configure command {HMlink_callback %B.text}
+	other focus .widget.form.can.f.button#1,item_name,entry
+	other master .frame#1
+	other pathname button#1
+	other tabbing {}
+	other item_name back
+	geometry row 1
+	other reqheight {}
+	other type button
+	configure text back
+	other comments {}
+	geometry column 1
+Widget label#1
+	other focus .widget.form.can.f.label#1,textvariable,entry
+	geometry row 4
+	geometry columnspan 2
+	other reqheight {}
+	other error {}
+	other type label
+	configure textvariable Help_message
+	other master {}
+	other pathname label#1
+	other tags {}
+	other reqwidth {}
+	other level {}
+	other help {}
+	geometry column 1
+	other comments {}
+	other item_name message
+	other tabbing {}
+Widget scrollbar#1
+	geometry row 2
+	other reqheight {}
+	configure orient v
+	other type scrollbar
+	other master {}
+	other pathname scrollbar#1
+	other tags {}
+	other reqwidth {}
+	other level {}
+	other help {}
+	other orientation v
+	geometry column 1
+	other comments {}
+	geometry sticky ns
+	other item_name scrollbar#1
+	other tabbing {}
+	configure command {%B.text yview}
+Widget label#2
+	other focus .widget.form.can.f.label#2,textvariable,entry
+	geometry row 1
+	other reqheight {}
+	other error {}
+	other type label
+	configure textvariable Help_file
+	other master .frame#1
+	other pathname label#2
+	other tags {}
+	other reqwidth {}
+	other level {}
+	configure width 20
+	other help {}
+	geometry column 3
+	other comments {}
+	other item_name file
+	other tabbing {}
+Widget button#2
+	other reqwidth {}
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	configure padx 9
+	configure pady 3
+	configure command {bind_unmap %R;HMset_state %B.text -stop 1; after 5000 {destroy %R}}
+	other focus .widget.form.can.f.button#2,command,entry
+	other master .frame#1
+	other pathname button#2
+	other tabbing {}
+	other item_name button#2
+	geometry row 1
+	other reqheight {}
+	other type button
+	configure text dismiss
+	other comments {}
+	geometry column 2
+Widget text#1
+	configure xscrollcommand {%B.scrollbar#2 set}
+	other reqwidth {}
+	other error {}
+	configure highlightthickness 0
+	other tags {}
+	other level {}
+	other help {}
+	other focus .widget.form.can.f.text#1,font,entry
+	configure height 1
+	other master {}
+	other pathname text#1
+	configure font Courier,14
+	geometry sticky nesw
+	other tabbing {}
+	configure yscrollcommand {%B.scrollbar#1 set}
+	other item_name text
+	geometry row 2
+	other reqheight {}
+	other type text
+	configure width 1
+	geometry column 2
+	other comments {}
+Widget scrollbar#2
+	geometry row 3
+	other reqheight {}
+	configure orient h
+	other type scrollbar
+	other master {}
+	other pathname scrollbar#2
+	other tags {}
+	other reqwidth {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 2
+	geometry sticky ew
+	configure command {%B.text xview}
+	other tabbing {}
+	other item_name scrollbar#2
+Widget f
+	other panel {}
+	other resize_row {0 3 1 0}
+	other type frame
+	other code {global Fonts
+catch {unset Fonts}
+bind $base.text <space> {%W yview scroll 1 page;break}
+bind $base.text <Home> {%W yview 0.0;break}
+focus $base.text
+}
+	other min_row {30 442 12 15}
+	other master {}
+	other pathname f
+	other tags {}
+	other resize_column {0 3}
+	other level 0
+	configure background #e9e9e9
+	other help {}
+	other min_column {15 523}
+	other Colors {black white bisque grey red green blue magenta yellow #d9d9d9}
+	other comments {}
+	other item_name f
+	other tabbing {}
+Widget frame#1
+	other focus .widget.form.can.f.frame#1,fill,entry
+	other panel {}
+	geometry row 1
+	geometry columnspan 2
+	other resize_row 0
+	other reqheight {}
+	other type frame
+	other min_row 30
+	other master {}
+	other pathname frame#1
+	other resize_column {0 0 3}
+	other tags {}
+	other reqwidth {}
+	other level 1
+	other min_column {26 30 30}
+	other help {}
+	geometry column 1
+	other comments {}
+	geometry sticky ew
+	other item_name frame#1
+	other tabbing {}
+

@@ -1,0 +1,20 @@
+<title>Sample java inclusion script</title>
+<h1>Add this to your SpecTclrc file to enable java support</h1>
+<pre>
+# code to enable java mode
+set java [lsearch -exact $argv -java]
+if {$java >= 0} {
+	source $Base_dir/java_setup.tk	;# Java code generator
+	set argv [lreplace $argv $java $java]
+	incr argc -1
+
+	# make sure the java binary is in the user's path
+
+	if {![string match *java* $env(PATH)]} {
+		set msg "Can't find java in your path, attemping to add it"
+		tk_dialog .warn Notice $msg warning 0 OK
+		append env(PATH) :/net/bigbang.eng/export/vol4/dawn/java/bin
+	}
+}
+unset java
+</pre>
