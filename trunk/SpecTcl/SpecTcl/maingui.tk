@@ -121,6 +121,7 @@ proc setup_load_sources {} {
 
 	uplevel #0 Source spectcl.ui.tcl;# main ui
 	uplevel #0 Source edit.ui.tcl	;# "edit code" widget
+	uplevel #0 Source menueditor.ui.tcl;# edit menus dialog
 	uplevel #0 Source help.ui.tcl	;# html help system
 	uplevel #0 Source project.ui.tcl;# project screen
 }
