@@ -1,9 +1,48 @@
-# Extra code for the menueditor
+#****h* SpecTcl/menueditor.tk
+# DESCRIPTION
+#   Extra code for the menueditor
+#
+# CREATION DATE
+#   3rd May 2001
+#
+# COPYRIGHT
+#   Morten Skaarup Jensen 2001
+#***
+
+
 
 uplevel #0 {
 
 catch {namespace eval menueditor {}} ;# To activate the namespace
 
+#****v* SpecTcl/menueditor::menulist
+# DESCRIPTION
+# EXAMPLE
+#   lappend ::menueditor::menulist {menu#2 menubutton.m}
+# 
+# SOURCE
+#
+set ::menueditor::menulist [list]
+#***
+
+
+
+#****v* SpecTcl/menueditor::currentmenu
+# DESCRIPTION
+#                 currentmenu	- array names == ident menu#1 number 1 item_name name1
+# 
+# SOURCE
+#
+array set ::menueditor::currentmenu {number -1 ident menu#? item_name m?.m?}
+#***
+
+
+
+#****f* SpecTcl/menueditor::CreateTheOptionmenu
+# DESCRIPTION
+# Creates the menu for the option menu in the menueditor window
+# SOURCE
+#
 proc ::menueditor::CreateTheOptionmenu {menu} {
    menu $menu -tearoff 0
    set root [winfo toplevel [winfo parent $menu]]
@@ -29,18 +68,60 @@ proc ::menueditor::CreateTheOptionmenu {menu} {
    }
    $menu invoke 0
 }
+#***
 
 
+
+#****f* SpecTcl/menueditor::newmenu
+# DESCRIPTION
+#
+# SOURCE
+#
+proc ::menueditor::newmenu {ident} {
+   global Widgets $ident
+   menu .can.f.$ident
+   set Widgets($ident) 1
+   array set $ident [list type menu item_name $ident gadgets {}]
+   lappend ::menueditor::menulist [list $ident $ident]
+   return $ident
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::removemenu
+# DESCRIPTION
+#
+# SOURCE
+#
+proc ::menueditor::removemenu {number} {
+   set ident [lindex [lindex $::menueditor::menulist $number] 0]
+   global Widgets $ident
+   destroy .can.f.$ident
+   unset Widgets($ident)
+   unset $ident
+   set ::menueditor::menulist [lreplace $::menueditor::menulist $number $number]
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::displaymenu
+# DESCRIPTION
+#
+# SOURCE
+#
 proc ::menueditor::displaymenu {mbase {number 0}} {
-   set garrayname [lindex [lindex [set ::menueditor::menulist] $number] 0]
-   set gadgets [lindex [uplevel #0 array get $garrayname gadgets] 1]
+   set ident [lindex [lindex [set ::menueditor::menulist] $number] 0]
+   upvar #0 $ident Ident
+   array set ::menueditor::currentmenu [list number $number ident $ident item_name $Ident(item_name)]
    
    # Start a fresh
    catch {destroy $mbase} out 
    
    # Create menu
    menu $mbase -tearoff 0
-   foreach {item opts} $gadgets {
+   foreach {item opts} $Ident(gadgets) {
       $mbase add $item
       foreach {opt val} $opts {
          switch -- $opt {
@@ -55,5 +136,43 @@ proc ::menueditor::displaymenu {mbase {number 0}} {
    }
    $mbase post 0 0
 }
+#***
+
+
+
+#****f* SpecTcl/menueditor::insertitem
+# DESCRIPTION
+#
+# SOURCE
+#
+proc ::menueditor::insertitem {pos} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   set Ident(gadgets) [linsert $Ident(gadgets) $pos {command {}}]
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::additem
+# DESCRIPTION
+#
+# SOURCE
+#
+proc ::menueditor::additem {} {
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::deleteitem
+# DESCRIPTION
+#
+# SOURCE
+#
+proc ::menueditor::deleteitem {pos} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   set Ident(gadgets) [lreplace $Ident(gadgets) $pos $pos]
+}
+#***
 
 } ;# End uplevel

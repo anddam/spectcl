@@ -1,4 +1,4 @@
-WidGet file, version 1.1, created:  Fri May 04 17:23:11 CEST 2001
+WidGet file, version 1.1, created:  Sat May 05 14:07:46 CEST 2001
 Widget button#10
 	other error {}
 	other tags {}
@@ -17,25 +17,25 @@ Widget frame#2
 	other panel {}
 	geometry row 1
 	other resize_row 0
-	other type frame
-	geometry rowspan 6
 	other error {}
+	geometry rowspan 6
+	other type frame
 	other min_row 2
 	other master {}
 	other pathname frame#2
-	other tags {}
 	other resize_column 0
-	configure width 2
+	other tags {}
 	other level 1
-	other help {}
+	configure width 2
 	other min_column 30
+	other help {}
 	geometry pady 5
-	configure borderwidth 1
 	other comments {}
+	configure borderwidth 1
 	geometry column 3
-	configure relief sunken
-	other tabbing {}
 	other item_name fSeparator
+	other tabbing {}
+	configure relief sunken
 	geometry sticky ns
 Widget label#5
 	geometry row 1
@@ -49,8 +49,8 @@ Widget label#5
 	other help {}
 	other comments {}
 	geometry column 1
-	other item_name lType
 	other tabbing {}
+	other item_name lType
 Widget button#11
 	other error {}
 	other tags {}
@@ -90,8 +90,8 @@ Widget label#6
 	other help {}
 	other comments {}
 	geometry column 1
-	other item_name lLabel
 	other tabbing {}
+	other item_name lLabel
 Widget listbox#1
 	geometry row 1
 	configure height 0
@@ -101,14 +101,14 @@ Widget listbox#1
 	other master {}
 	other pathname listbox#1
 	other tags {}
-	configure width 0
-	other level {}
 	configure exportselection 0
+	other level {}
+	configure width 0
 	other help {}
 	other comments {}
 	geometry column 1
-	other tabbing {}
 	other item_name lbEntries
+	other tabbing {}
 	geometry sticky nesw
 Widget button#12
 	other error {}
@@ -149,8 +149,8 @@ Widget label#7
 	other help {}
 	other comments {}
 	geometry column 1
-	other item_name lCommand
 	other tabbing {}
+	other item_name lCommand
 Widget button#3
 	other error {}
 	other tags {}
@@ -165,34 +165,6 @@ Widget button#3
 	configure text Add
 	geometry column 6
 	other comments {}
-Widget button#4
-	other error {}
-	other tags {}
-	other level {}
-	other help {}
-	other master {}
-	other pathname button#4
-	other tabbing {}
-	other item_name insert
-	geometry row 2
-	other type button
-	configure text Insert
-	geometry column 6
-	other comments {}
-Widget label#8
-	geometry row 4
-	other error {}
-	other type label
-	other master .frame#1
-	configure text Variable
-	other pathname label#8
-	other tags {}
-	other level {}
-	other help {}
-	other comments {}
-	geometry column 1
-	other item_name lVariable
-	other tabbing {}
 Widget entry#6
 	other error {}
 	other tags {}
@@ -207,34 +179,34 @@ Widget entry#6
 	other type entry
 	geometry column 2
 	other comments {}
-Widget button#5
-	other error {}
-	other tags {}
-	other level {}
-	other help {}
-	other master {}
-	other pathname button#5
-	other tabbing {}
-	other item_name replace
+Widget label#8
 	geometry row 4
-	other type button
-	configure text Replace
-	geometry column 6
-	other comments {}
-Widget label#9
-	geometry row 5
 	other error {}
 	other type label
 	other master .frame#1
-	configure text Menu
-	other pathname label#9
+	configure text Variable
+	other pathname label#8
 	other tags {}
 	other level {}
 	other help {}
 	other comments {}
 	geometry column 1
 	other tabbing {}
-	other item_name lMenu
+	other item_name lVariable
+Widget button#4
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname button#4
+	other tabbing {}
+	other item_name insert
+	geometry row 2
+	other type button
+	configure text Insert
+	geometry column 6
+	other comments {}
 Widget entry#7
 	configure textvariable entry
 	other error {}
@@ -249,6 +221,34 @@ Widget entry#7
 	other type entry
 	geometry column 2
 	other comments {}
+Widget label#9
+	geometry row 5
+	other error {}
+	other type label
+	other master .frame#1
+	configure text Menu
+	other pathname label#9
+	other tags {}
+	other level {}
+	other help {}
+	other comments {}
+	geometry column 1
+	other item_name lMenu
+	other tabbing {}
+Widget button#5
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname button#5
+	other tabbing {}
+	other item_name replace
+	geometry row 4
+	other type button
+	configure text Replace
+	geometry column 6
+	other comments {}
 Widget button#6
 	other error {}
 	other tags {}
@@ -262,6 +262,20 @@ Widget button#6
 	geometry row 5
 	other type button
 	configure text Dismiss
+	geometry column 6
+	other comments {}
+Widget button#7
+	other error {}
+	other tags {}
+	other level {}
+	other help {}
+	other master {}
+	other pathname button#7
+	other tabbing {}
+	other item_name delete
+	geometry row 3
+	other type button
+	configure text Delete
 	geometry column 6
 	other comments {}
 Widget f
@@ -306,28 +320,23 @@ $base.view config -command "
    $mbase post 0 0
    catch {$mbase activate 0}
 "
+$base.new config -command "
+      set tmp 1
+      while {\[info exists menu#\$tmp\]} {incr tmp}
+      set tmp menu#\$tmp
+      ::menueditor::newmenu \$tmp
+      $base.lbEntries insert end \$tmp
+"
 $base.remove config -command "
    if {\"\[tk_messageBox -icon question -type yesno -parent $root -message \"Are you sure?\"\]\"==\"yes\"} {
-      catch {$base.lbEntries delete \[$base.lbEntries curselection\]}
+      set tmp \[$base.lbEntries curselection\]
+      if {\"\$tmp\"==\"\"} {break}
+      ::menueditor::removemenu \$tmp
+      $base.lbEntries delete \$tmp
    }
 "
 $base.add config -command "
-   switch \${mbType.value} {
-      checkbutton -
-      radiobutton -
-      command {
-         $mbase add \${mbType.value} -label \[$base.eLabel get\] -command {$mbase post 0 0}
-      }
-      cascade {
-         $mbase add cascade -label \[$base.eLabel get\] -menu $mbase.\[$base.eMenu get\]
-         menu $mbase.\[$base.eMenu get\]
-      }
-      separator {
-         $mbase add separator
-      }
-   }
-   $mbase activate end
-   catch {\[focus\] selection range 0 end\]}
+   ::menueditor::additem
 "
 
 # Still needs work
@@ -384,18 +393,7 @@ proc $l {args} "
 "
 
 catch {$l selection set 0}
-
-
-
-
-
-
-
-
-
-
-
-
+catch {$mbase activate 0}
 
 
 
@@ -413,20 +411,6 @@ catch {$l selection set 0}
 	other comments {}
 	other item_name f
 	other tabbing {}
-Widget button#7
-	other error {}
-	other tags {}
-	other level {}
-	other help {}
-	other master {}
-	other pathname button#7
-	other tabbing {}
-	other item_name delete
-	geometry row 3
-	other type button
-	configure text Delete
-	geometry column 6
-	other comments {}
 Widget checkbutton#4
 	configure variable cbTearoff.value
 	other error {}
@@ -466,20 +450,20 @@ Widget frame#1
 	other panel {}
 	geometry row 1
 	other resize_row {0 0 0 0 0}
-	other type frame
-	geometry rowspan 6
 	other error {}
+	geometry rowspan 6
+	other type frame
 	other min_row {30 30 30 25 30}
 	other master {}
 	other pathname frame#1
-	other tags {}
 	other resize_column {0 0}
+	other tags {}
 	other level 1
-	other help {}
 	other min_column {30 30}
+	other help {}
 	other comments {}
 	geometry column 4
-	other tabbing {}
 	other item_name fr
+	other tabbing {}
 	geometry sticky n
 

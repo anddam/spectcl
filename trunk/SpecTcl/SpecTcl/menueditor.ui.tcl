@@ -167,9 +167,19 @@ $base.view config -command "
    $mbase post 0 0
    catch {$mbase activate 0}
 "
+$base.new config -command "
+      set tmp 1
+      while {\[info exists menu#\$tmp\]} {incr tmp}
+      set tmp menu#\$tmp
+      ::menueditor::newmenu \$tmp
+      $base.lbEntries insert end \$tmp
+"
 $base.remove config -command "
    if {\"\[tk_messageBox -icon question -type yesno -parent $root -message \"Are you sure?\"\]\"==\"yes\"} {
-      catch {$base.lbEntries delete \[$base.lbEntries curselection\]}
+      set tmp \[$base.lbEntries curselection\]
+      if {\"\$tmp\"==\"\"} {break}
+      ::menueditor::removemenu \$tmp
+      $base.lbEntries delete \$tmp
    }
 "
 $base.add config -command "
@@ -245,19 +255,7 @@ proc $l {args} "
 "
 
 catch {$l selection set 0}
-
-
-
-
-
-
-
-
-
-
-
-
-
+catch {$mbase activate 0}
 
 
 
