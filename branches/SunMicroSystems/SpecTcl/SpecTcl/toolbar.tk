@@ -1,0 +1,975 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# toolbar management routines
+
+# create the toolbar.  Its hardwired for now, but should be user programmable
+# Each toolbar has 3 procedures:
+#  setup_<tool>  - to setup the toolbar (optional)
+#  sync_<tool> win [options...] - to make tool value current with "win"
+#  set_<tool>  win				- to make the tool take affect
+
+proc create_toolbar {win} {
+    global P
+    set column 0		;# which column
+
+    # The current item's text or label field
+
+    grayable_label .text_label -text Text: -bg #c0c0c0 -state disabled
+    grid .text_label -in $win -row 0 -column [incr column]
+    entry .entry -textvariable Current(text) -width 15 -state disabled \
+	-bg #c0c0c0 \
+	-highlightbackground #c0c0c0
+    if {[winfo depth .] >= 8} {
+	.entry config -selectbackground #a0a0ff
+    }
+    grid .entry -in $win -row 0 -column [incr column]
+    
+    # set up bindings for immediate action on text entry
+
+    bind .entry <FocusIn>   {toolbar_entry_start_edit}
+    bind .entry <Return>    {toolbar_entry_confirm}
+    bind .entry <Escape>    {toolbar_entry_escape}
+    bind .entry <Key>       {toolbar_entry_change}
+    bind .entry <Tab>       {break}
+
+    bindtags .entry [list Entry .entry . all]
+
+    # the stickiness
+    frame .sticky -bg \#c0c0c0 -highlightcolor \#c0c0c0
+    label .sticky.l -image sticky_c.gif -bg \#c0c0c0 -highlightcolor \#c0c0c0
+    pack .sticky.l
+    bind .sticky.l <1> {setup_sticky %W.1 Sticky {set_sticky %W}}
+    grid .sticky -in $win -row 0 -column [incr column]
+    set P(default:sticky) {}
+
+    # the text justification
+
+    setup_justify .justify just set_just
+    grid .justify -in $win -row 0 -column [incr column]
+
+    # the font style
+
+    setup_style .style style set_style
+    grid .style -in $win -row 0 -column [incr column] -padx 2 -pady 2
+    
+    # font size menu - too slow for testing
+    setup_fontsize .font_size Fontsize set_fontsize
+    grid .font_size -in $win -row 0 -column [incr column]
+    set P(default:fontsize) 12
+
+    # the foreground and background color
+
+    label .fgcolor -image foreground.gif -bg \#c0c0c0 -highlightcolor \#c0c0c0
+    grid .fgcolor -in $win -row 0 -column [incr column] -padx 2 -pady 2
+    set dummy {}
+    set font {Helvetica,8,Bold}
+    OutFilter_font dummy font font
+    label .fgcolor.l -text FG -font $font -padx 6 -pady 0 -highlightthick 0 -bd 0 \
+	-bg \#c0c0c0 -highlightcolor \#c0c0c0
+    place .fgcolor.l -relx .1 -rely .1 
+    bind .fgcolor <1> "setup_colors %W.1 Colors {set_color %W foreground}"
+    bind .fgcolor.l <1> "setup_colors .fgcolor.1 Colors {set_color .fgcolor foreground}"
+    
+    label .bgcolor -image background.gif -bg \#c0c0c0 -highlightcolor \#c0c0c0
+    grid .bgcolor -in $win -row 0 -column [incr column] -padx 2 -pady 2
+    label .bgcolor.l -text BG -font $font -padx 6 -pady 0 -highlightthick 0 -bd 0 \
+	-bg \#c0c0c0 -highlightcolor \#c0c0c0
+    place .bgcolor.l -relx .1 -rely .1 
+    bind .bgcolor <1> "setup_colors %W.1 Colors {set_color %W background}"
+    bind .bgcolor.l <1> "setup_colors .bgcolor.1 Colors {set_color .bgcolor background}"
+    
+    # the relief setting 
+
+    frame .relief -bg \#c0c0c0 -highlightcolor \#c0c0c0
+    label .relief.inside -bd 0 -bg grey -image relief_flat.gif \
+	-bg \#c0c0c0 -highlightcolor \#c0c0c0
+    grid .relief -in $win -row 0 -column [incr column] -padx 1 -pady 1
+    grid .relief.inside -row 0 -column 0 -padx 1 -pady 1 -sticky {nsew}
+    bind .relief.inside <1> {setup_reliefs %W.1 "set_relief %W"}
+    set P(default:relief) flat
+    
+    # the borderwidth 
+
+    setup_borderwidth .borderwidth Borderwidth set_borderwidth
+    grid .borderwidth -in $win -row 0 -column [incr column]
+
+    # the orientation
+
+    setup_orient .orient Orient set_orient
+    grid .orient -in $win -row 0 -column [incr column]
+
+    # setup the "divider", the blank space between the property tools, and
+    # the command tools.
+    set divider_column [incr column]
+    grid columnconfig $win $divider_column -weight 1000
+
+    # add insert to the command toolbar
+    setup_insert .insert set_insert
+    grid .insert -in $win -row 0 -column [incr column]
+
+    # add delete to the command toolbar
+    setup_delete .delete set_delete
+    grid .delete -in $win -row 0 -column [incr column]
+
+    # add run to the command toolbar
+    setup_run .run set_run
+    grid .run -in $win -row 0 -column [incr column]
+
+    # add stop to the command toolbars
+    setup_stop .stop set_stop
+    grid .stop -in $win -row 0 -column [incr column]
+
+    #
+    # Set expanding behavior of toolbar
+    #
+    grid columnconfigure $win 20 -weight 1
+}
+
+# this is the list of toolbars
+
+set Toolbar {
+    entry sticky justify relief style fgcolor
+    bgcolor font_size borderwidth orient
+    insert delete run stop
+}
+
+####################################################################
+
+proc setup_insert {widget command} {
+    global Base_dir
+    button $widget -image insert.gif -command $command \
+	-bg #c0c0c0 -highlightbackground #c0c0c0 -takefocus 0
+    $widget config -image insert_u.gif
+}
+proc sync_insert {win} {
+    global Current
+    if {"$Current(row)$Current(column)$Current(gridline)" != ""} {
+	$win config -image insert.gif
+    } else {
+	$win config -image insert_u.gif
+    }
+}
+proc set_insert {} {
+    mainmenu_insert
+}
+proc setup_delete {widget command} {
+    global Base_dir
+    button $widget -image delete.gif -command $command \
+	-bg #c0c0c0 -highlightbackground #c0c0c0 -takefocus 0
+    $widget config -image delete_u.gif
+}
+proc sync_delete {win} {
+    global Current
+    if { "$Current(row)$Current(column)$Current(widget)$Current(gridline)" != ""} {
+	$win config -image delete.gif
+    } else {
+	$win config -image delete_u.gif
+    }
+}
+proc set_delete {} {
+    mainmenu_delete
+}
+proc setup_run {widget command} {
+    global Base_dir
+    button $widget -image run_u.gif -command $command \
+	-bg #c0c0c0 -highlightbackground #c0c0c0 -takefocus 0
+}
+proc sync_run {win} {
+    global specCommon Widgets
+
+    if {[array size Widgets] == 0} {
+	.run config -image run_u.gif -command ""
+    } elseif {$specCommon(lang) != "tcl"} {
+	.run config -image run_u.gif -command ""
+    } else {
+	.run config -image run.gif -command set_run
+    }
+}
+proc set_run {} {
+    if [mainmenu_build_test] {
+	.stop config -image stop.gif
+    }
+}
+proc setup_stop {widget command} {
+    global Base_dir
+    button $widget -image stop_u.gif -command $command\
+	-bg #c0c0c0 -highlightbackground #c0c0c0 -takefocus 0
+}
+proc sync_stop {win} {
+    
+}
+proc set_stop {} {
+    mainmenu_kill_test
+    .stop config -image stop_u.gif
+}
+
+proc setup_fontsize {win name {command puts}} {
+    upvar #0 $name var
+    if {![info exists var]} {set var 12}
+    menubutton $win -menu $win.font -image size.gif \
+	-bg \#c0c0c0 -highlightbackground \#c0c0c0
+    set dummy {}
+    set font {Helvetica,8}
+    OutFilter_font dummy font font
+    menubutton $win.l -textvariable $name -font $font -fg blue -bg yellow\
+	-padx 1 -pady 0 -bd 0 -highlightthickness 0 -takefocus 0 -menu $win.l.font \
+	-activebackground yellow
+    place $win.l -relx .53 -rely .52
+    menu $win.font
+    menu $win.l.font
+    foreach item {8 10 12 14 16 18 20 24 28 36} {
+	$win.font add command -label $item  -command "
+				set $name $item
+				eval \"$command $item\"
+			"
+    }
+    foreach item {8 10 12 14 16 18 20 24 28 36} {
+	$win.l.font add command -label $item  -command "
+				set $name $item
+				eval \"$command $item\"
+			"
+    }
+}
+
+set Justifies {left center right}
+proc setup_justify {win name {command puts}} {
+    global Justifies P
+    upvar #0 $name var 
+    if {![info exists var]} {set var left}
+    if {![regexp $var $Justifies]} {set var left}
+    menubutton $win -menu $win.justify -image justify_${var}.gif \
+	-bg \#c0c0c0 -highlightbackground \#c0c0c0
+    menu $win.justify
+    foreach item $Justifies {
+	$win.justify add command -image justify_${item}.gif -command "
+				set $name $item
+				$win configure -image justify_${item}.gif
+				eval \"$command $item\"
+			"
+    }
+    set P(default:just) center
+}
+
+# toolbar_entry_start_edit --
+#
+#	Starts editing the text option of a widget in the toolbar entry.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	None.
+
+proc toolbar_entry_start_edit {} {
+    global P Current spec
+
+    if {[set widget $Current(widget)] == ""} {
+	return
+    }
+
+    foreach item {text label} {
+	if ![catch {
+	    set spec(tb:oldText) [$widget cget -$item]
+	}] {
+	    break
+	}
+    }
+
+    focus .entry
+    .entry selection range 0 end
+    .entry icursor end
+    set spec(tb:curWidget) $widget
+    return
+}
+
+# toolbar_entry_change --
+#
+#	Reflects the changes in the toolbar entry in the current widget.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	None.
+
+proc toolbar_entry_change {} {
+    global P Current
+
+    if {[set widget $Current(widget)] == ""} {
+	return
+    }
+
+    set txt [subst -nocommand -novariable $Current(text)]
+
+    if ![catch {set varName [$widget cget -textvariable]}] {
+	if [string compare $varName ""] {
+	    global $varName
+	    set $varName $txt
+	    sync_form text $txt
+	    return
+	}
+    }
+
+    foreach item {text label} {
+	if ![catch {$widget cget -$item}] {
+	    $widget configure -$item $txt
+	    sync_form $item $txt
+	    break
+	}
+    }
+    return
+}
+
+# toolbar_entry_escape --
+#
+#	User cancels the edit changes in the toolbar entry -- restores
+#	the original text setting.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	None.
+
+proc toolbar_entry_escape {} {
+    global P Current spec
+
+    if ![info exists spec(tb:oldText)] {
+	return
+    }
+
+    if {[set widget $Current(widget)] == ""} {
+	return 0
+    }
+
+    foreach item {text label} {
+	if {[catch {$widget cget -$item}]} {
+	    continue
+	}
+	$widget configure -$item $spec(tb:oldText)
+	sync_form $item $spec(tb:oldText)
+	.entry delete 0 end
+	.entry insert 0 $spec(tb:oldText)
+    }
+
+    catch {unset spec(tb:oldText)}
+    focus .
+    return
+}
+
+# toolbar_entry_confirm --
+#
+#	User confirms the edit changes in the toolbar entry.
+#
+# Arguments:
+#	None.
+#
+# Result:
+#	None.
+
+proc toolbar_entry_confirm {} {
+    global P Current spec
+
+    focus .
+
+    catch {unset spec(tb:oldText)}
+    catch {unset spec(tb:curWidget)}
+    return
+}
+
+# sync_entry --
+#
+#	Reflect text/label of current widget into the "label editor"
+#	box. Enable/disable the "Edit Text Property" menu command
+#	according to the class of the widget.
+#
+# Arguments:
+#	win:	The entry widget that implements the "label editor" box.
+#
+# Result:
+#	None.
+
+proc sync_entry {win} {
+    global Current P spec
+
+    if [info exists spec(tb:curWidget)] {
+	set old $spec(tb:curWidget)
+	if {![info exists Current(widget)] || $old != $Current(widget)} {
+	    # The user has selected another widget. We apply the text changes
+	    # in the widget previously edited by .entry.
+	    toolbar_entry_confirm
+	}
+    }
+
+    set editable 0
+    if {[set widget $Current(widget)] != ""} {
+	set text ""
+
+	foreach item {text label} {
+	    if ![catch {
+		if {"[lindex [$widget configure -$item] 0]" != "-$item"} {
+		    error no_such_option
+		}
+	    }] {
+		set text [$widget cget -$item]
+		set editable 1
+		break
+	    }
+	}
+    }
+
+    if {$editable} {
+	.text_label config -state normal
+	set Current(text) $text
+    } else {
+	.entry configure -state disabled
+	.text_label config -state disabled
+	set Current(text) ""
+	# We're done here. If the entry is still holding the focus, give it
+	# up
+	catch {
+	    if {"[focus -displayof .entry]" == ".entry"} {
+		focus .
+	    }
+	}
+    }
+
+    set m [menubar_getmenuname .menu "Edit Text Property"]
+    if {$m != ""} {
+	if {$editable} {
+	    $m entryconfig [$m index "Edit Text Property"] -state normal
+	} else {
+	    $m entryconfig [$m index "Edit Text Property"] -state disabled
+	}
+    }
+}
+
+proc sync_sticky {win} {
+    global Current
+    set widget $Current(widget)
+    sticky_update $widget
+    if {$widget == ""} {
+	return 0
+    }
+}
+
+# set the sticky value - need to update the form too
+
+proc set_sticky {win style} {
+    global Current _Message P
+    if {![winfo exists $Current(widget)]} {
+	set P(default:sticky) $style
+	sticky_update {}
+	return
+    }
+    if {$style == "c"} {
+	set realstyle {{}}
+    } else {
+	set realstyle $style
+    }
+    set bad [catch "grid configure $Current(widget) -sticky $realstyle" msg]
+    if {$bad} {
+	global _Message
+	set _Message $msg
+    } else {
+	.sticky.l configure -image sticky_$style.gif
+#	eval "grid configure .sticky.b -sticky $realstyle"
+	sync_form sticky $style
+    }
+    set Current(repeat) "set_sticky $win $style"
+}
+
+
+proc sync_justify {win} {
+    global Current P
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    $win configure -image justify_$P(default:just).gif -state normal
+	    return
+	} else {
+	    set current .sample_[winfo name $Current(selected_widget_type)]
+	}
+    }
+    if {[catch {set justify [$current cget -justify]}]} {
+	$win configure -image justify_center_u.gif
+    } else {
+	$win configure -image justify_${justify}.gif -state normal
+    }
+}
+
+proc sync_style {win} {
+    global Current P $win
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    $win config -image style_u.gif
+	    return
+	} else {
+	    set current .sample_[winfo name $Current(selected_widget_type)]
+	}
+    } else {
+	upvar \#0 [winfo name $Current(widget)] data
+	eval "array set Skip \"$P(skip-textstyle)\""
+	if [info exists data(type)] {
+	    if {[info exists Skip($data(type))]} {
+		$win config -image style_u.gif
+		return
+	    }
+	}
+    }
+    $win config -image style.gif
+    if {[catch {set font [$current cget -font]}]} {
+	$win configure -bg grey
+    } else {
+	set base {}
+	set style {}
+	set c_base {}
+	set c_style {}
+	InFilter_font font
+	set currentfont [$win cget -font]
+	InFilter_font currentfont
+	regexp {([^,]*,[^,]*),*(.*)} $font dummy base style
+	set $win $style
+	regexp {([^,]*,[^,]*),*(.*)} $currentfont dummy c_base c_style
+	set font $c_base,$style
+	OutFilter_font dummy font font
+	if {[catch {$win configure -font $font -bg [[winfo parent $win] cget -bg]} msg]} {
+	    if {![winfo exists .error] || ![winfo ismapped .error]} {
+		append msg ". This might be fixable by adding a statement like 'option add *font -*-Helvetica-Bold-R-Normal--*-120-*-*-*-*-*-*' to the first line of your .SpecTclrc file."
+		tk_dialog .error "Font Error" $msg "error" 0 Rats!
+	    }
+	}
+    }
+}
+
+# set the justify value - need to update the form too
+
+proc set_just {style} {
+    global Current P
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    set P(default:just) $style
+	    return
+	} else {
+	    set current .sample_[winfo name $Current(selected_widget_type)]
+	}
+    }
+    set bad [catch "$current configure -justify $style"]
+    if {$bad} {
+	global _Message
+	set _Message "This item has no \"justify\" option"
+    } else {
+	sync_form justify $style
+    }
+    set Current(repeat) "set_just $style"
+}
+
+proc set_style {style {win {}}} {
+    global Current P
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    .style config -image style_u.gif
+	    return
+	} else {
+	    set current .sample_[winfo name $Current(selected_widget_type)]
+	}
+    } else {
+	upvar \#0 [winfo name $current] data
+	eval "array set Skip \"$P(skip-textstyle)\""
+	if [info exists data(type)] {
+	    if {[info exists Skip($data(type))]} {
+		.style config -image style_u.gif
+		return
+	    }
+	}
+    }
+    catch {$current config -state normal}
+    if {[catch {set font [$current cget -font]}]} {
+	catch {$win configure -state disabled}
+    } else {
+	InFilter_font font
+	regexp {([^,]*,[^,]*),*(.*)} $font dummy base oldstyle
+	if {$style == "Plain"} {
+	    set style {}
+	}
+	if {$oldstyle == ""} {
+	    set oldstyle "Plain"
+	}
+	set font $base,$style
+	OutFilter_font dummy font font
+	if {[catch {$current configure -font $font} msg]} {
+	    if {$win != ""} {
+		global $win
+		set $win $oldstyle
+		return
+	    }
+	}
+	sync_form font $font
+    }
+    set Current(repeat) "set_style $style"
+}
+
+# choose the next text-style for the current widget
+
+proc setup_style {win name {command puts}} {
+    global Fontstyle P $win Base_dir
+    if {![info exists var]} {set var v}
+    menubutton $win -menu $win.style \
+	-textvariable $name -image style.gif -padx 1 -pady 1 \
+	-bg \#c0c0c0 -highlightbackground \#c0c0c0
+    menu $win.style
+    set font [$win.style cget -font]
+    InFilter_font font
+
+    # this is because on Linux, some people are getting wierd
+    # results.
+    set base "courier"
+
+    regexp {([^,]*,[^,]*),*(.*)} $font dummy base style
+    foreach style {Plain Bold Italic Bold,Italic} {
+	set font $base,$style
+	OutFilter_font dummy font font
+	$win.style add radiobutton -label $style -variable $win -command "
+	        set $name [list $style]
+		eval \"$command [list $style] $win\"
+	"
+    }
+    set P(default:style) Bold
+}
+
+proc sync_font_size {win} {
+    global Current Fontsize P
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    set Fontsize $P(default:fontsize)
+	    return
+	} else {
+	    set current .sample_[winfo name $Current(selected_widget_type)]
+	}
+    }
+    if {[catch {set font [$current cget -font]}]} {
+	$win configure -image size_u.gif
+    } else {
+	$win configure -image size.gif
+	InFilter_font font
+	regexp {([^,]*),([^,]*),*(.*)} $font dummy family size style
+	if [info exists size] {
+	    set Fontsize $size
+	}
+    }
+}
+
+# set the font size
+
+proc set_fontsize {size} {
+    global Current _Message P
+    set givensize $size
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    set P(default:fontsize) $size
+	    return 0
+	} else {
+	    set current .sample_[winfo name $Current(selected_widget_type)]
+	}
+    }
+    if {[catch {set font [$current cget -font]}]} {
+	set _Message "This item has no \"font size\" option"
+	return
+    }
+    InFilter_font font
+    regexp {([^,]*),([^,]*),*(.*)} $font dummy family size style
+    set font $family,$givensize,$style
+    if {![OutFilter_font dummy font font]} { 
+	set _Message "font size $givensize is invalid for $family,$style"
+	return
+    }
+    $current configure -font $font
+    sync_form font $font
+    set Current(repeat) "set_fontsize $givensize"
+}
+
+proc sync_relief {win} {
+    global Current P
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    if {[winfo exists $win.inside]} {
+		$win.inside configure -relief $P(default:relief)
+		return
+	    }
+	} else {
+	    set current .sample_[winfo name $Current(selected_widget_type)]
+	}
+    }
+    catch {$win.inside configure -image relief_[$current cget -relief].gif}
+}
+
+# set the selected widget (and toolbar icon) to the proper relief
+
+proc set_relief {win relief} {
+    global Current _Message P
+    
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    set Borderwidth $P(default:relief)
+	    return 0
+	} else {
+	    if {[winfo exists $Current(selected_widget_type)]} {
+		set current .sample_[winfo name $Current(selected_widget_type)]
+	    } else {
+		return 0
+	    }
+	}
+    }
+    $win configure -image relief_$relief.gif
+    if {[set widget $current] == ""} {
+	return 0
+    }
+    $widget configure -relief $relief
+    sync_form relief $relief
+    set Current(repeat) "set_relief $win $relief"
+}
+
+proc sync_fgcolor {win} {
+	global Current
+	if {[set current $Current(widget)] == ""} {
+	    if {[set current $Current(selected_widget_type)] == ""} {
+		return 0
+	    } else {
+		if {[winfo exists $Current(selected_widget_type)]} {
+		    set current .sample_[winfo name $Current(selected_widget_type)]
+		} else {
+		    return 0
+		}
+	    }
+	}
+	if {[catch {set color [$current cget -fg]}]} {
+	} else {
+		$win.l configure -fg [contrast_color $color] -bg $color
+	}
+}
+
+proc sync_bgcolor {win} {
+	global Current
+	if {[set current $Current(widget)] == ""} {
+	    if {[set current $Current(selected_widget_type)] == ""} {
+		return 0
+	    } else {
+		if {[winfo exists $Current(selected_widget_type)]} {
+		    set current .sample_[winfo name $Current(selected_widget_type)]
+		} else {
+		    return 0
+		}
+	    }
+	}
+	if {[catch {set color [$current cget -bg]}]} {
+	} else {
+		$win.l configure -fg [contrast_color $color]  -bg $color
+	}
+}
+
+# now sync all of the toolbars
+
+proc sync_all {{win {}}} {
+    global Toolbar spec
+    foreach i $Toolbar {
+	sync_$i $win.$i
+    }
+
+    if [info exists spec(noexecute)] {
+	.run config -image run_u.gif -state disabled
+	.stop config -image stop_u.gif -state disabled
+    }
+}
+
+######################################################################
+proc sync_borderwidth {win} {
+    global Current Borderwidth P
+    if {[set widget $Current(widget)] == ""} {
+	if {$Current(selected_widget_type) == ""} {
+	    set Borderwidth $P(default:borderwidth)
+	    return 0
+	} else {
+	    if {[winfo exists $Current(selected_widget_type)]} {
+		set widget .sample_[winfo name $Current(selected_widget_type)]
+	    } else {
+		return 0
+	    }
+	}
+    }
+ 
+    if {[winfo exists $win]} {
+	if {[catch {set Borderwidth [$widget cget -bd]}]} {
+	    $win configure -image borderwidth_u.gif
+	} else {
+	    $win configure -image borderwidth.gif
+	}
+    }
+}
+
+# set the border size - need to update the form too
+
+proc set_borderwidth {style} {
+    global Current Borderwidth P
+
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    set P(default:borderwidth) $style
+	    return
+	} else {
+	    if {[winfo exists $Current(selected_widget_type)]} {
+		set current .sample_[winfo name $Current(selected_widget_type)]
+	    } else {
+		return
+	    }
+	}
+    }
+    
+    set bad [catch "$current configure -bd $style"]
+    if {$bad} {
+	global _Message
+	set _Message "This item has no \"borderwidth\" option"
+    } else {
+	sync_form borderwidth $style
+    }
+    set Current(repeat) "set_borderwidth $style"
+}
+
+# procedure to create border size menu
+
+proc setup_borderwidth {win name {command puts}} {
+    global _Message P
+    upvar #0 $name var
+    if {![info exists var]} {set var 2}
+    set font {Helvetica,8}
+    set dummy {}
+    OutFilter_font dummy font font
+    menubutton $win -menu $win.borderwidth -image borderwidth.gif \
+	-textvariable $name -bg \#c0c0c0 -background \#c0c0c0
+    menubutton $win.l -textvariable $name -font $font -fg blue -bg yellow\
+	-padx 2 -pady 1 -bd 0 -highlightthickness 0 -takefocus 0 -menu $win.l.borderwidth \
+	-activebackground yellow
+    place $win.l -relx .57 -rely .48
+    menu $win.borderwidth
+    menu $win.l.borderwidth
+    foreach item {0 1 2 4 8 12} {
+	$win.borderwidth add command -label $item  -command "
+				set $name $item
+				eval \"$command $item\"
+			"
+    }
+    foreach item {0 1 2 4 8 12} {
+	$win.l.borderwidth add command -label $item  -command "
+				set $name $item
+				eval \"$command $item\"
+			"
+    }
+    set P(default:borderwidth) 2
+}
+
+# set the color value - need to update the form too
+
+proc set_color {win what style} {
+    global Current P
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    set P(default:$what) $style
+	    return
+	} else {
+	    if {[winfo exists $Current(selected_widget_type)]} {
+		set current .sample_[winfo name $Current(selected_widget_type)]
+	    } else {
+		return
+	    }
+	}
+    }
+    set bad [catch "$current configure -$what $style"]
+    if {$bad} {
+	global _Message
+	set _Message "This item has no \"$what\" color option"
+    } else {
+	$win.l configure -bg $style -fg [contrast_color $style]
+	sync_form $what $style
+	# heuristic
+	if {$what == "foreground" && [catch { $current configure -activeforeground $style}] == 0} {
+	    sync_form activeforeground $style
+	}
+    }
+    set Current(repeat) "set_color $win $what $style"
+}
+
+#########################################
+# select orientation (scrollbars and scales only) - placeholder
+
+proc setup_orient {win name {command puts}} {
+    global _Message P Base_dir
+    upvar #0 $name var
+    if {![info exists var]} {set var v}
+    button $win -bd 0 -image orient_v.gif \
+	-bg #c0c0c0 -highlightbackground #c0c0c0 -takefocus 0\
+	-command "
+	if \{\$$name == \{v\}\} \{
+            set $name \{h\}
+            $win config -image orient_h.gif
+            $command horizontal
+        \} else \{
+            set $name \{v\}
+            $win config -image orient_v.gif
+            $command vertical
+        \}
+    "
+    set P(default:orient) v
+}
+
+proc sync_orient {win} {
+    global Current Orient P
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    if {$Orient != $P(default:orient)} {
+		$win invoke
+	    }
+	    return 0
+	} else {
+	    if {[winfo exists $Current(selected_widget_type)]} {
+		set current .sample_[winfo name $Current(selected_widget_type)]
+	    } else {
+		return
+	    }
+	}
+    }
+    if {[catch {set orient [$current cget -orient]}]} {
+	$win configure -image orient_u.gif
+    } else {
+	$win configure -image orient_$Orient.gif
+	if {$Orient !=  [string range $orient 0 0]} {
+	    $win invoke
+	}
+    }
+}
+
+proc set_orient {style} {
+    global Current Orient P
+    if {[set current $Current(widget)] == ""} {
+	if {[set current $Current(selected_widget_type)] == ""} {
+	    set P(default:orient) $style
+	    return
+	} else {
+	    if {[winfo exists $Current(selected_widget_type)]} {
+		set current .sample_[winfo name $Current(selected_widget_type)]
+	    } else {
+		return
+	    }
+	}
+    }
+    set bad [catch "$current configure -orient $style"]
+    if {$bad} {
+	global _Message
+	set _Message "This item has no \"orient\" option"
+    } else {
+	sync_form orient $style
+	orient_create $current
+    }
+    set Current(repeat) "set_orient $style"
+}

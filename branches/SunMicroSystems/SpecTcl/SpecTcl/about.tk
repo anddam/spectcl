@@ -1,0 +1,157 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1995 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+#
+# do an about box
+# 1) walk Spec in from the left
+# 2) walk T, c, l in from the right
+# 3) walk magnifying glass in from the right
+# 4) turn each of T, c, l bigger (and red) as the
+#    magnifying glass goes by
+
+foreach image [array names About] {
+    image create bitmap $image -data $About($image)
+}
+catch "unset About"
+
+# Allow the users to get rid of this, if they want.
+proc endabout {} {
+    about_close
+    destroy .about
+}
+
+proc about  {} {
+    global Tags P Version Current tcl_platform
+    if {[winfo exists .about]} return
+    toplevel .about
+    bind_map .about
+    wm title .about "About $P(title)"
+    # render latent after commands harmless
+    bind .about <Destroy> {proc %W args {}; if {"%W" == ".about"} about_close}
+    set c .about.c
+    canvas $c
+    bind $c <$P(button)> {endabout}
+    grid rowconfigure .about 0 -weight 1
+    grid columnconfigure .about 0 -weight 1
+    grid .about.c -column 0 -row 0 -sticky {nsew}
+    set w [image width spec]
+    set h [image height spec]
+    wm geometry .about [expr 2 * $w]x[expr 230 + $h]
+    tkwait visibility .about
+
+    # draw "spec"
+    set after 0
+    $c create image -$w 30 -anchor nw -image spec -tag spec
+    for {set i 0} {$i < $w} {incr i 10} {
+	lappend Current(after) [after [incr after 100] "$c move spec 10 0"]
+    }
+
+    # draw "tcl"
+
+    incr after 500
+    set ww [expr 2 * $w + 50]
+    set offset $w
+    incr offset 35
+    set y0 [image height lt]
+    incr y0 35
+    foreach img {t c l} {
+	set indx [$c create image $ww $y0 -anchor sw -image l$img -tag "l$img small"]
+	set Tags($indx) $img
+	for {set i $ww} {$i > $offset} {incr i -8} {
+	    lappend Current(after) [after [incr after 50] "$c move l$img -8 0"]
+	}
+	incr offset [image width l$img]
+	incr offset 3
+    }
+
+    # Make "the glass"
+
+    if {$tcl_platform(platform) == "unix"} {
+	$c create oval 0 0 170 170 -width 6 -outline blue \
+	    -stipple gray25 -fill \#88f -tag "glass ring"
+    } else {
+	$c create oval 0 0 170 170 -width 6 -outline blue \
+	    -tag "glass ring"
+    }
+    $c create line 140 150 180 200 -width 20 -tag glass
+    $c move glass $ww -15
+    incr offset -163
+    for {set i $ww} {$i > $offset} {incr i -10} {
+	lappend Current(after) [after [incr after 75] "$c move glass -10 0; about_check $c"]
+    }
+
+    # now for the text
+
+    set message "
+		SpecTcl Version $Version, p$P(patchlevel) by
+		Ray Johnson - Project Manager
+		Ioi Lam, Allan Pratt
+		Special thanks to Stephen Uhler, Ken Corey
+		\xa9 Sun Microsystems Laboratories
+
+		Send bug reports to spectcl@tcl.Eng.Sun.COM
+	"
+
+    incr after 500
+    $c create text $w $h -text $message \
+	-justify center -anchor n -tag text
+
+    $c move text 0 240
+    for {set i 240} {$i > $h} {incr i -10} {
+	lappend Current(after) [after [incr after 75] "$c move text 0 -10"]
+    }
+    incr after 500
+    for {set i 240} {$i > $h} {incr i -10} {
+	lappend Current(after) [after [incr after 75] "$c move ok 0 -10"]
+    }
+
+    # now go away
+
+    button $c.b -text OK -bd 5  -fg blue -command "destroy .about" \
+	-highlightthickness 4 -highlightcolor red
+    $c create window 20 $h -anchor nw -tag ok -window $c.b
+    $c move ok 0 240
+    focus $c.b
+}
+
+# check the glass entering the letters, and grow them
+
+proc about_check {c} {
+    global Tags Current
+    set cover [$c bbox ring]
+    set in [eval {$c find enclosed} $cover]		
+    foreach i $in {
+	if {![info exists Tags($i)]} return
+	set bbox [$c bbox $i]
+	scan [$c bbox $i] "%d %d %d %d" x0 y0 x1 y1
+	$c delete $i
+	set x [expr ($x0 + $x1)/2]
+	set y [expr ($y0 + $y1)/2]
+	$c create image $x $y -anchor c -image b$Tags($i)
+	lappend Current(after) [after 100 [b$Tags($i) configure \
+		 -foreground red]]
+	unset Tags($i)
+	$c raise ring
+    }
+}
+
+proc about_close {} {
+    global Current
+ 
+    catch {
+	bind_unmap .about
+    }
+    if ![info exists Current(after)] {
+	return
+    }
+    foreach afterId $Current(after) {
+	catch {
+	    after cancel $afterId
+	}
+    }
+    catch {
+	unset Current(after)
+    }
+}
