@@ -1,4 +1,4 @@
-WidGet file, version 1.2, created:  Mon Jul 09 21:21:48 CEST 2001
+WidGet file, version 1.2, created:  Wed Jul 11 20:45:27 CEST 2001
 Widget button#10
 	geometry column 2
 	other comments {}
@@ -53,30 +53,12 @@ Widget button#13
 	other error {}
 	configure font Helvetica,12,Bold
 	other help {}
-	other item_name rename
+	other item_name copy
 	other level {}
 	other master {}
 	configure padx 0
 	other pathname button#13
 	geometry row 5
-	geometry sticky ew
-	other tabbing {}
-	other tags {}
-	configure text Rename
-	other type button
-	geometry padx 5
-Widget button#14
-	geometry column 2
-	other comments {}
-	other error {}
-	configure font Helvetica,12,Bold
-	other help {}
-	other item_name copy
-	other level {}
-	other master {}
-	configure padx 0
-	other pathname button#14
-	geometry row 6
 	geometry sticky ew
 	other tabbing {}
 	other tags {}
@@ -142,7 +124,7 @@ Widget button#6
 	other level {}
 	other master {}
 	other pathname button#6
-	geometry row 7
+	geometry row 6
 	geometry sticky esw
 	other tabbing {}
 	other tags {}
@@ -175,7 +157,7 @@ Widget checkbutton#4
 	other level {}
 	other master {}
 	other pathname checkbutton#4
-	geometry row 7
+	geometry row 6
 	other tabbing {}
 	other tags {}
 	configure text Tearoff
@@ -236,6 +218,7 @@ bind $root <Key-Escape> "$base.dismiss invoke"
 		} frame {
 		} label {
 		} listbox {
+		} menu {
 		} menubutton {
 		} message {
 		} radiobutton {
@@ -250,11 +233,11 @@ bind $root <Key-Escape> "$base.dismiss invoke"
 	other level 0
 	other master {}
 	other min_column {30 30 30 30 30 30 30}
-	other min_row {30 30 30 30 30 30 30}
+	other min_row {30 30 30 30 30 30}
 	other panel {}
 	other pathname f
 	other resize_column {3 0 0 0 0 0 0}
-	other resize_row {0 0 0 0 0 0 3}
+	other resize_row {0 0 0 0 0 3}
 	other tabbing {}
 	other tags {}
 	other type frame
@@ -274,7 +257,7 @@ Widget frame#1
 	other resize_column {0 0}
 	other resize_row {0 0}
 	geometry row 3
-	geometry rowspan 5
+	geometry rowspan 4
 	geometry sticky n
 	other tabbing {}
 	other tags {}
@@ -296,7 +279,7 @@ Widget frame#2
 	other resize_column 0
 	other resize_row 0
 	geometry row 1
-	geometry rowspan 7
+	geometry rowspan 6
 	geometry sticky ns
 	other tabbing {}
 	other tags {}
@@ -363,7 +346,7 @@ Widget listbox#1
 	other master {}
 	other pathname listbox#1
 	geometry row 2
-	geometry rowspan 6
+	geometry rowspan 5
 	geometry sticky nesw
 	other tabbing {}
 	other tags {}
@@ -387,7 +370,7 @@ Widget menubutton#3
 	other tabbing {}
 	other tags {}
 	configure takefocus {}
-	configure text command
+	configure text cascade
 	configure textvariable mbType.value
 	other type menubutton
 
