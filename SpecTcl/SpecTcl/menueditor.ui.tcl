@@ -82,6 +82,14 @@ proc menueditor_ui {root args} {
 		-default active \
 		-text Replace
 
+	button $base.copy \
+		-padx 0 \
+		-text Copy
+	catch {
+		$base.copy configure \
+			-font -*-Helvetica-Bold-R-Normal-*-*-120-*-*-*-*-*-*
+	}
+
 	checkbutton $base.cbTearoff \
 		-text Tearoff \
 		-variable cbTearoff.value
@@ -97,11 +105,11 @@ proc menueditor_ui {root args} {
 
 	grid $base.fr -in $root	-row 3 -column 4  \
 		-columnspan 2 \
-		-rowspan 4 \
+		-rowspan 5 \
 		-sticky n
 	grid $base.fSeparator -in $root	-row 1 -column 3  \
 		-pady 5 \
-		-rowspan 6 \
+		-rowspan 7 \
 		-sticky ns
 	grid $base.label#11 -in $root	-row 1 -column 1  \
 		-columnspan 2 \
@@ -112,7 +120,7 @@ proc menueditor_ui {root args} {
 	grid $base.lbEntries -in $root	-row 2 -column 1  \
 		-padx 5 \
 		-pady 5 \
-		-rowspan 5 \
+		-rowspan 6 \
 		-sticky nesw
 	grid $base.view -in $root	-row 2 -column 2  \
 		-padx 5 \
@@ -140,8 +148,11 @@ proc menueditor_ui {root args} {
 	grid $base.replace -in $root	-row 5 -column 7  \
 		-padx 5 \
 		-sticky ew
-	grid $base.cbTearoff -in $root	-row 6 -column 2 
-	grid $base.dismiss -in $root	-row 6 -column 7  \
+	grid $base.copy -in $root	-row 6 -column 2  \
+		-padx 5 \
+		-sticky ew
+	grid $base.cbTearoff -in $root	-row 7 -column 2 
+	grid $base.dismiss -in $root	-row 7 -column 7  \
 		-padx 5 \
 		-sticky esw
 
@@ -152,7 +163,8 @@ proc menueditor_ui {root args} {
 	grid rowconfigure $root 3 -weight 0 -minsize 30
 	grid rowconfigure $root 4 -weight 0 -minsize 30
 	grid rowconfigure $root 5 -weight 0 -minsize 30
-	grid rowconfigure $root 6 -weight 1 -minsize 30
+	grid rowconfigure $root 6 -weight 0 -minsize 30
+	grid rowconfigure $root 7 -weight 1 -minsize 30
 	grid columnconfigure $root 1 -weight 1 -minsize 30
 	grid columnconfigure $root 2 -weight 0 -minsize 30
 	grid columnconfigure $root 3 -weight 0 -minsize 30
@@ -172,6 +184,7 @@ $base.view config -command {::menueditor::view}
 $base.new config -command {::menueditor::new}
 $base.remove config -command {::menueditor::remove}
 $base.rename config -command {::menueditor::rename}
+$base.copy config -command {::menueditor::copy}
 $base.add config -command {::menueditor::add}
 $base.insert config -command {::menueditor::insert}
 $base.delete config -command {::menueditor::delete}
@@ -194,6 +207,7 @@ bind $root <Key-Delete> "
    }
 "
 bind $root <Key-Escape> "$base.dismiss invoke"
+
 
 
 

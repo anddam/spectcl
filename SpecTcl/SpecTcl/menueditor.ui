@@ -1,4 +1,4 @@
-WidGet file, version 1.2, created:  Tue Jun 12 13:20:48 CEST 2001
+WidGet file, version 1.2, created:  Mon Jul 09 21:21:48 CEST 2001
 Widget button#10
 	geometry column 2
 	other comments {}
@@ -65,6 +65,24 @@ Widget button#13
 	configure text Rename
 	other type button
 	geometry padx 5
+Widget button#14
+	geometry column 2
+	other comments {}
+	other error {}
+	configure font Helvetica,12,Bold
+	other help {}
+	other item_name copy
+	other level {}
+	other master {}
+	configure padx 0
+	other pathname button#14
+	geometry row 6
+	geometry sticky ew
+	other tabbing {}
+	other tags {}
+	configure text Copy
+	other type button
+	geometry padx 5
 Widget button#3
 	geometry column 7
 	other comments {}
@@ -124,7 +142,7 @@ Widget button#6
 	other level {}
 	other master {}
 	other pathname button#6
-	geometry row 6
+	geometry row 7
 	geometry sticky esw
 	other tabbing {}
 	other tags {}
@@ -157,7 +175,7 @@ Widget checkbutton#4
 	other level {}
 	other master {}
 	other pathname checkbutton#4
-	geometry row 6
+	geometry row 7
 	other tabbing {}
 	other tags {}
 	configure text Tearoff
@@ -177,6 +195,7 @@ $base.view config -command {::menueditor::view}
 $base.new config -command {::menueditor::new}
 $base.remove config -command {::menueditor::remove}
 $base.rename config -command {::menueditor::rename}
+$base.copy config -command {::menueditor::copy}
 $base.add config -command {::menueditor::add}
 $base.insert config -command {::menueditor::insert}
 $base.delete config -command {::menueditor::delete}
@@ -199,6 +218,7 @@ bind $root <Key-Delete> "
    }
 "
 bind $root <Key-Escape> "$base.dismiss invoke"
+
 
 
 
@@ -230,11 +250,11 @@ bind $root <Key-Escape> "$base.dismiss invoke"
 	other level 0
 	other master {}
 	other min_column {30 30 30 30 30 30 30}
-	other min_row {30 30 30 30 30 30}
+	other min_row {30 30 30 30 30 30 30}
 	other panel {}
 	other pathname f
 	other resize_column {3 0 0 0 0 0 0}
-	other resize_row {0 0 0 0 0 3}
+	other resize_row {0 0 0 0 0 0 3}
 	other tabbing {}
 	other tags {}
 	other type frame
@@ -254,7 +274,7 @@ Widget frame#1
 	other resize_column {0 0}
 	other resize_row {0 0}
 	geometry row 3
-	geometry rowspan 4
+	geometry rowspan 5
 	geometry sticky n
 	other tabbing {}
 	other tags {}
@@ -276,7 +296,7 @@ Widget frame#2
 	other resize_column 0
 	other resize_row 0
 	geometry row 1
-	geometry rowspan 6
+	geometry rowspan 7
 	geometry sticky ns
 	other tabbing {}
 	other tags {}
@@ -343,7 +363,7 @@ Widget listbox#1
 	other master {}
 	other pathname listbox#1
 	geometry row 2
-	geometry rowspan 5
+	geometry rowspan 6
 	geometry sticky nesw
 	other tabbing {}
 	other tags {}
