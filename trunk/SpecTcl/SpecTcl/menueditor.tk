@@ -166,12 +166,8 @@ proc ::menueditor::init {root} {
 # SOURCE
 #
 proc ::menueditor::nameexists {name} {
-   foreach item $::menueditor::menulist {
-      if {"$name" == "[lindex $item 1]"} {
-         return 1
-      }
-   }
-   return 0
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   return [::have_name $name $Ident(item_name)]
 }
 #***
 
