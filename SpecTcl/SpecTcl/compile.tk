@@ -219,6 +219,28 @@ proc compile_ui {file {out ""} {prefix ""}} {
 	compile_append script 1 "\n\t# binding tags\n\n$tags"
     }
 
+    # Add content to menus
+    compile_append script 1 "\n\t# Add contents to menus"
+    foreach name $names {
+	upvar #0 __X_$name data
+	if {"$data(other,type)" != "menu"} {
+	    continue
+	}
+	compile_append script 1 ""
+	foreach {item options} $data(other,gadgets) {
+	    compile_append script 0 \
+	        "\t\$base.$data(other,item_name) add $item"
+	    foreach {option val} $options {
+	        if {"$option" != "-menu"} {
+	            compile_append script 0 "\\\n\t\t$option [list $val]"
+	        } else {
+	            compile_append script 0 "\\\n\t\t$option \$base.$data(other,item_name).$val"
+	        }
+	    }
+	    compile_append script 1 ""
+	}
+    }
+
     # now create the geometry management commands
     # this has to wait until all of the widgets are created to
     # avoid forward references
@@ -227,6 +249,9 @@ proc compile_ui {file {out ""} {prefix ""}} {
     foreach name $names {
 	upvar #0 __X_$name data
 	if {[set master [real_master $name]] == ""} {
+	    continue
+	}
+	if {"$data(other,type)" == "menu"} {
 	    continue
 	}
 	compile_append script 1 ""
@@ -340,6 +365,22 @@ proc frames_first {name1 name2} {
 		return -1
 	} elseif {$data2(other,type) == "frame"} {
 		return 1
+	}
+
+	# 1 menu, 1 widget
+	# Menus always come last because sometimes they are
+	# children of menubuttons
+	if {$data1(other,type) == "menu"} {
+		if {$data2(other,type) == "menu"} { # both are menus
+			regsub {[^.]} $data1(other,pathname) {} str1
+			regsub {[^.]} $data2(other,pathname) {} str2
+			# Always put the one with most "."s last
+			return [expr [string length $str1]>[string length $str2]? 1: -1]
+		} else {
+			return 1
+		}
+	} elseif {$data2(other,type) == "menu"} {
+		return -1
 	}
 
 	# sort by explicit tabbing order field
