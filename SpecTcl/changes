@@ -520,4 +520,9 @@ show on properties dialog.
 9/22/97 (feature change) Changed license for SpecTcl and SpecTcl
 source to be free. See the file license.terms.  (RJ)
 
+---------------------------
+April 2001 taken over by Morten Skaarup Jensen
+
+Works for Tcl/Tk 8.4a2 widgets (i.e. spinbox)
+Other widget sets like BLT, Tix etc can be used
 
