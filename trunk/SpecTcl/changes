@@ -550,3 +550,6 @@ editted and menu widgets can be copied.
 for menus.
 
 13/7/2001 (new feature) Row and column configuration can be done directly
+
+16/7/2001 (bug fix) Menu widget properties are now consistent with the
+toolbar.
