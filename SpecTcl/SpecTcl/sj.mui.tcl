@@ -185,6 +185,9 @@ proc sj_mui {root args} {
     $menupaths(menubutton#2).2m add command -command mainmenu_edit_code \
 	-label {Edit Code} -under 5
 
+    $menupaths(menubutton#2).2m add command -command mainmenu_edit_menus \
+	-label {Edit Menus...} -under 5
+
     $menupaths(menubutton#2).2m add command -command mainmenu_edit_label \
 	-label {Edit Text Property} -accelerator [menued_menu_accel F2] \
 	-state disabled -under 5

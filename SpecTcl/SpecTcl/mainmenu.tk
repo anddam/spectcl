@@ -192,6 +192,13 @@ proc mainmenu_edit_code {} {
     edit_code $Current(project)
 }
 
+proc mainmenu_edit_menus {} {
+    global Current
+    if {![winfo exists .menueditortoplevel]} {
+       menueditor_ui [toplevel .menueditortoplevel]
+    }
+}
+
 # mainmenu_edit_label --
 #
 #	Handles the "Edit Widget Text" command in the Edit menu.
