@@ -15,12 +15,13 @@ proc menueditorgetname_ui {root args} {
 	    set base $root
 	}
     
-	label $base.label#1 \
-		-text {Name of Menu}
+	label $base.lName \
+		-text {Name of New Menu}
 
 	entry $base.eName
 
 	button $base.butOk \
+		-default active \
 		-text Ok
 	catch {
 		$base.butOk configure \
@@ -40,7 +41,7 @@ proc menueditorgetname_ui {root args} {
 
 	# Geometry management
 
-	grid $base.label#1 -in $root	-row 1 -column 1 
+	grid $base.lName -in $root	-row 1 -column 1 
 	grid $base.eName -in $root	-row 1 -column 2 
 	grid $base.butOk -in $root	-row 2 -column 1 
 	grid $base.butCancel -in $root	-row 2 -column 2 
@@ -56,13 +57,25 @@ bind $root <Key-Return> "$base.butOk invoke"
 bind $root <Key-Escape> "$base.butCancel invoke"
 focus $base.eName
 
+switch [lindex $args  0] {
+   new {}
+   rename {$base.lName config -text "New name of menu"}
+   copy {}
+}
+
 $base.butOk config -command "
+   if {\[::menueditor::nameexists \[$base.eName get\]\]} {
+      tk_messageBox -icon error -parent $root -message {Widget name already exists}
+      break
+   }
    switch [lindex $args  0] {
       new {::menueditor::getname::new \[$base.eName get\]}
       rename {::menueditor::getname::rename \[$base.eName get\]}
+      copy {::menueditor::getname::copy \[$base.eName get\]}
    }
    destroy $root
 "
+
 
 
 

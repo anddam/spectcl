@@ -1,7 +1,8 @@
-WidGet file, version 1.2, created:  Tue Jun 12 13:29:58 CEST 2001
+WidGet file, version 1.2, created:  Mon Jul 09 22:00:19 CEST 2001
 Widget button#1
 	geometry column 1
 	other comments {}
+	configure default active
 	other error {}
 	configure font Helvetica,12,Bold
 	other help {}
@@ -50,13 +51,25 @@ Widget f
 bind $root <Key-Escape> "$base.butCancel invoke"
 focus $base.eName
 
+switch [lindex $args  0] {
+   new {}
+   rename {$base.lName config -text "New name of menu"}
+   copy {}
+}
+
 $base.butOk config -command "
+   if {\[::menueditor::nameexists \[$base.eName get\]\]} {
+      tk_messageBox -icon error -parent $root -message {Widget name already exists}
+      break
+   }
    switch [lindex $args  0] {
       new {::menueditor::getname::new \[$base.eName get\]}
       rename {::menueditor::getname::rename \[$base.eName get\]}
+      copy {::menueditor::getname::copy \[$base.eName get\]}
    }
    destroy $root
 "
+
 
 
 
@@ -95,14 +108,15 @@ $base.butOk config -command "
 Widget label#1
 	geometry column 1
 	other comments {}
+	other error {}
 	other help {}
-	other item_name label#1
+	other item_name lName
 	other level {}
 	other master {}
 	other pathname label#1
 	geometry row 1
 	other tabbing {}
 	other tags {}
-	configure text {Name of Menu}
+	configure text {Name of New Menu}
 	other type label
 

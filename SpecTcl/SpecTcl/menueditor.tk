@@ -164,6 +164,23 @@ proc ::menueditor::init {root} {
 
 
 
+#****f* SpecTcl/menueditor::nameexists
+# DESCRIPTION
+#   Determines whether or not a menu already exists
+# SOURCE
+#
+proc ::menueditor::nameexists {name} {
+   foreach item $::menueditor::menulist {
+      if {"$name" == "[lindex $item 1]"} {
+         return 1
+      }
+   }
+   return 0
+}
+#***
+
+
+
 #****f* SpecTcl/menueditor::view
 # DESCRIPTION
 #   Displays the demomenu for the menueditor window
@@ -301,6 +318,12 @@ proc ::menueditor::rename {} {
    ::menueditorgetname_ui $top rename
 }
 
+proc ::menueditor::copy {} {
+   set top $::menueditor::base.toplevel
+   toplevel $top
+   ::menueditorgetname_ui $top copy
+}
+
 
 
 #****f* SpecTcl/menueditor::getname::rename
@@ -321,6 +344,32 @@ proc ::menueditor::getname::rename {name} {
    $::menueditor::base.lbEntries see active
    $::menueditor::base.lbEntries selection clear 0 end
    $::menueditor::base.lbEntries selection set active
+}
+#***
+
+
+
+#****f* SpecTcl/menueditor::copy
+# DESCRIPTION
+#   Creates a copy of the currently selected menu
+# SOURCE
+#
+proc ::menueditor::getname::copy {name} {
+   upvar #0 [set ::menueditor::currentmenu(ident)] Ident
+   set tmp 1
+   while {[info exists ::menu#$tmp]} {incr tmp}
+   set ident menu#$tmp
+   global Widgets $ident
+   menu .can.f.$ident
+   set Widgets($ident) 1
+   array set $ident [list type menu item_name $name gadgets $Ident(gadgets)]
+   lappend ::menueditor::menulist [list $ident $name]
+   $::menueditor::base.lbEntries insert end $name
+   $::menueditor::base.lbEntries activate end
+   $::menueditor::base.lbEntries see active
+   $::menueditor::base.lbEntries selection clear 0 end
+   $::menueditor::base.lbEntries selection set active
+   return $ident
 }
 #***
 
