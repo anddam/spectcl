@@ -1,6 +1,5 @@
 # SpecTcl, by S. A. Uhler and Ken Corey
 # Copyright (c) 1994-1996 Sun Microsystems, Inc.
-# Daryl Moulder updated this file (c) 2000-2002
 #
 # See the file "license.txt" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -14,9 +13,9 @@
 
 set Boiler {
 public static void main(String[] args) {
-    JFrame f = new JFrame("%2$s");
     %1$s win = new %1$s();
-    f.addWindowListener(
+    win.setTitle("%1$s Test");
+    win.addWindowListener(
        new WindowAdapter()
        {
              public void windowClosing(WindowEvent e)
@@ -26,9 +25,8 @@ public static void main(String[] args) {
         }
     );
     win.init();
-    f.getContentPane().add("Center", win);
-    f.pack();
-    f.setVisible(true);
+    win.pack();
+    win.setVisible(true);
 }
 
 private void reset(GridBagConstraints con) {
@@ -80,7 +78,6 @@ array set Javamap {
 	*.font			{$var.setFont([jfont $value]);}
 	*.state			{[do_state $var $value]}
 	*.help			{[do_help $var $value]}
-        *.tags			{[do_tags $var $value]}
 	*.foreground		{$var.setForeground([jcolor $value]);}
 	*.background		{$var.setBackground([jcolor $value]);}
 	*.editable		{[do_editable $var $value]}
@@ -131,7 +128,7 @@ array set Javafillmap {
 
 # set up some java specific preferences
 
-set P(extends) JApplet
+set P(extends) JFrame
 set P(implements) ActionListener
 
 proc compile_jui {file {out ""} {prefix ""} {run ""}} {
@@ -259,19 +256,16 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 	puts $out_fd "public class $prefix extends $P(extends) $imp\{		\n"
 
 	# make a "client data" slot
-	puts $out_fd "//some user defined global variables follow"
+	puts $out_fd "// a slot to hold an arbitrary object pointer that can"
+	puts $out_fd "// be filled in by the app. and referenced in actions"
 
 	set arg Object
 	if {[info exists P(arg)]} {
-		#if {![regexp $P(arg) {^[ 	]*$}]} {
-		#	set arg $P(arg)
-		#}
-                set globals [split $P(arg) ,]
-                foreach global $globals {
-                    puts $out_fd "private $global"
-                }
+		if {![regexp $P(arg) {^[ 	]*$}]} {
+			set arg $P(arg)
+		}
 	}
-	#puts $out_fd "private $arg arg;\n"
+	puts $out_fd "private $arg arg;\n"
 
 	# Declare an instance variable for each widget:
 	foreach name $names {
@@ -470,11 +464,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			set rows 5; set cols 20 ; set scroll "Scroller"
 			catch {set rows $data(configure,height)}
 			catch {set cols $data(configure,width)}
-                        if {$data(other,componant_type) != ""} {
-                            puts $out_fd "\t$var = new $data(other,componant_type)();"
-                        } else {
-                            puts $out_fd "\t$var = new JTextArea($rows,$cols);"
-                        }
+			puts $out_fd "\t$var = new JTextArea($rows,$cols);"
 			puts $out_fd "\tJScrollPane $var$scroll = new JScrollPane($var);" 
 		} elseif {$type == "listbox"} {
 			set rows 4; set multi false ; set scroll "Scroller"
@@ -483,7 +473,6 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 					$data(configure,selectmode) == "multiple" ? "true" : "false"}]}
 			if {$rows == 0} {set rows 4}
 			puts $out_fd "\t$var = new JList();"
-                        puts $out_fd "\t$var.setModel(new DefaultListModel());"
 			puts $out_fd "\t$var.setVisibleRowCount($rows);"
 			if {$multi == "true"} {
 				set multi "true"
@@ -749,14 +738,13 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 		} else {
 			puts $out_fd "\t${uname}setLayout(${vname}grid);"
 		}
-                if {$P(frame_bg) !="#e9e9e9"} {
-                    puts $out_fd "\t//Set the Background Color"
-                    if {${uname}=="this."} {
-                            puts $out_fd "\t${uname}getContentPane().setBackground([jcolor $P(frame_bg)]);"
-                    } else {
+		
+		puts $out_fd "\t//Set the Background Color"
+		if {${uname}=="this."} {
+			puts $out_fd "\t${uname}getContentPane().setBackground([jcolor $P(frame_bg)]);"		
+		} else {
 			puts $out_fd "\t${uname}setBackground([jcolor $P(frame_bg)]);"
-                    }
-                }
+		} 
 		
 	}
 	
@@ -790,19 +778,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			}
 			puts $out_fd "\t\t\t}"
 			puts $out_fd "\t\t}"
-			puts $out_fd "\t);"	
-                        
-                                #proc jfont {value} {
-                                #set font [split $value ,]
-                                #set family [lindex $font) 0]
-                                #set size [lindex $font 1]
-                                #set style "Font.PLAIN "
-                                #foreach i [lrange $font 2 end] {
-                                #        append style "+ Font.[string toupper $i] "
-                                #}
-                                #return "new Font(\"$family\",$style, $size)"
-                                #}
-                                        	
+			puts $out_fd "\t);"		
 		} elseif {$data(other,type)=="checkbutton" || $data(other,type)=="radiobutton"} {
 			puts $out_fd "\t$data(other,item_name).addItemListener("
 			puts $out_fd "\t\tnew ItemListener() {"
@@ -811,20 +787,11 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 			puts $out_fd "\t\t\t\tif (e.getStateChange() == ItemEvent.SELECTED )"
 			puts $out_fd "\t\t\t\t{"
 			if {[info exists data(other,action)]} {
-                                set events [split $data(other,action) ,]
-                                
-				if {[lindex $events 0] != ""} {
-					puts $out_fd "\t\t\t\t\t[lindex $events 0]"
+				if {$data(other,action) != ""} {
+					puts $out_fd "\t\t\t\t\t$data(other,action)"
 				}
 			}
-                        puts $out_fd "\t\t\t\t}"
-                        if {[lindex $events 1] != ""} {
-                            puts $out_fd "\t\t\t\telse"
-                            puts $out_fd "\t\t\t\t{"
-                            puts $out_fd "\t\t\t\t\t[lindex $events 1]"
-                            puts $out_fd "\t\t\t\t}"
-                            
-                        }
+			puts $out_fd "\t\t\t\t}"
 			puts $out_fd "\t\t\t}"
 			puts $out_fd "\t\t}"
 			puts $out_fd "\t);"
@@ -921,7 +888,7 @@ proc compile_jui {file {out ""} {prefix ""} {run ""}} {
 	# Put out final boilerplate to end the "init" function
 	# and the class:
 
-	puts $out_fd [format $Boiler $prefix $P(frame_name)]
+	puts $out_fd [format $Boiler $prefix]
 	puts $out_fd \}
 
 	# Close any opened file.
@@ -1159,14 +1126,6 @@ proc do_help {var value} {
 	    return {}
 	} else {
 	    return $var.setToolTipText("$value")\;
-	}
-}
-
-proc do_tags {var value} {
-	if {$value == ""} {
-	    return {}
-	} else {
-	    return $var.setMnemonic('$value')\;
 	}
 }
 

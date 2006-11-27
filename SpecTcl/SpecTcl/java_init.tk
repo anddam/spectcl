@@ -8,7 +8,6 @@
 
 # puts stderr "Starting java support"
 Source java_setup.tk	;# Java code generator
-Source save.tk		;# Create Java Code
 
 # make sure the java binary is in the user's path, and find a pointer 
 # to the java documentation:   Set "doc_dir" as needed for non-standard installations
@@ -24,7 +23,6 @@ proc sync_run {win} {
     .run config -command {                  
        .stop config -state normal
        .stop config -image stop.gif
-       compile_project
        test_java $Current(project) 
     }                             
 }
@@ -39,7 +37,6 @@ proc sync_run {win} {
 add_menuitem "Build and Test" "Build and Test Java" {
    .stop config -state normal
    .stop config -image stop.gif
-   compile_project
    test_java $Current(project)
 }
 

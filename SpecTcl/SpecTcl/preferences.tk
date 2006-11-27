@@ -465,6 +465,7 @@ proc pref_lang_choice {root isstartup} {
 	-text "HTML (Experimental)"
     radiobutton $w.perl  -variable specCommon(lang) -value perl \
 	-text "Perl (Experimental)"
+    radiobutton $w.python  -variable specCommon(lang) -value python -text "Python (Experimental)"
 
     frame $w.f -height 2 -bd 1 -relief sunken 
 
@@ -481,6 +482,7 @@ proc pref_lang_choice {root isstartup} {
     pack $w.jdk11 -side top -anchor w -padx 22 -pady 0
     pack $w.html  -side top -anchor w -padx 22 -pady 0
     pack $w.perl  -side top -anchor w -padx 22 -pady 0
+    pack $w.python -side top -anchor w -padx 22 -pady 0
     pack $w.f -side top -fill x -pady 3 -padx 2
     pack $w.dont  -side top -anchor w -padx 4 -pady 4
 
@@ -625,6 +627,7 @@ proc init_target_lang {} {
 	    # than Tcl.
 	    del_menuitem "Build and Test"
 	    del_menuitem "Stop Test"
+            if {$specCommon(lang) != "python"} {del_menuitem "Attach Scrollbars"}
 	    del_menuitem "Attach Scrollbars"
 
 	    bind all <Control-t> ";"
