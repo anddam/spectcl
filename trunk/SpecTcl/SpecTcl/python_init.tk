@@ -1,0 +1,490 @@
+# SpecTcl, by S. A. Uhler and Ken Corey
+# Copyright (c) 1994-1996 Sun Microsystems, Inc.
+#
+# See the file "license.txt" for information on usage and redistribution
+# of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+# experimental version for generating java code
+
+# compile a jui into a java program
+#  file:  the unix file containing the ui description
+#  out:	  The file to write the tk program to (defaults to stdout)
+#  prefix: The procedure prefix
+#  run:	  Invoke the generated procedure (not used)
+
+
+# Special case for scrollbar configurations: the commands are different
+
+proc scroll_associate {scroll widget orient} {
+	#puts "My scroll associate: $scroll $widget by $orient"
+	upvar #0 $scroll sc
+	upvar #0 $widget w
+	if {$orient == "column"} {
+		set sc(command) "self._widgets\['$w(item_name)'].xview"
+		set w(xscrollcommand) "self._widgets\['$sc(item_name)'].set"
+	} else {
+		set sc(command) "self._widgets\['$w(item_name)'].yview"
+		set w(yscrollcommand) "self._widgets\['$sc(item_name)'].set"
+	}
+}
+
+## Real stuff
+set P(target_suffix) "py"		;# tcl generated code file suffix
+
+array set Pythonmap {
+	label	Label
+	entry	Entry
+	text	Text
+	button	Button
+	scrollbar Scrollbar
+	frame	Frame
+	checkbutton	Checkbutton
+	radiobutton	Radiobutton
+	menubutton  Menubutton
+	listbox Listbox
+	canvas Canvas
+}
+
+set stringOptions {text font bitmap relief justify orient value background foreground highlightcolor highlightbackground state anchor wrap}
+set literalOptions {command padx pady borderwidth width height textvariable variable highlightthickness wadx wady}
+set geomOptions {row column rowspan columnspan padx pady wadx wady}
+	
+proc compile_ui {file {out ""} {prefix ""} {run ""}} {
+	global Widget_data Format Masters Version Pythonmap stringOptions literalOptions geomOptions P
+	global CB_Groups
+	catch "unset CB_Groups"
+	set Id "WidGet file"
+	catch "unset Masters"
+	array set map {row height column width}
+	set widget_names ""
+
+	if {![file readable $file]} {
+		set msg "$file does not exist, can't compile it."
+		tk_dialog .open "Compile error" $msg "error" 0 OK
+		return 1
+	}
+	set fd [open "$file" r]
+
+	set line ""
+	gets $fd line
+	if {[string first $Id $line] != 0} {
+		set msg "$file is not a UI file"
+		tk_dialog .open "Open Error" $msg "error" 0 OK
+		close $fd
+		return 1
+	}
+
+	## Pre-read of user-customized code (if any)
+        set custCode ""
+        set definedMethods {}
+	if {[file readable $out]} {
+            set preRead [open "$out" r]
+            set inCustCode 0
+            while {![eof $preRead]} {
+                set line [gets $preRead]
+                ## If in custom code
+                if {$inCustCode} {
+                    ## Is it the end marker?
+                    if {$line == "#~CUST_END (marker; do not delete or edit!)"} {
+                        ## If it is, stop reading
+                        set inCustCode 0
+                    ## Otherwise
+                    } else {
+                        ## Add line to custom code
+                        append custCode "$line\n"
+                        ## Is it a method definition ?
+                        if {[regexp "^  def\[ \t]*" $line]} {
+                            ## Get method name
+                            set methName [lindex $line 1]
+                            set i [string first "(" $methName]
+                            if {$i != -1} {set methName [string range $methName 0 [expr $i - 1]]}
+                            ## Add method name to list of methods
+                            lappend definedMethods $methName
+                        }
+                    }
+                ## If not in custom code
+                } else {
+                    ## If it's the begin marker, start reading
+                    if {$line == "#~CUST_BEGIN (marker; do not delete or edit!)"} { set inCustCode 1 }
+                }
+            }
+            close $preRead
+	}
+	#puts $definedMethods
+	#puts $custCode
+	
+	## Open file for writing
+	set out_fd [Pyopen_out $out]
+	if {$out_fd == ""} {
+	    return 1
+	}
+
+	# Gather up all of the data for each widget.
+	# Put it in the arrays __X_$name, generally used
+	# under the alias "data"
+
+	while {1} {
+		gets $fd line
+		if {[eof $fd]} break
+
+		# gather entire line
+
+		while {![info complete $line]} {
+			append line "\n[gets $fd]"
+			# puts stderr gulp
+			}
+		if {[string first Widget $line] == 0} {
+			set name [lindex $line 1]
+			lappend names $name
+			upvar #0 __X_$name data
+			# Set default attributes
+			set data(geometry,fill) none
+			set data(geometry,anchor) c
+		    set data(geometry,sticky) c
+		} else {
+			set index -1
+			foreach i {type option value} {
+				set $i [lindex $line [incr index]]
+			}
+
+			if {$option == "master"} {
+				set Masters([string trimleft [expr {$value=="" ? "f" : $value}] .]) 1
+			}
+			set data($type,$option) $value
+		}
+	}
+	close $fd
+
+	########################################################
+	# end of pass 1
+
+	# Prefix is the name of the project (and Applet class)
+	if {$prefix == ""} {
+		set prefix [file root [file tail $file]]
+	}
+
+	# Sort names:
+	set names [lsort -command "frames_n_canvases_first" $names]
+		
+
+	############################################################
+	# Output the info as Python code:
+	#
+	# $names is a list of all the internal names of the widgets
+	# "f" is the top-level container.
+	#
+	# $data($type, $option) = $value for each specified
+	# attribute of each element of the form, where "data"
+	# is upleveled (one array for each widget)
+	############################################################
+
+	# Initial boilerplate and class declaration:
+	puts $out_fd "#!/usr/bin/env python\n\n"
+	puts $out_fd "## SpecTcl generated class $prefix, version $P(Version)\n"
+	puts $out_fd "## vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ##"
+	puts $out_fd "## vvvv THE FOLLOWING IS AUTO-GENERATED CODE; DO NOT MODIFY UNTIL FURTHER NOTICE! vvvv ##"
+	puts $out_fd "## vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ##\n"
+	puts $out_fd "from Tkinter import *\n"
+	puts $out_fd "class $prefix\(Frame):"
+	puts $out_fd "  def __init__(self, *args, **params):"
+	puts $out_fd "    ## Standard heading: initialization"
+	puts $out_fd "    apply(Frame.__init__, (self,) + args, params)"
+	puts $out_fd "    self._parent = None"
+	puts $out_fd "    if len\(args) != 0: self._parent = args\[0]"
+	puts $out_fd "    self._init_before()"
+	puts $out_fd "    ## Widget creation"
+	puts $out_fd "    self._widgets = {}"
+	
+	## Lists for additional methods / variables / menus / scroll-commands
+	set addlMethods { _init_specificBefore _init_specificAfter }
+	set varList {}
+	array set menuList {}
+	set scrollCommands ""
+
+	# Declare an instance variable for each widget:
+	foreach name $names {
+		upvar #0 __X_$name data
+		if {$name == "f" } continue
+
+		set var $data(other,item_name)
+		set type $data(other,type)
+		set wclass $Pythonmap($type)
+		set wmaster "self"
+		set woptions ""
+		
+		# Set all specified "configure" options:
+		set options [lsort [array names data configure,*]]
+		append options  " " [lsort [array names data other,*]]
+		set font ""
+		foreach option $options {
+			regsub configure, $option {} param
+			regsub other, $param {} param
+			set value $data($option)
+			#puts $out_fd "    ###($option) $type.$param ($value)"
+			## Specific option processing: master
+			if {$param == "master"} {
+			  if {$value != ""} {
+			    set master_name [string trimleft $value .]
+			    set wmaster "self._widgets\['$master_name']"
+			  }
+			} elseif {$value != ""} {
+                          ## Specific option processing: font
+			  if {$param == "font"} {
+                              $Widget_data(outfilter:font) dummy font value
+                              set woptions "$woptions, font='$value'"
+                          ## Specific option processing: command
+                          } elseif {$param == "command"} {
+                              set woptions "$woptions, command=$value"
+                              ## If the command is a method call, remember method
+                              if {[string match "self.*" $value]} {
+                                  set remainder [string range $value 5 end]
+                                  if {[regexp "^\[0-9a-zA-Z_]*\$" $remainder]} {
+                                      ## If already in list, no need to insert it again
+                                      if {[lsearch -exact $addlMethods $remainder] == -1} {
+                                          set addlMethods [concat $addlMethods $remainder]
+                                      }
+                                  }
+                              }
+                          ## Specific option processing: variable or textvariable
+                          } elseif {$param == "variable" || $param == "textvariable" } {
+                              set woptions "$woptions, $param=$value"
+                              ## If the variable is an attribute, remember it
+                              if {[string match "self.*" $value]} {
+                                  set remainder [string range $value 5 end]
+                                  if {[regexp "^\[0-9a-zA-Z_]*\$" $remainder]} {
+                                      ## If variable already in list, do not insert
+                                      if {[lsearch -exact $varList $remainder] == -1} {
+                                          set varList [concat $varList $remainder]
+                                      }
+                                  }
+                              }
+                          ## Specific option processing: menu
+                          } elseif {$param == "menu"} {
+                              ## If the menu is an attribute, remember it
+                              if {[string match "self.*" $value]} {
+                                  set remainder [string range $value 5 end]
+                                  if {[regexp "^\[0-9a-zA-Z_]*\$" $remainder]} {
+                                      array set menuList [list $remainder $var]
+                                  }
+                              }
+                          ## Specific option processing: scrollcommands
+                          } elseif {$param == "xscrollcommand" || $param == "yscrollcommand"} {
+                              ## Build scrollcommand setting & remember it
+                              append scrollCommands "    self._widgets\['$var']\['$param'] = $value\n"
+                          ## Generic option processing
+                          } elseif {[lsearch -exact $stringOptions $param] != -1} {
+                              set woptions "$woptions, $param='$value'"
+			  } elseif {[lsearch -exact $literalOptions $param] != -1} {
+                              set woptions "$woptions, $param=$value"
+			  }
+			}
+		}
+		
+		# Set all specified geometry options:
+		set goptions ""
+		set gsep ""
+		set options [lsort [array names data geometry,*]]
+		foreach option $options {
+			regsub geometry, $option {} param
+			set value $data($option)
+			#puts $out_fd "###($option) $type.$param ($value)"
+			if {[lsearch -exact $geomOptions $param] != -1} {
+			    set goptions "$goptions$gsep$param=$value"
+			    set gsep ", "
+			} elseif {$param == "sticky" && $value != "c"} {
+			    set goptions "$goptions$gsep$param='$value'"
+			    set gsep ", "
+			}
+		}
+
+		puts $out_fd "    self._widgets\['$var'] = $wclass\($wmaster, name='$var'$woptions)"
+		puts $out_fd "    self._widgets\['$var'].grid\($goptions)"
+	}
+	
+        ## All widgets are defined: insert scroll commands
+        puts $out_fd "    ## Scroll commands"
+        puts $out_fd $scrollCommands
+        
+        # now for the resize behavior, this is only run for geometry masters
+        puts $out_fd "    ## Resize behavior(s)"
+        foreach name [array names Masters] {
+            upvar #0 __X_$name data
+            # puts "Processing master $name"
+            if {$data(other,item_name) == "f"} {
+                set master "self"
+            } else {
+                set master "self._widgets\['$data(other,item_name)']"
+            }
+            # puts "widget:$name master:$master"
+            # parray data
+            foreach dim {row column} {
+                set list [get_resize  $data(other,resize_$dim)]
+                if {[llength $list] > 0} {
+                    set index 0
+                    foreach w $list size $data(other,min_$dim) {
+                        puts $out_fd "    ${master}.grid_${dim}configure([incr index], weight=${w}, minsize=${size})"
+                    }
+                }
+            }	
+        }
+        ## End of __init__ method
+        puts $out_fd "    ## Call to post-init method"
+        puts $out_fd "    self._init_after()\n\n"
+        
+        ## Additional methods definitions
+        puts $out_fd "## vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ##"
+        puts $out_fd "## vvvv BEGINNING OF CODE WORTH READING; THIS IS STILL AUTO-GENERATED CODE - DO NOT MODIFY YET! vvvv ##"
+        puts $out_fd "## vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ##\n"
+        # Before init: initialize the variables
+        puts $out_fd "  ## METHOD _init_before:"
+        puts $out_fd "  ## ~~~~~~"
+        puts $out_fd "  def _init_before(self):"
+        puts $out_fd "    ## The following are the variables used in the interface"
+        puts $out_fd "    ## Feel free to copy/move them to your _init_specificBefore method if they must be defined otherwise"
+        set isVar 0
+        foreach var $varList {
+            set isVar 1
+            puts $out_fd "    self.$var = StringVar()"
+        }
+        puts $out_fd "    ## (End of variables)"
+        puts $out_fd "    self._init_specificBefore()\n"
+        # After init
+        puts $out_fd "  ## METHOD _init_after:"
+        puts $out_fd "  ## ~~~~~~"
+        puts $out_fd "  def _init_after(self):"
+        puts $out_fd "    ## The following are the menus used in the interface"
+        puts $out_fd "    ## Feel free to copy/move them to your _init_specificAfter method if they must be defined otherwise"
+        foreach menu [array names menuList] {
+            puts $out_fd "    self.$menu = Menu\(self._widgets\['$menuList($menu)'])"
+            puts $out_fd "    self._widgets\['$menuList($menu)'].configure\(menu=self.$menu)"
+        }
+        puts $out_fd "    ## (End of menus)"
+        puts $out_fd "    self._init_specificAfter()\n\n"
+        # Button command methods
+        puts $out_fd "## vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ##"
+        puts $out_fd "## vvvv BEGINNING OF USER-CUSTOMIZABLE CODE vvvv ##"
+        puts $out_fd "## vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ##"
+        puts $out_fd "#~CUST_BEGIN (marker; do not delete or edit!)"
+        ## Insert already written custom code
+        puts -nonewline $out_fd $custCode
+        ## Browse needed methods
+        foreach meth $addlMethods {
+            ## If method unknown and not already written
+            if {$meth != "quit" && $meth != "destroy" && [lsearch -exact $definedMethods $meth] == -1} {
+                ## Write method
+                puts $out_fd "  ## METHOD $meth:"
+                puts $out_fd "  ## ~~~~~~"
+                puts $out_fd "  def $meth\(self):"
+                puts $out_fd "    pass\n\n"
+            }
+        }
+        
+	# Trailer
+        puts $out_fd "#~CUST_END (marker; do not delete or edit!)"
+	puts $out_fd "## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ##"
+	puts $out_fd "## ^^^^ END OF CUSTOMIZABLE CODE; DO NOT MODIFY BELOW... ^^^^ ##"
+	puts $out_fd "## ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ##\n"
+	puts $out_fd "\nif __name__ == '__main__':"
+	puts $out_fd "  root = Tk()"
+	puts $out_fd "  o = $prefix\(root)"
+	puts $out_fd "  o.pack(side=TOP, fill=BOTH, expand=1)"
+	puts $out_fd "  root.mainloop()"
+
+	# Close any opened file.
+	if {$out_fd != "stdout"} {
+		close $out_fd
+	}
+
+
+	############################################################
+	# Write <project_name>Data.java
+	############################################################
+
+	# Cleanup global data!!
+	foreach i [info globals __X_*] {
+		global $i
+		unset $i
+	}
+}
+
+# Sort the widgets to generate the proper stacking order
+# * Create all the frames and canvases first.  Make sure all outer frames are 
+#   created before the inner ones
+# * Create all widgets in the specified tabbing order.  If the tab order is the
+#   same, then use row/col order based on the coordinates of the containing
+#   table cell
+
+# This version depends upon the running state of SpecTcl, and needs to be
+# re-written to permit the compiler to be invoked as a separate app
+
+proc frames_n_canvases_first {name1 name2} {
+	upvar #0 __X_$name1 data1 __X_$name2 data2
+	dputs "compare $name1 $name2"
+
+	# both frames
+	if {$data1(other,type) == "frame" && $data2(other,type) == "frame"} {
+            if {$data2(other,level) == ""} {
+		set data2(other,level) 0
+            }
+	    return [expr $data1(other,level) - $data2(other,level)]
+	}
+
+	# 1 frame, 1 widget
+	if {$data1(other,type) == "frame"} {
+		return -1
+	} elseif {$data2(other,type) == "frame"} {
+		return 1
+	}
+	
+	# 1 canvas / 1 other widget
+	if {$data1(other,type) == "canvas" && $data2(other,type) != "canvas"} {
+		return -1
+	} elseif {$data1(other,type) != "canvas" && $data2(other,type) == "canvas"} {
+		return 1
+	}
+	# At this point, either two canvases or two other widgets	
+
+	# sort by explicit tabbing order field
+	if {[set result [string compare $data1(other,tabbing) $data2(other,tabbing)]] != 0} {
+		dputs "  order $result"
+		return $result
+	}
+
+	# compute order based on cell coords
+
+	set c1 [list $data1(geometry,row) $data1(geometry,column)]
+	set c2 [list $data2(geometry,row) $data2(geometry,column)]
+
+	foreach index {0 1} {
+		set diff [expr [lindex $c1 $index] - [lindex $c2 $index]]
+		dputs "  diff ($index) -> $diff"
+		if {$diff != 0} {return $diff}
+	}
+	dputs "   equal??"
+	return 0
+}
+
+# figure out the resize behavior
+
+proc get_resize {list} {
+	set index 0
+	set result ""
+	foreach i $list {
+		if {$i > 1} {
+			lappend result 1
+		} else {
+			lappend result 0
+		}
+	}
+	return $result
+}
+
+proc Pyopen_out {out} {
+	if {$out == ""} {
+	    return stdout
+	} elseif {[catch {open "$out" w} out_fd]} {
+	    tk_dialog .save "save error" $out_fd error 0 OK
+	    return ""
+	} else {
+	    return $out_fd
+	}
+}	
