@@ -25,7 +25,6 @@ bind fast <Return> {}
 
 lappend P(other_items) action		;# This is added to every widget
 lappend P(other_items) subclass	;# This is added to every widget
-lappend P(other_items) componant_type	;# This is added to every widget
 
 set P(file_suffix)     "jui"		;# user interface java file suffix
 set P(target_suffix)   "java"		;# generated code file suffix
@@ -35,7 +34,6 @@ set P(include_suffix)  "include.java"	;# source'd code file suffix
 #catch {destroy .relief .borderwidth}
 
 # add help for java widgets
-
 
 array set Field_help {
     .palette.f.button "Drag onto canvas to create a button"
@@ -147,10 +145,10 @@ proc test_java {name} {
 	    switch [tk_dialog .sure "Testing $Current(project)"  $msg "questhead" \
 			0 "Cancel test" "Save $Current(project) first"] {
 			    0 {return 0}
-			    1 {save_project  [file join $P(project_dir) $Current(project).$P(file_suffix)]}
+			    1 {save_project  [file join $P(project_dir) $Current(project).$P(file_suffix)] 1}
 			}
 	} else {
-	    save_project [file join $P(project_dir) $Current(project).$P(file_suffix)]
+	    save_project [file join $P(project_dir) $Current(project).$P(file_suffix)] 1
 	}
     }
 
@@ -194,7 +192,6 @@ proc test_java {name} {
     if {[info exists env(CLASSPATH)]} {
 	if {![regexp "$P(project_dir)" $env(CLASSPATH)]} {
 	    set env(CLASSPATH) "$env(CLASSPATH):$P(project_dir)"
-	    
 	}
     } else {
 	set env(CLASSPATH) "$P(project_dir)"
@@ -220,11 +217,11 @@ array set Javahelp {
 
 array set Jdefault {
 	package		"" 
-	extends 	JApplet
+	extends 	JFrame
 	imports		""
 	implements	ActionListener
 	arg		Object
-	init		super.init();
+	init		init();
 }
 
 # set/extract the preferences.

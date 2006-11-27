@@ -779,8 +779,8 @@ proc sync_all {{win {}}} {
     }
 
     if [info exists spec(noexecute)] {
-	.run config -image run_u.gif -state disabled
-	.stop config -image stop_u.gif -state disabled
+	.run config -image run_u.gif -state normal
+	.stop config -image stop_u.gif -state normal
     }
 }
 

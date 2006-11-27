@@ -18,8 +18,8 @@
 #	Extract configuration options and their default values for a
 #	given widget type.
 #
-# {,i}pad[xy] and friends are problematic because both widgets and the
-# grid command use the same name.
+# {,i}pad[xy] and friends are problematic because both widgets and blt_table
+# use the same name.
 
 proc widget_extract {widget {array ""}} {
     global P
@@ -31,12 +31,12 @@ proc widget_extract {widget {array ""}} {
     upvar #0 $array data
 
     # extract widget attributes
-    # don't extract command|variable options if they already exist
+    # don't extract command options if they already exist
 
     foreach option [$widget configure] {
 	if {[llength $option] == 5} {
 	    set item [string trimleft [lindex $option 0] -]
-	    if {(![regexp (command|variable) $item] || ![info exists data($item)])
+	    if {(![string match *command* $item] || ![info exists data($item)])
 	        && (![string match type $item])
 	        && (![string match class $item] || ![info exists data($item)])} {
 		set data($item) [lindex $option 4]
@@ -72,7 +72,7 @@ proc widget_extract {widget {array ""}} {
 	}
     }
 
-    # extract geometry attributes (assume grid for now)
+    # extract geometry attributes (assume blt_table for now)
     # need to handle row, col separately
     if {[winfo manager $widget] == "grid"} {
 	regsub -all { -([^ ]+)} [grid info $widget] { \1} options
@@ -119,7 +119,7 @@ proc widget_update {widget} {
     set fillanchorkludge {}
     foreach i [array names data] {
 	if {[info exists Widget_data(default:$class,$i)]} {
-	    if {![regexp (command|variable) $i]} {
+	    if {![string match *command* $i]} {
 		if {$i == "font"} {
 		    set font $data($i)
 		} elseif {$i == "colormap"} {
@@ -130,7 +130,7 @@ proc widget_update {widget} {
 		    append config " -$i [list $data($i)]"
 		}
 	    }
-	} elseif {[info exists Widget_data(default:GRID,$i)]} {
+	} elseif {[info exists Widget_data(default:table,$i)]} {
 	    append geom " -$i [list $data($i)]"
 	} elseif {$i == "anchor"  || $i == "fill"} {
 	    catch {
@@ -178,7 +178,7 @@ proc widget_configure {array {root .can.f} {manage 1}} {
     set fillanchorkludge {}
     foreach i [array names data] {
 	if {[info exists Widget_data(default:$class,$i)]} {
-	    if {![regexp (command|variable) $i]} {
+	    if {![string match *command* $i]} {
 		if {$i == "font"} {
 		    set font $data($i)
 		} elseif {$i == "colormap"} {
@@ -189,18 +189,13 @@ proc widget_configure {array {root .can.f} {manage 1}} {
 		    append config " -$i [list $data($i)]"
 		}
 	    }
-	} elseif {[info exists Widget_data(default:GRID,$i)]} {
+	} elseif {[info exists Widget_data(default:table,$i)]} {
 	    append geom " -$i [list $data($i)]"
 	} elseif {$i == "anchor"  || $i == "fill"} {
 	    catch {
 		append fillanchorkludge $fillarray($data($i))
 	    }
 	}
-    }
-    if {"$class" == "checkbutton"} {
-       # This is because Tk by default uses the widget name as the
-       # variable which will clash with the global array by that name
-       append config " -variable checkbuttondummy "
     }
     if {$fillanchorkludge != {}} {
 	append geom " -sticky $fillanchorkludge"
@@ -287,13 +282,13 @@ proc validate_field {name item value} {
 	}
     }
     set cmd ""
-    if {[regexp (command|variable) $item]} {
-	dputs skipping $item - its a command|variable
+    if {[string match *command* $item]} {
+	dputs skipping $item - its a command
     } elseif {[string match $item "class"]} {
 	set cmd "set data($item) $value"
     } elseif {[info exists Widget_data(default:$class,$item)]} {
 	set cmd "$widget configure -$item \"[sub_bs $value 1]\""
-    } elseif {[info exists Widget_data(default:GRID,$item)]} {
+    } elseif {[info exists Widget_data(default:table,$item)]} {
 	set cmd [list grid configure $widget -$item $value]
 	regsub -all {(-i?)wad([xy])} $cmd {\1pad\2} cmd	;# padding botch
 	regsub -all align $cmd anchor cmd	;# padding botch
