@@ -1,0 +1,11 @@
+2006-11-29  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* src/images/{splash.gif,splash_BETA.gif}: update splash images to
+	note open sourcing of guib.
+
+	* src/startup.tcl: get build number from svn
+
+	* README.txt: note plan to add Komodo extension bits
+
+	**** Original import of open sourced ActiveState GUI Builder ****
+	**** source code into svn                                    ****
