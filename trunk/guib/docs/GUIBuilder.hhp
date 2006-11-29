@@ -1,0 +1,27 @@
+[OPTIONS]
+Compatibility=1.1 or later
+Compiled file=GUIBuilder.chm
+Contents file=GUIBuilderTOC.hhc
+Default topic=Overview.html
+Display compile progress=No
+Full-text search=Yes
+Language=0x409 English (United States)
+Title=GUI Builder User Guide
+
+
+[FILES]
+Overview.html
+Tk_button.html
+Tk_canvas.html
+Tk_checkbutton.html
+Tk_entry.html
+Tk_frame.html
+Tk_label.html
+Tk_listbox.html
+Tk_radiobutton.html
+Tk_scale.html
+Tk_scrollbar.html
+Tk_text.html
+
+[INFOTYPES]
+
