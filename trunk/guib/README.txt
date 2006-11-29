@@ -31,3 +31,8 @@ suffice to run it.  It can be run simply with:
 In the tools/ subdirectory there is a buildkit.tcl script that will
 assemble a single-file executable for deployment to machines without Tcl
 installed.
+
+Planned work (TODO):
+
+ * Create an extension to ActiveState's Komodo 4 IDE to allow Komodo users
+   to reintroduce GUI Builder integration.
