@@ -56,11 +56,11 @@ namespace eval ::gui {
     # We have deprecated use of VERSION in favor of just the build number
     # while it was a Komodo component.
     variable VERSION	3.0		;# version of app
-    # This is what we display/expose to users, Change gets set by rcs 
-    variable BUILD	"Build [regexp -inline {\d+} {$Change: 272261 $}]"
+    # This is what we display/expose to users, Rev gets set by svn
+    variable BUILD	"Build [regexp -inline {\d+} {$Rev$}]"
     variable FULLVER	$VERSION.$BUILD
 
-    variable COMPANY	"ActiveState"
+    variable COMPANY	"GUIB"
 
     # "Magic cookie" for ui files, an RE to match the first line
     variable FILEID	"# GUIBUILDER FILE"
