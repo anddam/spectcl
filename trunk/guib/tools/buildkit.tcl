@@ -47,6 +47,11 @@ set dir     [pwd]
 set modules  ""
 set excludes ""
 set wish     [auto_execok wish]
+
+# This is the module list as needed from ActiveTcl 8.4.14
+set modules [list tklib0.?/widget itcl3.? itk3.? iwidgets4.* \
+		 tcllib1.?/snit tile0.* bwidget1.? tclx8.?]
+
 foreach {key val} $argv {
     switch -glob -- $key {
 	"-min*" {
