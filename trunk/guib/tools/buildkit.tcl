@@ -17,12 +17,13 @@ exec tclsh "$0" ${1+"$@"}
 set ver [package require ActiveTcl 8.4.11]
 package require vfs
 
-set noedir  [file dirname [info nameofexecutable]]
 if {[file exists /Library/Tcl]} {
     # special case for OS X
     set libdir /Library/Tcl
+    set noedir /Library/Tcl/basekits
 } else {
     set libdir [file dirname $tcl_library]
+    set noedir [file dirname [info nameofexecutable]]
 }
 set toollib [file dirname [info script]]
 set srcdir  [file dirname $toollib]/src
