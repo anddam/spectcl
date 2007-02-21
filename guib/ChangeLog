@@ -1,5 +1,8 @@
 2007-02-19  Jeff Hobbs  <jeffh@ActiveState.com>
 
+	* src/compile_ruby.tcl:              support BWidget/Iwidgets for
+	* src/wbuilder.tcl (::widget::init): Ruby/Tk (Hidetoshi Nagai)
+
 	* tools/buildkit.tcl: correct OS X basekit location
 
 2006-11-29  Jeff Hobbs  <jeffh@ActiveState.com>
