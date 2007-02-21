@@ -186,9 +186,17 @@ proc ::compile::ruby::require {type w args} {
     set req [::widget::get $type requires]
     if {$req eq "Tk"} {
 	# ruby uses a lower-case tk
-	set REQS(tk) ""
+	set REQS($req) "tk"
+    } elseif {$req eq "icons"} {
+	set REQS($req) "tkextlib/ICONS"
+    } elseif {$req eq "Img"} {
+	set REQS($req) "tkextlib/tkimg"
+    } elseif {$req eq "tkdnd"} {
+	set REQS($req) "tkextlib/tkDND"
+    } elseif {$req eq "Tkhtml"} {
+	set REQS($req) "tkextlib/tkHTML"
     } else {
-	set REQS($req) ""
+	set REQS($req) "tkextlib/[string tolower $req]"
     }
 }
 
@@ -211,8 +219,9 @@ proc ::compile::ruby::targetHeader {file uifile prefix args} {
 	"# Use UTF-8 encoding\n" \
 	"\$KCODE = 'U'\n\n"
 
+    append script "require 'tk'\n"
     foreach grp [array names REQS] {
-	append script "require '$grp'\n"
+	if {$grp ne "Tk"} { append script "require '$REQS($grp)'\n" }
     }
     append script "\n"
 

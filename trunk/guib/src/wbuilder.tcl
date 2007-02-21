@@ -734,7 +734,14 @@ proc ::widget::get {cmd what args} {
 		    return ${ns}__[lindex $node 1]
 		}
 	    } elseif {$::gui::LANG(CUR) eq "ruby"} {
-		return "Tk[string toupper [lindex $node 1] 0 0]"
+		set grp [lindex $node 0]
+		if {$grp eq "Tk" || $grp eq "Menu"} {
+		    return "Tk[string toupper [lindex $node 1] 0 0]"
+		} elseif {$grp eq "BWidget" || $grp eq "Iwidgets"} {
+		    return "Tk::${grp}::[string toupper [lindex $node 1] 0 0]"
+		} else {
+		    return "Tk::${grp}::[string toupper [lindex $node 1] 0 0]"
+		}
 	    } elseif {$::gui::LANG(CUR) eq "tkinter"} {
 		set group [lindex $node 0]
 		if {[lindex $node 1] eq "labelframe"} {
@@ -1376,12 +1383,12 @@ proc ::widget::init {args} {
 	# us to reuse the Tcl option set for Perl/Tkx
 	set opts [concat [::widget::inherit tcl $group $cmd ""] $xopts]
 	::widget::define $group $cmd -image $img -requires $group \
-	    -lang {tcl perltkx} -version 8.2 -options $opts
+	    -lang {tcl ruby perltkx} -version 8.2 -options $opts
     }
     #ButtonBox   button.gif
     #ScrollableFrame ScrolledWindow LabelFrame
 
-    ## BWidget
+    ## Iwidgets
     set group Iwidgets
     foreach {cmd img xopts} {
 	calendar		calendar.gif      {}
@@ -1425,7 +1432,8 @@ proc ::widget::init {args} {
 	set opts [concat [::widget::inherit tcl $group $cmd iwidgets] $xopts]
 	# Perl/Tkx can handle Tcl packages too
 	::widget::define $group $cmd -image $img -requires $group \
-	    -namespace iwidgets -lang {tcl perltkx} -version 8.2 -options $opts
+	    -namespace iwidgets -lang {tcl ruby perltkx} -version 8.2 \
+	    -options $opts
     }
     #buttonbox			button.gif
     #labeledframe		unknown.gif
