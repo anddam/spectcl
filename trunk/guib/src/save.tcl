@@ -394,8 +394,19 @@ proc load_project_string {lines master clean} {
 		eval [list ::widget::geometry $w] [array get geomDefs]
 	    }
 	    if {$first_widget eq ""} { set first_widget $w }
+	    set redo_subs {}
 	    foreach sub [::compile::CmdSplit $subs] {
 		# process the widget foo {... subcmds ...} data
+		set res [catch {
+		    load_project_string_widget $w $master $sub $clean
+		} err]
+		if {$res} {
+		    # Allow some items to be retried if they are order
+		    # dependent.  [Bug #1847667]
+		    lappend redo_subs $sub
+		}
+	    }
+	    foreach sub $redo_subs {
 		load_project_string_widget $w $master $sub $clean
 	    }
 	    lappend widgets $w
