@@ -1,3 +1,7 @@
+2008-10-30  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* src/startup.tcl (ttk): support 8.5 and newer ttk::style
+
 2007-02-19  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* src/compile_ruby.tcl:              support BWidget/Iwidgets for
