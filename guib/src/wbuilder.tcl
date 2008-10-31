@@ -149,6 +149,7 @@ proc ::widget::inherit {lang group cmd ns args} {
 	"Tk"       { set ver 8.0 }
 	"BWidget"  { set ver 8.2 }
 	"Iwidgets" { set ver 8.2 }
+	"Themed Tk" { set ver 8.4 }
 	default {
 	    return -code error "Cannot inherit from group '$group'"
 	}
@@ -203,7 +204,8 @@ proc ::widget::inherit {lang group cmd ns args} {
 	# Inheriting from regular widgets
 	# namespace can be ""
 	set cmd ${ns}::$cmd
-	$cmd $w
+	# Avoid creation in this sub-namespace
+	uplevel \#0 [list $cmd $w]
 	set fullopts [$w configure]
     }
     foreach optlist $fullopts {
@@ -1363,6 +1365,82 @@ proc ::widget::init {args} {
 	    {configure -undo -version 8.4}
 	}
 
+    # Initialize extra widget sets
+    ::widget::init_Ttk
+    ::widget::init_BWidget
+    ::widget::init_Iwidgets
+
+    #
+    # Source every file matching *_widgets.tcl in our source base.
+    #
+    set errors 0
+    foreach i [glob -nocomplain -directory $::gui::BASEDIR *_widgets.tcl] {
+	if {[catch {uplevel \#0 [list source $i]} err]} {
+	    # truncate long error messages
+	    set err [string replace $err 100 end ...]
+	    set code [tk_messageBox -title "Error Sourcing $i" \
+			  -type retrycancel -message \
+			  "Error sourcing widget definition file '$i':\n  $err\
+			\n\n$::gui::APPNAME can continue loading, but may\
+			not function correctly.\
+			\nSelect Retry to continue or Cancel to exit."]
+	    if {$code eq "cancel"} {
+		exit 1
+	    }
+	    incr errors
+	}
+    }
+
+    if {$errors == 0} {
+	# Only save the cache when no load errors occured
+	::widget::save_cache $cache
+    }
+
+    widget::init_userdata
+}
+
+proc ::widget::init_Ttk {args} {
+    # Check that Ttk (tile) got loaded
+    if {![package vsatisfies [package present Tk] 8.5]
+	&& [catch {package present tile}]} { return }
+
+    ## Themed Tk
+    set group "Themed Tk"
+    # frame
+    # labelframe
+    # sizegrip
+    foreach {cmd img xopts} {
+	button      button.gif      {}
+	checkbutton checkbutton.gif {{configure -variable -reflect 0}}
+	combobox    combobox.gif    {}
+	entry       entry.gif       {}
+	label       label.gif       {}
+	menubutton  menubutton.gif  {}
+	notebook    notebook.gif    {}
+	panedwindow panedwindow.gif {}
+	progressbar progressbar.gif {}
+	radiobutton radiobutton.gif {{configure -variable -reflect 0}}
+	scale       scale.gif       {}
+	scrollbar   scrollbar.gif   {}
+	treeview    tree.gif        {}
+    } {
+	# Perl/Tkx can handle Tcl packages
+	# We could pass -inherit [list $group $cmd], but this allows
+	# us to reuse the Tcl option set for Perl/Tkx
+	lappend xopts \
+	    {configure -class -reflect 0 -category ignore} \
+	    {configure -style -reflect 0 -category ignore}
+	set cmd ttk::$cmd
+	set opts [concat [::widget::inherit tcl $group $cmd ""] $xopts]
+	::widget::define $group $cmd -image $img -requires Tk \
+	    -lang {tcl ruby perltkx} -version 8.5 -options $opts
+    }
+}
+
+proc ::widget::init_BWidget {args} {
+    # Check that BWidget got loaded
+    if {[catch {package require BWidget}]} { return }
+
     ## BWidget
     set group BWidget
     foreach {cmd img xopts} {
@@ -1387,6 +1465,11 @@ proc ::widget::init {args} {
     }
     #ButtonBox   button.gif
     #ScrollableFrame ScrolledWindow LabelFrame
+}
+
+proc ::widget::init_Iwidgets {args} {
+    # Check that Iwidgets got loaded
+    if {[catch {package require Iwidgets}]} { return }
 
     ## Iwidgets
     set group Iwidgets
@@ -1439,34 +1522,6 @@ proc ::widget::init {args} {
     #labeledframe		unknown.gif
     #labeledwidget		unknown.gif
     #panedwindow		unknown.gif
-
-    #
-    # Source every file matching *_widgets.tcl in our source base.
-    #
-    set errors 0
-    foreach i [glob -nocomplain -directory $::gui::BASEDIR *_widgets.tcl] {
-	if {[catch {uplevel \#0 [list source $i]} err]} {
-	    # truncate long error messages
-	    set err [string replace $err 100 end ...]
-	    set code [tk_messageBox -title "Error Sourcing $i" \
-			  -type retrycancel -message \
-			  "Error sourcing widget definition file '$i':\n  $err\
-			\n\n$::gui::APPNAME can continue loading, but may\
-			not function correctly.\
-			\nSelect Retry to continue or Cancel to exit."]
-	    if {$code eq "cancel"} {
-		exit 1
-	    }
-	    incr errors
-	}
-    }
-
-    if {$errors == 0} {
-	# Only save the cache when no load errors occured
-	::widget::save_cache $cache
-    }
-
-    widget::init_userdata
 }
 
 proc ::widget::init_userdata {args} {

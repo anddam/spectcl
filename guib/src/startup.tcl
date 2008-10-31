@@ -17,7 +17,6 @@ exec wish "$0" ${1+"$@"}
 # BWidgets is for the extra megawidgets like tabnotebook and combobox.
 package require Tcl 8.4
 package require BWidget
-package require Iwidgets
 package require tile
 package require widget::dialog 1.2
 package require widget::scrolledwindow
