@@ -1,3 +1,12 @@
+2008-10-31  Jeff Hobbs  <jeffh@ActiveState.com>
+
+	* src/startup.tcl (ttk): initial support for Ttk in widget set
+	* src/wbuilder.tcl (::widget::init): factor extension widgets into
+	separate init_* functions.  There are still issues in handling the
+	namespace separators (ttk::*) in generated code and with some
+	options that behave differently with Ttk (like color and font
+	options that can return "").
+
 2008-10-30  Jeff Hobbs  <jeffh@ActiveState.com>
 
 	* src/startup.tcl (ttk): support 8.5 and newer ttk::style
