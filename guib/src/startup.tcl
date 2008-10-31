@@ -34,12 +34,12 @@ set ::BETA 0
 set ::TILE 1
 set ::AQUA [expr {[tk windowingsystem] eq "aqua"}]
 
-style default Slim.TButton -padding 1
-style default Slim.Toolbutton -padding 1
+ttk::style configure Slim.TButton -padding 1
+ttk::style configure Slim.Toolbutton -padding 1
 
-style map TEntry -fieldbackground {invalid \#FFFFE0} \
+ttk::style map TEntry -fieldbackground {invalid \#FFFFE0} \
     -foreground {invalid \#FF0000}
-style map TLabel -foreground {invalid \#FF0000}
+ttk::style map TLabel -foreground {invalid \#FF0000}
 
 if {$::AQUA} {
     set ::tk::mac::useThemedToplevel 1
@@ -78,17 +78,17 @@ namespace eval ::gui {
     # Supported languages - also update wbuilder.tcl:widget::get
     variable LANGS
     array set LANGS {
-	tcl     {Tcl/Tk         {8.4 8.3}}
+	tcl     {Tcl/Tk         {8.5 8.4 8.3}}
 	perl    {Perl/Tk        {8.4 8.0}}
-	perltkx {Perl/Tkx       {8.4}}
-	tkinter {Python/Tkinter {8.4 8.3}}
-	ruby    {Ruby/Tk        {8.4 8.3}}
+	perltkx {Perl/Tkx       {8.5 8.4}}
+	tkinter {Python/Tkinter {8.5 8.4 8.3}}
+	ruby    {Ruby/Tk        {8.5 8.4 8.3}}
     }
     # Current language info
     variable LANG
     set LANG(CUR)  tcl
     set LANG(NAME) Tcl/Tk
-    set LANG(VER)  8.4
+    set LANG(VER)  8.5
     set LANG(INIT) ""
     set LANG(INTERP) ""
 }
