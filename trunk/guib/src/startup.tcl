@@ -82,6 +82,7 @@ namespace eval ::gui {
 	perltkx {Perl/Tkx       {8.5 8.4}}
 	tkinter {Python/Tkinter {8.5 8.4 8.3}}
 	ruby    {Ruby/Tk        {8.5 8.4 8.3}}
+	r    {R/TclTk        {8.5 8.4 8.3}}
     }
     # Current language info
     variable LANG
@@ -660,6 +661,7 @@ proc ::main::load_sources {} {
 	compile_perl.tcl "perl code gen routines"
 	compile_perltkx.tcl "perl/tkx code gen routines"
 	compile_ruby.tcl "ruby code gen routines"
+	compile_r.tcl   "tcltk package for R routines"
 	ctext.tcl	"highlighting text widget"
 	droptree.tcl	"droptree extended bwidgets widget for properties"
 	edit_api.tcl	"A default external editor."
