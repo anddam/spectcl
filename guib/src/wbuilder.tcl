@@ -726,6 +726,9 @@ proc ::widget::get {cmd what args} {
 		} else {
 		    return ${ns}::[lindex $node 1]
 		}
+		#[LL]TODO: should be changed according the real values
+	    } elseif {$::gui::LANG(CUR) eq "r"} {
+		return [string toupper [lindex $node 1] 0 0]
 	    } elseif {$::gui::LANG(CUR) eq "perl"} {
 		return [string toupper [lindex $node 1] 0 0]
 	    } elseif {$::gui::LANG(CUR) eq "perltkx"} {
@@ -1433,7 +1436,7 @@ proc ::widget::init_Ttk {args} {
 	set cmd ttk::$cmd
 	set opts [concat [::widget::inherit tcl $group $cmd ""] $xopts]
 	::widget::define $group $cmd -image $img -requires Tk \
-	    -lang {tcl ruby perltkx} -version 8.5 -options $opts
+	    -lang {tcl ruby perltkx r} -version 8.5 -options $opts
     }
 }
 
