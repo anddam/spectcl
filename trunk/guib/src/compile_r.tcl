@@ -1,8 +1,9 @@
 # compile_tcl.tcl --
 #
-#	This file implements tcl code generation and testing
+#	This file implements R code generation and testing
 #
 # Copyright (c) 2006 ActiveState Software Inc
+# Copyright (c) 2010-2011 Leonid Landsman, leonid.landsman@nih.gov, leonid.landsman@gmail.com
 #
 # See the file "license.terms" for information on usage and
 # redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES.
