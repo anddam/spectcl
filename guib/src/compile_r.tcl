@@ -174,8 +174,14 @@ proc ::compile::r::targetHeader {file uifile prefix args} {
 	"#\n\n" \
 	"# Declare the namespace for this dialog\n" \
 	"#namespace eval [list $prefix] {}\n" \
-	"require\(\"tcltk\"\)\n" \
-	"\n"
+	"require\(\"tcltk\"\)\n"
+    
+    foreach grp [array names REQS] {
+	if {[string match -nocase Tktable $grp]} {
+	    append script "tclRequire\(\"$grp\"\)"
+	}
+	append script "\n"
+    }
 
     return $script
 }
@@ -349,10 +355,15 @@ proc ::compile::r::widget {type name master options args} {
 	regsub -all {::} $wcmd "" wcmd
 	regsub -all {::} $name "" name 
     }
-    append script "${indent}$name <- $cmdprefix$wcmd\($root"
-
+    
+    if {[string match -nocase {table} $wcmd]} {
+	append script "${indent}$name <- tkwidget\($root,\"table\""
+    } else {
+	append script "${indent}$name <- $cmdprefix$wcmd\($root"
+    }
+    
     # process options
-    set in2 " \n\t${indent}"
+    set in2 " \n\t,${indent}"
     foreach {opt value} $options {
 	#
 	# Do post-validity checking of options here
@@ -395,6 +406,8 @@ proc ::compile::r::widget {type name master options args} {
 		}
 	    } elseif {[regexp command $opt] && ($value != "")} {
 		set value [string trimright [string trimleft [quote $value $opt] \"] \"]
+	    } elseif {[regexp variable $opt] && ($value != "")} {
+		set value [string trimright [string trimleft [quote $value $opt] \"] \"]
 	    } else {
 		set value [quote $value $opt]
 	    }
@@ -404,7 +417,7 @@ proc ::compile::r::widget {type name master options args} {
 	    set value [quote $value $opt]
 	}
 	set opt1 [string trimleft $opt -]
-	append script ",${in2}$opt1=$value"
+	append script "${in2}$opt1=$value"
     }
 
     # end of widget command
