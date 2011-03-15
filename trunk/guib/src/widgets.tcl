@@ -39,13 +39,16 @@ namespace eval ::config {
 	compound {bottom center left none right top}
 	default {active disabled normal}
 	direction {above below flush left right}
+	drawmode {slow compatible fast single}
 	justify	{left right center}
 	orient	{horizontal vertical}
 	relief	{flat groove raised ridge solid sunken}
+	resizeborders	{none both row col}
 	state	{disabled normal}
 	buttonstate	{active disabled normal}
 	entrystate	{disabled normal readonly}
 	selectmode {browse single multiple extended}
+	selecttype {row col cell both}
 	validate {none focus focusin focusout key all}
 	wrap	{none char word}
     } {

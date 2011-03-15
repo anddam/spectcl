@@ -51,6 +51,7 @@ namespace eval ::widget {
 	entrystate	{disabled normal readonly}
 	sticky	{"" nw n ne new w e ew sw s se sew nsw ns nse nsew}
 	selectmode {browse single multiple extended}
+	selecttype {row col cell both}
 	validate {none focus focusin focusout key all}
 	wrap	{none char word}
     }
