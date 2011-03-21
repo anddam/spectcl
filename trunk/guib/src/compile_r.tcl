@@ -417,12 +417,104 @@ proc ::compile::r::widget {type name master options args} {
 	    set value [quote $value $opt]
 	}
 	set opt1 [string trimleft $opt -]
-	append script "${in2}$opt1=$value"
+	
+	if {$opt1 eq "font"} {
+	    append script "${in2}font=tkfont.create\("
+	    append script [::compile::r::font $name $value]
+	    append script "\)\n"
+	} else {
+	    append script "${in2}$opt1=$value"
+	}
+	
+	
     }
 
     # end of widget command
     append script "\)\n"
 
+    return $script
+}
+
+# font --
+#
+#   Handles instantiation of a widgets's font
+#
+# Arguments:
+#   name	name of widget
+#   fontdescription	string holding fond settings
+# Results:
+#   Returns script to instantiate font
+#
+proc ::compile::r::font {name fontdescription args} {
+    variable indent
+    set in1 " \n\t${indent}"
+    set in2 " \n\t,${indent}"
+    set firstcomma 0   
+    array set fontvals {
+	family 0
+	size 0
+	weight 0
+	slant 0
+	underline 0
+	overstrike 0
+    }
+    set leftCurly [string last \{ $fontdescription]
+    if {$leftCurly != 0} {
+	set rightCurly [string first \} $fontdescription]
+	set family [string range $fontdescription [expr $leftCurly + 1] [expr $rightCurly - 1] ]
+	append script "${in1}family=\"$family\""
+	set fontdescription [string replace $fontdescription $leftCurly [expr $rightCurly + 1]]
+	set firstcomma 1
+	set fontvals(family) 1
+    }
+    foreach val [split [string trimright [string trimleft $fontdescription \{] \}] ] {
+	variable opt2 ""
+	switch -regexp -- $val {
+	    {\Aunderline\Z} {
+		if {$fontvals(underline) == 0} {
+		    set opt2 underline; set val \"true\"; set fontvals(underline) 1
+		}
+	    }
+	    {\Aoverstrike\Z} {
+		if {$fontvals(overstrike) == 0} {
+		    set opt2 overstrike; set val \"true\"; set fontvals(overstrike) 1
+		}
+	    }
+	    {\Anormal\Z} -
+	    {\Abold\Z} {
+		if {$fontvals(weight) == 0} {
+		    set opt2 weight; set val \"$val\"; set fontvals(weight) 1
+		}
+	    }
+	    {\Aroman\Z} -
+	    {\Aitalic\Z} {
+		if {$fontvals(slant) == 0} {
+		    set opt2 slant; set val \"$val\"; set fontvals(slant) 1
+		}
+	    }
+	    {\A-?\d+\Z} {
+		if {$fontvals(size) == 0} {
+		    set opt2 size; set fontvals(size) 1
+		}
+	    }
+	    default {
+		if {$fontvals(family) == 0} {
+		    set opt2 family; set val \"$val\"; set fontvals(family) 1
+		}
+	    }
+	}
+	if {$firstcomma == 0} {
+	    append script "${in1}$opt2=$val"
+	    set firstcomma 1
+	} else {
+	    append script "${in2}$opt2=$val"
+	}
+    }
+    
+    if {$fontvals(family) == 0} {
+	append script "${in2}family=\"Tahoma\""
+    }
+    
     return $script
 }
 
