@@ -51,6 +51,8 @@ namespace eval ::config {
 	selecttype {row col cell both}
 	validate {none focus focusin focusout key all}
 	wrap	{none char word}
+	colstretchmode {none unset all last fill}
+	rowstretchmode {none unset all last fill}
     } {
 	set TYPES($type) [lsort -dictionary $value]
     }

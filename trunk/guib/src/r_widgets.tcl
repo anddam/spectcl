@@ -23,7 +23,7 @@
 	{option -colorigin -reflect 0 -type special -category advanced -default 0}
 	{option -cols -reflect 0 -type special -category advanced -default 10}
 	{option -colseparator -reflect 0 -type special -category advanced -default {	}}
-	{option -colstretchmode -reflect 0 -type special -category advanced -default none}
+	{option -colstretchmode -reflect 0 -type colstretchmode -category advanced -default none}
 	{option -coltagcommand -reflect 0 -type special -category advanced -default {}}
 	{option -colwidth -reflect 0 -type special -category advanced -default 10}
 	{option -command -reflect 0 -type command -category basic -default {}}
@@ -59,7 +59,7 @@
 	{option -roworigin -reflect 0 -type special -category advanced -default 0}
 	{option -rows -reflect 0 -type special -category advanced -default 10}
 	{option -rowseparator -reflect 0 -type special -category advanced -default {	}}
-	{option -rowstretchmode -reflect 0 -type special -category advanced -default none}
+	{option -rowstretchmode -reflect 0 -type rowstretchmode -category advanced -default none}
 	{option -rowtagcommand -reflect 0 -type special -category advanced -default {}}
 	{option -selectioncommand -reflect 0 -type special -category advanced -default {}}
 	{option -selectmode -reflect 0 -type selectmode -category basic -default browse}
