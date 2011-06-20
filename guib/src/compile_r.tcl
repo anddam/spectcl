@@ -173,7 +173,6 @@ proc ::compile::r::targetHeader {file uifile prefix args} {
 	"# The associated callback file should be modified instead.\n" \
 	"#\n\n" \
 	"# Declare the namespace for this dialog\n" \
-	"#namespace eval [list $prefix] {}\n" \
 	"require\(\"tcltk\"\)\n"
     
     foreach grp [array names REQS] {
@@ -248,11 +247,7 @@ proc ::compile::r::uiProcBegin {prefix args} {
 	"#   args     a catch-all for other args, but none are expected\n"\
 	"#\n" \
 	"ui <- function (root) \{\n" \
-	#$indent "# this handles '.' as a special case\n" \
-	#$indent {set base [expr {($root == ".") ? "" : $root}]} "\n" \
-	"#${indent}variable ROOT \$root\n" \
-	"#${indent}variable BASE \$base\n" \
-	"#${indent}variable SCRIPTDIR ; \# defined in main script\n"
+	
     foreach img [lsort -dictionary [array names use_images]] {
 	# This image should already be created by name
 	append script "${indent}tkimage.create(\"photo\", img, file=$img)\n"
@@ -671,11 +666,12 @@ proc ::compile::r::resizing {master dim weights minsizes pads args} {
 #   Returns ...
 #
 proc ::compile::r::standalone {prefix args} {
+    set top "top_$prefix"
     set script "\n# Standalone Code Initialization - DO NOT EDIT\n#\n"
-    
-    append script "top <- tktoplevel()\n"
-    append script "tkwm.title(top, \"$prefix\")\n"
-    append script "ui(top);\n\n"
+        
+    append script "$top <- tktoplevel()\n"
+    append script "tkwm.title($top, \"$prefix\")\n"
+    append script "ui($top);\n\n"
     set indent ""
 
     return $script
